@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { SchemaViewer } from '../components/Schema/SchemaViewer';
+import { SchemaViewer } from '../containers/Schema/SchemaViewer';
 
 const meta = {
   title: 'Components/SchemaViewer',
