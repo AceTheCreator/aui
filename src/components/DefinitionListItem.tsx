@@ -7,9 +7,8 @@ interface WrapperProps {
 
 interface DefinitionListItemProps {
  IconClass?: ComponentType<{ className: string; title: string; alt: string }>;
- term: string;
- visibleTerm?: boolean;
- text: ReactNode;
+ text: string;
+ itemChildren?: ReactNode;
  href?: string;
  vertical?: boolean;
  className?: string;
@@ -17,11 +16,10 @@ interface DefinitionListItemProps {
 
 export default function DefinitionListItem({
  IconClass,
- term,
- visibleTerm = true,
  text,
  href,
  vertical = false,
+ itemChildren,
  className = '',
 }: DefinitionListItemProps) {
  const Wrapper: FC<WrapperProps> = href 
@@ -32,15 +30,18 @@ export default function DefinitionListItem({
    <div className={`${!vertical && 'flex'} ${className}`}>
      <dt>
        <Wrapper className="flex">
-         {IconClass && (<IconClass className="w-5 h-5" title={term} alt={term} />)}
-         {visibleTerm ? <span className="pl-2 text-sm">{term}</span> : <span className="sr-only">{term}</span>}
+         {IconClass && (<IconClass className="w-5 h-5" title={`${text}`} alt={`${text}`} />)}
        </Wrapper>
      </dt>
-     
-     <dd className={`${vertical && 'pt-2'} pl-2 text-sm`}>
+     <dd className={`pl-2 text-sm`}>
        <Wrapper>
          {text}
        </Wrapper>
+       {itemChildren && 
+       <Wrapper className='pt-4 -ml-6'>
+         {itemChildren}
+       </Wrapper>
+       }
      </dd>
    </div>
  )

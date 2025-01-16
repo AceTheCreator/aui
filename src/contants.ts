@@ -1,0 +1,10 @@
+export const CONTACT_TEXT = 'Contact';
+export const NAM_TEXT = 'Name';
+export const URL_TEXT = 'Url';
+export const EMAIL_TEXT = 'Email';
+export const LICENSE_TEXT = 'License';
+export const TERMS_OF_SERVICE_TEXT = 'Terms of service';
+export const URL_SUPPORT_TEXT = 'Support';
+export const EMAIL_SUPPORT_TEXT = 'Email support';
+export const EXTERAL_DOCUMENTATION_TEXT = 'External Documentation';
+export const TAGS_TEXT = 'Tags'

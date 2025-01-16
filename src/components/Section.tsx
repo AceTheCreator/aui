@@ -1,17 +1,24 @@
+import { ReactNode } from "react"
+
+interface SectionProps{
+  content?: ReactNode,
+  sideContent?: ReactNode,
+  stickySideContent: boolean,
+}
 
 export default function Section({
     content,
     sideContent,
     stickySideContent = false
-  }) {
+  }: SectionProps) {
     return (
       <>
-        <section className="pb-10 border-b border-gray-200 text-lg mb-10 lg:flex">
+        <section className="pb-10 border-b border-gray-200 text-lg mb-10 lg:flex lg:justify-between">
           <div className="xl:w-prose lg:w-mprose">
             {content}
           </div>
           <div className="pl-0 pt-8 lg:pt-0 xl:pl-12 xl:pt-0 ">
-            <div className={stickySideContent && 'sticky top-4'}>
+            <div className={`${stickySideContent && 'sticky top-4'}`}>
               {sideContent}
             </div>
           </div>

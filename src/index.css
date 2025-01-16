@@ -15,10 +15,7 @@ a {
   text-decoration: none;
 }
 
-* {
-    box-sizing: border-box;
-  }
-  
+
   :root {
     --color-primary: #64748B;
     --color-primary-light: #E2E8F0;
