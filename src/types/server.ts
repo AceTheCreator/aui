@@ -10,7 +10,7 @@ export interface ServerInterface {
       [key: string]: ServerVariablesInterface
     };
     security?: SecurityInterface[];
-    tags?: Tags;
+    tags?: Tags[];
     externalDocs?: ExternalDocs;
     bindings?: unknown;
   }

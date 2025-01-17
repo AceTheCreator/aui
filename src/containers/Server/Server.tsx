@@ -4,6 +4,8 @@ import IconLink from "../../icons/Link";
 import IconShieldCheck from "../../icons/ShieldCheck";
 import IconVariable from "../../icons/Variable";
 import { ServerInterface } from "../../types/server";
+import Authorization from "../../components/Authorization";
+import Tag from "../../components/Tag";
 
 export default function Server({
   host,
@@ -89,6 +91,22 @@ export default function Server({
         {urlChunks}
       </h3>
       <Markdown>{description}</Markdown>
+      <div className="mt-2">
+        {tags &&
+          tags.map((tag, index) => (
+            <Tag
+              key={index}
+              href={tag.externalDocs && tag.externalDocs.url}
+              title={
+                tag.description ||
+                (tag.externalDocs && tag.externalDocs.description
+                  ? tag.externalDocs.description
+                  : null)
+              }
+              name={tag.name}
+            />
+          ))}
+      </div>
       <h3 className="font-bold text-gray-700 mt-8">
         <IconVariable className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
         URL Variables
@@ -105,6 +123,7 @@ export default function Server({
           <p className="prose text-gray-500 mt-4">
             This server accepts the following authorization mechanisms:
           </p>
+          <Authorization />
         </div>
       )}
     </div>
