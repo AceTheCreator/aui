@@ -31,7 +31,7 @@ export interface Contact {
     license?: License;
     externalDocs?: ExternalDocs;
     contact?: Contact;
-    tags?: Tag[];
+    tags?: Tags[];
     extensions?: Extensions;
   }
 

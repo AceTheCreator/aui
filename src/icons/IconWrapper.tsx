@@ -2,7 +2,7 @@ import { SVGProps, ReactNode } from 'react'
 
 export interface IconWrapperProps extends SVGProps<SVGSVGElement> {
   className?: string;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export default function IconWrapper({ className, children, ...props }: IconWrapperProps) {
