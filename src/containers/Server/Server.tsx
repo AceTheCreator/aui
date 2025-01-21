@@ -46,6 +46,7 @@ export default function Server({
       );
     }
   );
+
   const variableElems = (
     <>
       {Object.keys(variables).map((variable) => {
@@ -123,7 +124,7 @@ export default function Server({
           <p className="prose text-gray-500 mt-4">
             This server accepts the following authorization mechanisms:
           </p>
-          <Authorization />
+          <Authorization securities={security} />
         </div>
       )}
     </div>

@@ -22,7 +22,25 @@ export const Default: Story = {
       "protocolVersion": 5,
       "security": [
         {
-          "$ref": "#/components/securitySchemes/developerApiKey"
+          "type": "apiKey",
+          "in": "password",
+          "description": "Developer API key for the development environment. Use this key only for internal testing."
+        },
+        {
+          "type": "oauth2",
+          "description": "OAuth 2.0 authentication for development environment",
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
+              "tokenUrl": "https://auth.dev-messaging.example.com/oauth/token",
+              "refreshUrl": "https://auth.dev-messaging.example.com/oauth/refresh",
+              "availableScopes": ["publish", "subscribe", "manage"]
+            }
+          }
+        },
+        {
+          "type": "userPassword",
+          "description": "Basic authentication for development environment"
         }
       ],
       "tags": [
@@ -50,7 +68,19 @@ export const Default: Story = {
       "protocolVersion": 5,
       "security": [
         {
-          "$ref": "#/components/securitySchemes/testApiKey"
+          "type": "apiKey",
+          "in": "user",
+          "description": "Test API key for the testing environment. Ensure you do not use it in production."
+        },
+        {
+          "type": "openIdConnect",
+          "description": "OpenID Connect authentication for testing environment",
+          "openIdConnectUrl": "https://auth.test-messaging.example.com/.well-known/openid-configuration",
+          "scopes": ["publish", "subscribe", "manage"]
+        },
+        {
+          "type": "sasl",
+          "description": "SASL authentication for testing environment",
         }
       ],
       "tags": [
@@ -83,7 +113,34 @@ export const Default: Story = {
       "protocolVersion": 5,
       "security": [
         {
-          "$ref": "#/components/securitySchemes/prodApiKey"
+          "type": "apiKey",
+          "in": "user",
+          "description": "Production API key with rate limiting and enhanced security. Keep this key secure."
+        },
+        {
+          "type": "oauth2",
+          "description": "OAuth 2.0 authentication for production environment",
+          "flows": {
+            "clientCredentials": {
+              "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
+              "tokenUrl": "https://auth.messaging.example.com/oauth/token",
+               "availableScopes": {
+                "write:pets": "modify pets in your account",
+                "read:pets": "read your pets"
+              }
+            }
+          },
+          "scopes": ["write", "read"]
+        },
+        {
+          "type": "sasl",
+          "description": "SASL authentication for production environment",
+        },
+        {
+          "type": "openIdConnect",
+          "description": "OpenID Connect authentication for production environment",
+          "openIdConnectUrl": "https://auth.messaging.example.com/.well-known/openid-configuration",
+          "scopes": ["publish", "subscribe", "manage"]
         }
       ],
       "tags": [
@@ -127,25 +184,6 @@ export const Default: Story = {
             "description": "Last will message sent when the client disconnects unexpectedly."
           }
         }
-      }
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "developerApiKey": {
-        "type": "apiKey",
-        "in": "user",
-        "description": "Developer API key for the development environment. Use this key only for internal testing."
-      },
-      "testApiKey": {
-        "type": "apiKey",
-        "in": "user",
-        "description": "Test API key for the testing environment. Ensure you do not use it in production."
-      },
-      "prodApiKey": {
-        "type": "apiKey",
-        "in": "user",
-        "description": "Production API key with rate limiting and enhanced security. Keep this key secure."
       }
     }
   }

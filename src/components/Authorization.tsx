@@ -1,86 +1,162 @@
 import { useState } from "react";
 import Tabs from "./Tabs";
+import { SecurityInterface } from "../types/server";
+import { formatArrayToCodeString } from "../helpers/formatEnumDescription";
+import { AUTHORIZATION_CODE_DESCRIPTION, AUTHORIZATION_CODE_TEXT, CLIENT_CREDENTIALS_DESCRIPTION, CLIENT_CREDENTIALS_TEXT, IMPLICIT_DESCRIPTION, IMPLICIT_TEXT, PASSWORD_DESCRIPTION, PASSWORD_TEXT } from "../contants";
 
   const tabs = [
-    { id: "user-password", name: "User/Password" },
+    { id: "userPassword", name: "User/Password" },
     { id: "oauth2", name: "OAuth2" },
-    { id: "api-key", name: "API key" },
-    { id: "openid", name: "OpenID" },
+    { id: "apiKey", name: "API key" },
+    { id: "openIdConnect", name: "OpenID" },
   ];
 
-export default function Authorization(){
+export default function Authorization({securities}: SecurityInterface){
     const [authTab, setAuthTab] = useState("oauth2");
+
+    const filteredTabs = tabs.filter((tab) => {
+      const tabId = tab.id;
+      return securities.some(
+        (security:SecurityInterface) => security.type.toLowerCase() === tabId.toLowerCase()
+      );
+    });
+
+function filteredType(type: string): SecurityInterface | undefined {
+  return securities.find(
+    (security: SecurityInterface) => security.type === type
+  );
+};
+
     return (
       <div>
-        <Tabs tabs={tabs} current={authTab} onChange={setAuthTab} />
+        <Tabs tabs={filteredTabs} current={authTab} onChange={setAuthTab} />
         <div className="py-4 prose text-gray-500">
-          {authTab === "user-password" && (
+          {authTab === "userPassword" && (
             <span>
               You have to <strong>provide user and password</strong> to connect
               to this server.
             </span>
           )}
-          {authTab === "api-key" && (
-            <span>
-              You have to{" "}
-              <strong>
-                provide your API key as the user name and leave the password
-                empty
-              </strong>{" "}
-              to connect to this server.
-            </span>
+          {authTab === "apiKey" && (
+            <ApiKey security={filteredType("apiKey")} />
           )}
-          {authTab === "openid" && (
-            <>
-              <p>You can use OpenID to connect to this server.</p>
-              <p>
-                The OpenID Connect URL is{" "}
-                <a href="https://authserver.example/.well-known">
-                  https://authserver.example/.well-known
-                </a>
-                .
-              </p>
-            </>
+          {authTab === "openIdConnect" && (
+            <OpenID security={filteredType("openIdConnect")} />
           )}
           {authTab === "oauth2" && (
-            <>
-              <div>
-                <h4 className="text-lg leading-6 font-bold text-gray-900">
-                  Implicit
-                </h4>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  The Implicit flow is a simplified OAuth flow previously
-                  recommended for native apps and JavaScript apps where the
-                  access token is returned immediately without an extra
-                  authorization code exchange step.
-                </p>
-              </div>
-              <div className="mt-5 border-t border-gray-200">
-                <dl className="sm:divide-y sm:divide-gray-200">
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Authorization URL
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      <a href="https://authserver.example/auth">
-                        https://authserver.example/auth
-                      </a>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Scopes
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      <code>streetlights:on</code>,{" "}
-                      <code>streetlights:off</code>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </>
+            <OAuth2 security={filteredType("oauth2")} />
           )}
         </div>
       </div>
     );
+};
+
+export const ApiKey = ({security}) => {
+  const keyLocation = security?.in;
+  if(keyLocation === 'password'){
+    return (
+      <span>
+        You have to{" "}
+        <strong>
+          provide your API key as the password and leave the user name empty
+        </strong>{" "}
+        to connect to this server.
+      </span>
+    );
+  }
+  return (
+    <span>
+      You have to{" "}
+      <strong>
+        provide your API key as the user name and leave the password empty
+      </strong>{" "}
+      to connect to this server.
+    </span>
+  );
+}
+
+export const OpenID = ({security}) => {
+  return (
+    <>
+      <p>You can use OpenID to connect to this server.</p>
+      <p>
+        The OpenID Connect URL is{" "}
+        <a href="https://authserver.example/.well-known">
+          {security.openIdConnectUrl}
+        </a>
+        .
+      </p>
+      {security?.scopes && (
+        <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 items-center sm:gap-4">
+          <dt className="text-sm font-medium text-gray-500">Scopes</dt>
+          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <code>{formatArrayToCodeString(security.scopes)}</code>
+          </dd>
+        </div>
+      )}
+    </>
+  );
+};
+
+
+export const OAuth2 = ({security}) => {
+  const flows = security?.flows;
+  return (
+    <>
+    {flows && Object.keys(flows).map((flow) => {
+      let title = '';
+      let description = '';
+      switch (flow) {
+        case "clientCredentials":
+          title = CLIENT_CREDENTIALS_TEXT;
+          description = CLIENT_CREDENTIALS_DESCRIPTION
+          break;
+        case "implicit":
+          title = IMPLICIT_TEXT;
+          description = IMPLICIT_DESCRIPTION;
+          break;
+        case "password":
+          title = PASSWORD_TEXT;
+          description = PASSWORD_DESCRIPTION;
+          break;
+        case "authorizationCode":
+          title = AUTHORIZATION_CODE_TEXT;
+          description = AUTHORIZATION_CODE_DESCRIPTION;
+          break;
+      };
+      return (
+        <div key={flow}>
+          <div>
+            <h4 className="text-lg leading-6 font-bold text-gray-900">
+              {title}
+            </h4>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              {description}
+            </p>
+          </div>
+          <div className="mt-5 border-t border-gray-200">
+            <dl className="sm:divide-y sm:divide-gray-200">
+              <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                <dt className="text-sm font-medium text-gray-500">
+                  Authorization URL
+                </dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <a href={``}>{flows[flow].authorizationUrl}</a>
+                </dd>
+              </div>
+              {security.scopes && (
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                  <dt className="text-sm font-medium text-gray-500">Scopes</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <code>{formatArrayToCodeString(security.scopes)}</code>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </div>
+      );
+    })}
+    </>
+  );
 }

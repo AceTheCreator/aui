@@ -25,4 +25,8 @@ export default function formatEnumDescription(values: string[]): JSX.Element {
       Allowed values are {allButLast}and {last}
     </span>
   );
+};
+
+export function formatArrayToCodeString(arr: string[]): string {
+  return arr.map((item) => `\`${item}\``).join(", ");
 }

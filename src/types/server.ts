@@ -16,33 +16,35 @@ export interface ServerInterface {
   }
 
   export interface ServerVariablesInterface {
-    enum: Array<string>;
+    enum?: Array<string>;
     default: string | undefined;
     description: string | undefined;
     examples: Array<string>;
   }
 
   export interface SecurityInterface {
-    name: string | undefined;
+    name?: string | undefined;
     type: string;
-    description: string | undefined;
-    in: string | undefined;
-    scheme: string | undefined;
-    bearerFormat: string | undefined;
-    flows: OAuthFlowsInterface | undefined;
-    openIdConnectUrl: string | undefined;
+    description?: string | undefined;
+    in?: string | undefined;
+    scheme?: string | undefined;
+    bearerFormat?: string | undefined;
+    flows?: OAuthFlowsInterface | undefined;
+    openIdConnectUrl?: string | undefined;
+    scopes?: string[];
   }
 
   export interface OAuthFlowsInterface{
-    implicit: OAuthFlowInterface | undefined;
-    password: OAuthFlowInterface | undefined;
-    clientCredentials: OAuthFlowInterface | undefined;
-    authorizationCode: OAuthFlowInterface | undefined;
+    implicit?: OAuthFlowInterface | undefined;
+    password?: OAuthFlowInterface | undefined;
+    clientCredentials?: OAuthFlowInterface | undefined;
+    authorizationCode?: OAuthFlowInterface | undefined;
   }
 
   export interface OAuthFlowInterface {
     authorizationUrl: string;
     tokenUrl: string;
-    refreshUrl: string | undefined;
-    availableScopes: Array<string>;
+    refreshUrl?: string | undefined;
+    availableScopes: Record<string, string>;
   }
+
