@@ -12,7 +12,8 @@ export interface ServerInterface {
     security?: SecurityInterface[];
     tags?: Tags[];
     externalDocs?: ExternalDocs;
-    bindings?: unknown;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bindings?: any;
   }
 
   export interface ServerVariablesInterface {

@@ -6,6 +6,7 @@ import IconVariable from "../../icons/Variable";
 import { ServerInterface } from "../../types/server";
 import Authorization from "../../components/Authorization";
 import Tag from "../../components/Tag";
+import Connection from "../../icons/Connection";
 
 export default function Server({
   host,
@@ -15,6 +16,7 @@ export default function Server({
   tags,
   variables,
   security,
+  bindings
 }: ServerInterface) {
   const chunkColors = [
     "text-blue-600",
@@ -125,6 +127,17 @@ export default function Server({
             This server accepts the following authorization mechanisms:
           </p>
           <Authorization securities={security} />
+        </div>
+      )}
+      {bindings && (
+        <div>
+          <h3 className="font-bold text-gray-700 mt-8">
+            <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+            Connection Settings
+          </h3>
+          <p className="prose text-gray-500 mt-4">
+            This server accepts the following authorization mechanisms:
+          </p>
         </div>
       )}
     </div>
