@@ -5,6 +5,7 @@ import bindingSelector from "../helpers/bindingsSelector";
 
 export default function Bindings({ type, bindings, expand, protocol }) {
   const schema = bindingSelector(protocol, null);
+  console.log(protocol);
   const [expanded, setExpanded] = useState(expand);
 
   return (
