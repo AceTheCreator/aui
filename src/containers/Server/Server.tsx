@@ -19,6 +19,7 @@ export default function Server({
   security,
   bindings,
 }: ServerInterface) {
+  console.log(bindings);
   const chunkColors = [
     "text-blue-600",
     "text-indigo-600",
@@ -137,7 +138,12 @@ export default function Server({
           {/* <p className="prose text-gray-500 mt-4">
             This server accepts the following connection configuration:
           </p> */}
-          <Bindings expand={true} type="server" bindings={bindings[protocol]} />
+          <Bindings
+            expand={true}
+            type="server"
+            bindings={bindings[protocol]}
+            protocol={protocol}
+          />
         </div>
       )}
     </div>

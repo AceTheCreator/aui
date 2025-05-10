@@ -1,90 +1,11 @@
 import { useState } from "react";
 import IconArrowRight from "../icons/ArrowRight";
 import IconDownRight from "../icons/ArrowDown";
+import bindingSelector from "../helpers/bindingsSelector";
 
-const mqttSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  $id: "http://asyncapi.com/bindings/mqtt/0.1.0/server.json",
-  title: "MQTT server bindings object",
-  description:
-    "This object contains information about the server representation in MQTT.",
-  type: "object",
-  additionalProperties: false,
-  patternProperties: {
-    "^x-[\\w\\d\\.\\x2d_]+$": {
-      $ref: "http://asyncapi.com/definitions/3.0.0/specificationExtension.json",
-    },
-  },
-  properties: {
-    clientId: {
-      type: "string",
-      description: "The client identifier.",
-    },
-    cleanSession: {
-      type: "boolean",
-      description:
-        "Whether to create a persistent connection or not. When 'false', the connection will be persistent.",
-    },
-    lastWill: {
-      type: "object",
-      description: "Last Will and Testament configuration.",
-      properties: {
-        topic: {
-          type: "string",
-          description:
-            "The topic where the Last Will and Testament message will be sent.",
-        },
-        qos: {
-          type: "integer",
-          enum: [0, 1, 2],
-          description:
-            "Defines how hard the broker/client will try to ensure that the Last Will and Testament message is received. Its value MUST be either 0, 1 or 2.",
-        },
-        message: {
-          type: "string",
-          description: "Last Will message.",
-        },
-        retain: {
-          type: "boolean",
-          description:
-            "Whether the broker should retain the Last Will and Testament message or not.",
-        },
-      },
-    },
-    keepAlive: {
-      type: "integer",
-      description:
-        "Interval in seconds of the longest period of time the broker and the client can endure without sending a message.",
-    },
-    bindingVersion: {
-      type: "string",
-      enum: ["0.1.0"],
-      description:
-        "The version of this binding. If omitted, 'latest' MUST be assumed.",
-    },
-  },
-  examples: [
-    {
-      clientId: "guest",
-      cleanSession: true,
-      lastWill: {
-        topic: "/last-wills",
-        qos: 2,
-        message: "Guest gone offline.",
-        retain: false,
-      },
-      keepAlive: 60,
-      bindingVersion: "0.1.0",
-    },
-  ],
-};
-
-export default function Bindings({ type, bindings, expand }) {
+export default function Bindings({ type, bindings, expand, protocol }) {
+  const schema = bindingSelector(protocol, null);
   const [expanded, setExpanded] = useState(expand);
-
-  //   if (!bindings || Object.keys(bindings).length === 0) {
-  //     return null;
-  //   }
 
   return (
     <div className="mt-2 rounded-lg bg-gray-200 border border-gray-500">
@@ -105,7 +26,7 @@ export default function Bindings({ type, bindings, expand }) {
 
       {expanded && (
         <div className="border-t border-gray-500 p-2">
-          <SchemaBasedRenderer data={bindings} schema={mqttSchema} />
+          <SchemaBasedRenderer data={bindings} schema={schema} />
         </div>
       )}
     </div>
@@ -145,17 +66,6 @@ const SchemaBasedRenderer = ({ data, schema, path = "", level = 0 }) => {
                     </span>
                   </a>
                 </div>
-                {/* {propSchema.description && (
-                          <div className="ml-1 group relative">
-                            <InfoIcon size={14} className="text-gray-400" />
-                            <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 text-xs bg-white border border-gray-200 rounded shadow-lg">
-                              {propSchema.description}
-                            </div>
-                          </div>
-                        )} */}
-                {/* {(schema.required || []).includes(propName) && (
-                          <span className="ml-1 text-red-500 text-xs">*</span>
-                        )} */}
               </div>
               <div
                 className={`${
