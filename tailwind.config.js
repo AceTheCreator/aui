@@ -6,16 +6,15 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        rose: colors.rose,
-        gray: colors.blueGray,
+        rose: colors.rose[500],
+        gray: colors.slate,
         cyan: colors.cyan,
         'code-block': 'rgb(37, 47, 63)',
         'code-block2': 'rgb(57, 67, 83)',
-        'code-block-highlight': colors.blueGray[300],
+        'code-block-highlight': colors.cyan[300],
       },
       maxWidth: {
         '9xl': '98rem'
@@ -25,24 +24,15 @@ export default {
         mprose: '75ch',
         '144': '36rem',
       },
-      typography: {
+      typography: (theme) => ({
         DEFAULT: {
           css: {
             pre: {
-              marginTop: 0,
-              marginBottom: 0,
-            }
+             backgroundColor: '#011627'
+            },
           },
         },
-        sm: {
-          css: {
-            pre: {
-              marginTop: 0,
-              marginBottom: 0,
-            }
-          },
-        },
-      },
+      })
     },
   },
   variants: {

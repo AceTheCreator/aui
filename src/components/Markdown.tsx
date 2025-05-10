@@ -1,7 +1,26 @@
-import ReactMarkdown from 'react-markdown'
+import React from "react";
+import DOMPurify from "isomorphic-dompurify";
 
-export default function Markdown({children}) {
-    return     <div className="prose mt-4 text-gray-500">
-    <ReactMarkdown>{children}</ReactMarkdown>
-  </div>
-}
+import { renderMarkdown } from "../helpers/marked";
+
+const Markdown: React.FunctionComponent<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  if (!children) {
+    return null;
+  }
+  if (typeof children !== "string") {
+    return <>{children}</>;
+  }
+
+  return (
+    <div
+      className="prose max-w-none"
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(renderMarkdown(children)),
+      }}
+    />
+  );
+};
+
+export default Markdown;

@@ -14,7 +14,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   tags,
   extensions,
 }) => {
-  console.log(extensions);
+  // console.log(extensions);
   const content = (
     <>
       <h1 className="inline-block text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -38,7 +38,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   return (
     <div className="flex justify-center">
       <Section
-        optional={version}
+        optional={`v${version}`}
         content={content}
         sideContent={sideContent}
         stickySideContent={true}

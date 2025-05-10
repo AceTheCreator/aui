@@ -7,6 +7,7 @@ import { ServerInterface } from "../../types/server";
 import Authorization from "../../components/Authorization";
 import Tag from "../../components/Tag";
 import Connection from "../../icons/Connection";
+import Bindings from "../../components/Bindings";
 
 export default function Server({
   host,
@@ -16,7 +17,7 @@ export default function Server({
   tags,
   variables,
   security,
-  bindings
+  bindings,
 }: ServerInterface) {
   const chunkColors = [
     "text-blue-600",
@@ -30,7 +31,6 @@ export default function Server({
     (chunk, index): JSX.Element => {
       const isVariable = chunk.startsWith("{");
       const variableName = isVariable ? chunk.slice(1, -1) : "";
-
       return (
         <span
           key={index}
@@ -48,18 +48,15 @@ export default function Server({
       );
     }
   );
-
   const variableElems = (
     <>
-      {Object.keys(variables).map((variable) => {
+      {Object.keys(variables).map((variable, i) => {
         const variableProps = variables[variable];
         return (
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
             <dt className="text-sm font-medium text-gray-500">
               <code
-                className={`${
-                  chunkColors[colorIndex++ % chunkColors.length]
-                } font-bold`}
+                className={`${chunkColors[i % chunkColors.length]} font-bold`}
               >{`{${variable}}`}</code>
             </dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose">
@@ -89,27 +86,29 @@ export default function Server({
   );
   return (
     <div>
-      <h3 className="font-bold text-gray-700 mt-8">
-        <IconLink className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
-        {urlChunks}
-      </h3>
-      <Markdown>{description}</Markdown>
-      <div className="mt-2">
-        {tags &&
-          tags.map((tag, index) => (
-            <Tag
-              key={index}
-              href={tag.externalDocs && tag.externalDocs.url}
-              title={
-                tag.description ||
-                (tag.externalDocs && tag.externalDocs.description
-                  ? tag.externalDocs.description
-                  : null)
-              }
-              name={tag.name}
-            />
-          ))}
+      <div className="font-bold text-gray-700 mt-8 mb-4 bg-gray-200 border border-gray-500 p-4 rounded-lg">
+        <div className="border border-dotted border-black p-2 rounded-lg bg-white">
+          <IconLink className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+          {urlChunks}
+        </div>
+        <div className="mt-2">
+          {tags &&
+            tags.map((tag, index) => (
+              <Tag
+                key={index}
+                href={tag.externalDocs && tag.externalDocs.url}
+                title={
+                  tag.description ||
+                  (tag.externalDocs && tag.externalDocs.description
+                    ? tag.externalDocs.description
+                    : null)
+                }
+                name={tag.name}
+              />
+            ))}
+        </div>
       </div>
+      <Markdown>{description}</Markdown>
       <h3 className="font-bold text-gray-700 mt-8">
         <IconVariable className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
         URL Variables
@@ -135,9 +134,10 @@ export default function Server({
             <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
             Connection Settings
           </h3>
-          <p className="prose text-gray-500 mt-4">
-            This server accepts the following authorization mechanisms:
-          </p>
+          {/* <p className="prose text-gray-500 mt-4">
+            This server accepts the following connection configuration:
+          </p> */}
+          <Bindings expand={true} type="server" bindings={bindings[protocol]} />
         </div>
       )}
     </div>
