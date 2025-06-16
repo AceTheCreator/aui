@@ -1,51 +1,56 @@
-import { Tags, ExternalDocs, } from "./metadata";
+import { Tags, ExternalDocs } from "./metadata";
 
 export interface ServerInterface {
-    host: string;
-    description?: string | undefined;
-    pathname: string | undefined;
-    protocol: string;
-    protocolVersion: number | undefined;
-    variables?: {
-      [key: string]: ServerVariablesInterface
-    };
-    security?: SecurityInterface[];
-    tags?: Tags[];
-    externalDocs?: ExternalDocs;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    bindings?: any;
-  }
+  host: string;
+  description?: string;
+  pathname: string;
+  protocol: string;
+  protocolVersion: number;
+  variables?: {
+    [key: string]: ServerVariablesInterface;
+  };
+  security?: SecurityInterface[];
+  tags?: Tags[];
+  externalDocs?: ExternalDocs;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bindings?: any;
+}
 
-  export interface ServerVariablesInterface {
-    enum?: Array<string>;
-    default: string | undefined;
-    description: string | undefined;
-    examples: Array<string>;
-  }
+export interface ServerVariablesInterface {
+  enum?: Array<string>;
+  default: string;
+  description: string;
+  examples: Array<string>;
+}
 
-  export interface SecurityInterface {
-    name?: string | undefined;
-    type: string;
-    description?: string | undefined;
-    in?: string | undefined;
-    scheme?: string | undefined;
-    bearerFormat?: string | undefined;
-    flows?: OAuthFlowsInterface | undefined;
-    openIdConnectUrl?: string | undefined;
-    scopes?: string[];
-  }
+export interface SecurityInterface {
+  name?: string;
+  type: string;
+  description?: string;
+  in?: string;
+  scheme?: string;
+  bearerFormat?: string;
+  flows?: OAuthFlowsInterface;
+  openIdConnectUrl?: string;
+  scopes?: string[];
+}
 
-  export interface OAuthFlowsInterface{
-    implicit?: OAuthFlowInterface | undefined;
-    password?: OAuthFlowInterface | undefined;
-    clientCredentials?: OAuthFlowInterface | undefined;
-    authorizationCode?: OAuthFlowInterface | undefined;
-  }
+export type FlowType =
+  | "authorizationCode"
+  | "implicit"
+  | "password"
+  | "clientCredentials";
 
-  export interface OAuthFlowInterface {
-    authorizationUrl: string;
-    tokenUrl: string;
-    refreshUrl?: string | undefined;
-    availableScopes: Record<string, string>;
-  }
+export interface OAuthFlowsInterface {
+  implicit?: OAuthFlowInterface;
+  password?: OAuthFlowInterface;
+  clientCredentials?: OAuthFlowInterface;
+  authorizationCode?: OAuthFlowInterface;
+}
 
+export interface OAuthFlowInterface {
+  authorizationUrl: string;
+  tokenUrl: string;
+  refreshUrl?: string;
+  availableScopes: Record<string, string>;
+}

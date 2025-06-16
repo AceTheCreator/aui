@@ -13,13 +13,11 @@ export default function Server({
   host,
   protocol,
   description,
-  protocolVersion,
   tags,
   variables,
   security,
   bindings,
 }: ServerInterface) {
-  console.log(bindings);
   const chunkColors = [
     "text-blue-600",
     "text-indigo-600",
@@ -49,40 +47,43 @@ export default function Server({
       );
     }
   );
+
   const variableElems = (
     <>
-      {Object.keys(variables).map((variable, i) => {
-        const variableProps = variables[variable];
-        return (
-          <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm font-medium text-gray-500">
-              <code
-                className={`${chunkColors[i % chunkColors.length]} font-bold`}
-              >{`{${variable}}`}</code>
-            </dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose">
-              {variableProps.description}{" "}
-              {variableProps.enum && formatEnumDescription(variableProps.enum)}
-              <div className="mt-2">
-                <span className="font-bold text-gray-500 mt-4 mr-2">
-                  Default value:
-                </span>
-                <code>{variableProps.default}</code>
-              </div>
-              {variableProps.examples && (
+      {variables &&
+        Object.keys(variables).map((variable, i) => {
+          const variableProps = variables[variable];
+          return (
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+              <dt className="text-sm font-medium text-gray-500">
+                <code
+                  className={`${chunkColors[i % chunkColors.length]} font-bold`}
+                >{`{${variable}}`}</code>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose">
+                {variableProps.description}{" "}
+                {variableProps.enum &&
+                  formatEnumDescription(variableProps.enum)}
                 <div className="mt-2">
                   <span className="font-bold text-gray-500 mt-4 mr-2">
-                    Examples:
+                    Default value:
                   </span>
-                  {variableProps.examples.map((example) => {
-                    return <code>{example}</code>;
-                  })}
+                  <code>{variableProps.default}</code>
                 </div>
-              )}
-            </dd>
-          </div>
-        );
-      })}
+                {variableProps.examples && (
+                  <div className="mt-2">
+                    <span className="font-bold text-gray-500 mt-4 mr-2">
+                      Examples:
+                    </span>
+                    {variableProps.examples.map((example) => {
+                      return <code>{example}</code>;
+                    })}
+                  </div>
+                )}
+              </dd>
+            </div>
+          );
+        })}
     </>
   );
   return (
@@ -102,7 +103,7 @@ export default function Server({
                   tag.description ||
                   (tag.externalDocs && tag.externalDocs.description
                     ? tag.externalDocs.description
-                    : null)
+                    : undefined)
                 }
                 name={tag.name}
               />

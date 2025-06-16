@@ -20,11 +20,15 @@ const tabs = [
   { id: "openIdConnect", name: "OpenID" },
 ];
 
-export default function Authorization({ securities }: SecurityInterface) {
+interface Props {
+  securities: SecurityInterface[];
+}
+
+export default function Authorization({ securities }: Props) {
   const filteredTabs = useMemo(() => {
     return tabs.filter((tab) => {
       const tabId = tab.id;
-      return securities.some(
+      return securities?.some(
         (security: SecurityInterface) =>
           security.type.toLowerCase() === tabId.toLowerCase()
       );
@@ -40,10 +44,10 @@ export default function Authorization({ securities }: SecurityInterface) {
     }
   }, [securities]);
 
-  function filteredType(type: string): SecurityInterface | undefined {
+  function filteredType(type: string): SecurityInterface {
     return securities.find(
       (security: SecurityInterface) => security.type === type
-    );
+    )!;
   }
 
   return (
@@ -66,7 +70,11 @@ export default function Authorization({ securities }: SecurityInterface) {
   );
 }
 
-export const ApiKey = ({ security }) => {
+interface ISecurity {
+  security: SecurityInterface;
+}
+
+export const ApiKey = ({ security }: ISecurity) => {
   const keyLocation = security?.in;
   if (keyLocation === "password") {
     return (
@@ -90,7 +98,7 @@ export const ApiKey = ({ security }) => {
   );
 };
 
-export const OpenID = ({ security }) => {
+export const OpenID = ({ security }: ISecurity) => {
   return (
     <>
       <p>You can use OpenID to connect to this server.</p>
@@ -113,12 +121,12 @@ export const OpenID = ({ security }) => {
   );
 };
 
-export const OAuth2 = ({ security }) => {
+export const OAuth2 = ({ security }: ISecurity) => {
   const flows = security?.flows;
   return (
     <>
       {flows &&
-        Object.keys(flows).map((flow) => {
+        Object.entries(flows).map(([flow, flowData]) => {
           let title = "";
           let description = "";
           switch (flow) {
@@ -156,7 +164,7 @@ export const OAuth2 = ({ security }) => {
                       Authorization URL
                     </dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      <a href={``}>{flows[flow].authorizationUrl}</a>
+                      <a href={``}>{flowData.authorizationUrl}</a>
                     </dd>
                   </div>
                   {security.scopes && (

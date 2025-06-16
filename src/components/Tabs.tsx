@@ -3,11 +3,11 @@ import classNames from "../helpers/classNames";
 type Tab = {
   id: string;
   name: string;
-}
+};
 
 interface TabsProps {
   tabs: Tab[];
-  current: string;
+  current: string | null;
   onChange?: (id: string) => void;
 }
 
