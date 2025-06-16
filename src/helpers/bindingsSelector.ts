@@ -6,7 +6,7 @@ interface Schema {
   required?: string[];
   [key: string]: any;
 }
-type SchemaDefs = Record<string, Schema>; //replace with JSON schema draft;
+type SchemaDefs = Record<string, Schema> | undefined; //replace with JSON schema draft;
 
 const schemaDefs: SchemaDefs = spec.schemasWithoutId["3.0.0"].definitions;
 
@@ -16,7 +16,7 @@ function filterKeys(keys: string[], keyFinder: string): string[] {
 
 export default function bindingSelector(
   protocol: string,
-  version: string
+  version: string | null
 ): Schema {
   let schema: Schema = {};
   const $keys: string[] = Object.keys(schemaDefs);

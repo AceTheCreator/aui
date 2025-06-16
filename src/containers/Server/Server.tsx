@@ -135,12 +135,8 @@ export default function Server({
             <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
             Connection Settings
           </h3>
-          {/* <p className="prose text-gray-500 mt-4">
-            This server accepts the following connection configuration:
-          </p> */}
           <Bindings
-            expand={true}
-            type="server"
+            expand={false}
             bindings={bindings[protocol]}
             protocol={protocol}
           />

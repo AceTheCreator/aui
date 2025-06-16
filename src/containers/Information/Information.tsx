@@ -38,7 +38,6 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   return (
     <div className="flex justify-center">
       <Section
-        optional={`v${version}`}
         content={content}
         sideContent={sideContent}
         stickySideContent={true}
