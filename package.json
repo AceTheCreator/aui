@@ -18,6 +18,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.24.0",
+    "json-schema-resolver": "^3.0.0",
     "marked": "^15.0.11",
     "marked-highlight": "^2.2.1",
     "react": "^18.3.1",

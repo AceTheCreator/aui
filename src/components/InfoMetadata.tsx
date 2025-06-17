@@ -46,63 +46,73 @@ export default function InfoMetadata({
   };
   return (
     <dl>
-      <DefinitionListItem
-        IconClass={IconScale}
-        text={`${details.licenseName} ${LICENSE_TEXT}`}
-        term={LICENSE_TEXT}
-        visibleTerm={details.licenseName ? false : true}
-        href={details.licenseUrl}
-        className="inline-block mb-4 text-gray-700 hover:text-pink-500"
-      />
-      <DefinitionListItem
-        IconClass={IconExternalLink}
-        text={EXTERNAL_DOCUMENTATION_TEXT}
-        href={details.externalDocsUrl}
-        term={EXTERNAL_DOCUMENTATION_TEXT}
-        visibleTerm={details.externalDocsTitle ? false : true}
-        className="inline-block mb-4 text-gray-700 hover:text-indigo-500"
-      />
-      <DefinitionListItem
-        IconClass={IconAtSymbol}
-        text={`${details.contactEmail}`}
-        term={EMAIL_TEXT}
-        visibleTerm={details.contactEmail ? false : true}
-        href={`mailto:${details.contactEmail}`}
-        className="inline-block mb-4 text-gray-700 hover:text-green-500"
-      />
-      <DefinitionListItem
-        IconClass={IconGlobe}
-        text={`${details.contactName}`}
-        term={CONTACT_TEXT}
-        visibleTerm={details.contactName ? false : true}
-        href={details.contactUrl}
-        className="inline-block mb-4 text-gray-700 hover:text-green-500"
-      />
-      <DefinitionListItem
-        IconClass={IconTag}
-        term={TAGS_TEXT}
-        className="mb-2 text-gray-700 inline-block"
-        vertical
-        text={
-          details.tags && (
-            <div className="flex flex-wrap gap-1 -ml-2">
-              {details.tags.map((tag, index) => (
-                <Tag
-                  key={index}
-                  href={tag.externalDocs && tag.externalDocs.url}
-                  title={
-                    tag.description ||
-                    (tag.externalDocs && tag.externalDocs.description
-                      ? tag.externalDocs.description
-                      : null)
-                  }
-                  name={tag.name}
-                />
-              ))}
-            </div>
-          )
-        }
-      />
+      {details.licenseName && (
+        <DefinitionListItem
+          IconClass={IconScale}
+          text={`${details.licenseName} ${LICENSE_TEXT}`}
+          term={LICENSE_TEXT}
+          visibleTerm={details.licenseName ? false : true}
+          href={details.licenseUrl}
+          className="inline-block mb-4 text-gray-700 hover:text-pink-500"
+        />
+      )}
+      {details.externalDocsUrl && (
+        <DefinitionListItem
+          IconClass={IconExternalLink}
+          text={EXTERNAL_DOCUMENTATION_TEXT}
+          href={details.externalDocsUrl}
+          term={EXTERNAL_DOCUMENTATION_TEXT}
+          visibleTerm={details.externalDocsTitle ? false : true}
+          className="inline-block mb-4 text-gray-700 hover:text-indigo-500"
+        />
+      )}
+      {details.contactEmail && (
+        <DefinitionListItem
+          IconClass={IconAtSymbol}
+          text={`${details.contactEmail}`}
+          term={EMAIL_TEXT}
+          visibleTerm={details.contactEmail ? false : true}
+          href={`mailto:${details.contactEmail}`}
+          className="inline-block mb-4 text-gray-700 hover:text-green-500"
+        />
+      )}
+      {details.contactUrl && (
+        <DefinitionListItem
+          IconClass={IconGlobe}
+          text={`${details.contactName}`}
+          term={CONTACT_TEXT}
+          visibleTerm={details.contactName ? false : true}
+          href={details.contactUrl}
+          className="inline-block mb-4 text-gray-700 hover:text-green-500"
+        />
+      )}
+      {details.tags && (
+        <DefinitionListItem
+          IconClass={IconTag}
+          term={TAGS_TEXT}
+          className="mb-2 text-gray-700 inline-block"
+          vertical
+          text={
+            details.tags && (
+              <div className="flex flex-wrap gap-1 -ml-2">
+                {details.tags.map((tag, index) => (
+                  <Tag
+                    key={index}
+                    href={tag.externalDocs && tag.externalDocs.url}
+                    title={
+                      tag.description ||
+                      (tag.externalDocs && tag.externalDocs.description
+                        ? tag.externalDocs.description
+                        : null)
+                    }
+                    name={tag.name}
+                  />
+                ))}
+              </div>
+            )
+          }
+        />
+      )}
     </dl>
   );
 }

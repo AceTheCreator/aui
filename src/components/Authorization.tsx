@@ -12,12 +12,17 @@ import {
   PASSWORD_DESCRIPTION,
   PASSWORD_TEXT,
 } from "../contants";
+import { useAsyncAPIDocument } from "../contexts";
+import { resolveRefs } from "../utils/hasRef";
 
 const tabs = [
   { id: "userPassword", name: "User/Password" },
   { id: "oauth2", name: "OAuth2" },
   { id: "apiKey", name: "API key" },
   { id: "openIdConnect", name: "OpenID" },
+  { id: "X509", name: "X.509 certificate" },
+  { id: "scramSha256", name: "SASL" },
+  { id: "scramSha512", name: "SASL" },
 ];
 
 interface Props {
@@ -25,6 +30,8 @@ interface Props {
 }
 
 export default function Authorization({ securities }: Props) {
+  const { deref } = useAsyncAPIDocument();
+  resolveRefs(securities, deref);
   const filteredTabs = useMemo(() => {
     return tabs.filter((tab) => {
       const tabId = tab.id;
@@ -58,6 +65,18 @@ export default function Authorization({ securities }: Props) {
           <span>
             You have to <strong>provide user and password</strong> to connect to
             this server.
+          </span>
+        )}
+        {authTab && ["scramSha256", "scramSha512"].includes(authTab) && (
+          <span>
+            You have to <strong>provide username and password</strong> to
+            connect to this server.
+          </span>
+        )}
+        {authTab === "X509" && (
+          <span>
+            You have to <strong>download the certificate file</strong> from the
+            service provider to connect to this server.
           </span>
         )}
         {authTab === "apiKey" && <ApiKey security={filteredType("apiKey")} />}

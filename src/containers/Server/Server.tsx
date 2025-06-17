@@ -111,13 +111,17 @@ export default function Server({
         </div>
       </div>
       <Markdown>{description}</Markdown>
-      <h3 className="font-bold text-gray-700 mt-8">
-        <IconVariable className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
-        URL Variables
-      </h3>
-      <div className="mt-5 border-t border-gray-200">
-        <dl className="sm:divide-y sm:divide-gray-200">{variableElems}</dl>
-      </div>
+      {variables && (
+        <>
+          <h3 className="font-bold text-gray-700 mt-8">
+            <IconVariable className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+            URL Variables
+          </h3>
+          <div className="mt-5 border-t border-gray-200">
+            <dl className="sm:divide-y sm:divide-gray-200">{variableElems}</dl>
+          </div>
+        </>
+      )}
       {security && security.length > 0 && (
         <div>
           <h3 className="font-bold text-gray-700 mt-8">

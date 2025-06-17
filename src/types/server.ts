@@ -54,3 +54,10 @@ export interface OAuthFlowInterface {
   refreshUrl?: string;
   availableScopes: Record<string, string>;
 }
+
+// export type SecurityEnum = {
+//   userPassword: "userPassword";
+//   oauth2: "oauth2";
+//   apiKey: "apiKey";
+//   openIdConnect: "openIdConnect";
+// };
