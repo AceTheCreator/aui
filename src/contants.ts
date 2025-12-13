@@ -21,3 +21,5 @@ export const PASSWORD_DESCRIPTION =
 export const AUTHORIZATION_CODE_TEXT = "Authorization Code";
 export const AUTHORIZATION_CODE_DESCRIPTION =
   "The Authorization Code grant type is used by confidential and public clients to exchange an authorization code for an access token.";
+export const SERVER_TEXT = "Connecting to a server";
+export const Operation_TEXT = "Operations";

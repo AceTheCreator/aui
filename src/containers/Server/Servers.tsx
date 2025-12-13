@@ -3,6 +3,7 @@ import { ServerInterface } from "../../types/server";
 import VerticalNavigation from "../../components/VerticalNavigation";
 import { useState } from "react";
 import Server from "./Server";
+import { SERVER_TEXT } from "../../contants";
 
 interface ServersInterface {
   [key: string]: Record<string, ServerInterface>;
@@ -15,7 +16,7 @@ export default function Servers({ servers }: ServersInterface) {
   return (
     <div className="flex justify-center w-full">
       <Section
-        title="Connecting to a server"
+        title={SERVER_TEXT}
         content={content}
         sideContent={
           <VerticalNavigation

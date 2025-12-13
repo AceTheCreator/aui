@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 interface SectionProps {
   title?: string;
   content?: ReactNode;
-  sideContent?: ReactNode;
+  sideContent?: ReactNode | null;
   stickySideContent: boolean;
 }
 

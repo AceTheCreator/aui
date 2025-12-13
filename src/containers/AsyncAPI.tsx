@@ -31,7 +31,7 @@ const AsyncAPI: React.FunctionComponent<IAsyncAPIProps> = ({ asyncapi }) => {
     <AsyncAPIDocumentContext.Provider value={value}>
       <Information {...asyncapi.info} />
       <Servers servers={asyncapi.servers} />
-      <Operations {...asyncapi.operations} />
+      <Operations operations={asyncapi.operations} />
     </AsyncAPIDocumentContext.Provider>
   );
 };

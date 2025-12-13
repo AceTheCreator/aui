@@ -7,6 +7,16 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '10rem',
+        sm: '2rem',
+        lg: '10rem',
+        xl: '10rem',
+        '2xl': '10rem',
+      },
+    },
     extend: {
       colors: {
         rose: colors.rose[500],
