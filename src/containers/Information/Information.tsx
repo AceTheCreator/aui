@@ -36,7 +36,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   );
 
   return (
-    <div className="flex justify-center">
+    <div className="container">
       <Section
         content={content}
         sideContent={sideContent}
