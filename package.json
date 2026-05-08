@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "generate:models": "tsx src/scripts/generateAsyncAPIModel.ts"
   },
   "dependencies": {
     "@asyncapi/specs": "^6.8.1",
@@ -28,8 +29,10 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@asyncapi/modelina": "^5.10.1",
     "@chromatic-com/storybook": "^3.2.3",
     "@eslint/js": "^9.17.0",
+    "@storybook/addon-a11y": "^8.6.18",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/addon-onboarding": "^8.4.7",
@@ -51,6 +54,7 @@
     "postcss": "^8.4.49",
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.21.0",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5"

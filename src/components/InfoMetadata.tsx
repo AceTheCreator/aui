@@ -12,32 +12,28 @@ import {
   EMAIL_TEXT,
   EXTERNAL_DOCUMENTATION_TEXT,
 } from "../contants";
-import { License, ExternalDocs, Contact, Tags } from "../types/metadata";
-
-interface InfoMetadataProps {
-  license?: License;
-  externalDocs?: ExternalDocs;
-  contact?: Contact;
-  tags?: Tags[];
-}
+import { Info } from "../types/asyncapi/Info";
+import { Tag as TagType } from "../types/asyncapi/Tag";
+import { ExternalDocs } from "../types/asyncapi/ExternalDocs";
 
 export default function InfoMetadata({
   license,
   externalDocs,
   contact,
   tags,
-}: InfoMetadataProps) {
+}: Info) {
+  const resolvedExternalDocs = externalDocs as ExternalDocs | undefined;
   const details = {
     licenseName: license && license.name ? license.name : null,
     licenseUrl: license && license.url ? license.url : null,
     externalDocsTitle:
-      externalDocs && externalDocs.description
-        ? externalDocs.description
+      resolvedExternalDocs && resolvedExternalDocs.description
+        ? resolvedExternalDocs.description
         : "External documentation",
-    externalDocsUrl: externalDocs && externalDocs.url ? externalDocs.url : null,
+    externalDocsUrl: resolvedExternalDocs && resolvedExternalDocs.url ? resolvedExternalDocs.url : null,
     externalDocsDescription:
-      externalDocs && externalDocs.description
-        ? externalDocs.description
+      resolvedExternalDocs && resolvedExternalDocs.description
+        ? resolvedExternalDocs.description
         : null,
     contactName: contact && contact.name ? contact.name : null,
     contactUrl: contact && contact.url ? contact.url : null,
@@ -95,19 +91,21 @@ export default function InfoMetadata({
           text={
             details.tags && (
               <div className="flex flex-wrap gap-1 -ml-2">
-                {details.tags.map((tag, index) => (
-                  <Tag
-                    key={index}
-                    href={tag.externalDocs && tag.externalDocs.url}
-                    title={
-                      tag.description ||
-                      (tag.externalDocs && tag.externalDocs.description
-                        ? tag.externalDocs.description
-                        : null)
-                    }
-                    name={tag.name}
-                  />
-                ))}
+                {details.tags.map((tag, index) => {
+                  const t = tag as TagType;
+                  const extDocs = t.externalDocs as ExternalDocs | undefined;
+                  return (
+                    <Tag
+                      key={index}
+                      href={extDocs && extDocs.url}
+                      title={
+                        t.description ||
+                        (extDocs && extDocs.description ? extDocs.description : undefined)
+                      }
+                      name={t.name}
+                    />
+                  );
+                })}
               </div>
             )
           }

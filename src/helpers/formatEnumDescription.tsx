@@ -15,14 +15,14 @@ export default function formatEnumDescription(values: string[]): JSX.Element {
 
   const allButLast = values.slice(0, -1).map((value, index) => (
     <React.Fragment key={index}>
-      <code>{value}</code>,{" "}
+      <code>{value}</code>, {" "}
     </React.Fragment>
   ));
   const last = <code key="last">{values[values.length - 1]}</code>;
 
   return (
     <span>
-      Allowed values are {allButLast}and {last}
+      Allowed values are {allButLast} and {last}
     </span>
   );
 };

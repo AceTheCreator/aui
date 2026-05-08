@@ -1,5 +1,5 @@
 import Section from "../../components/Section";
-import { ServerInterface } from "../../types/server";
+import { Server as ServerInterface } from "../../types/asyncapi/Server";
 import VerticalNavigation from "../../components/VerticalNavigation";
 import { useState } from "react";
 import Server from "./Server";

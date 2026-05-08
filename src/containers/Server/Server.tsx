@@ -3,11 +3,17 @@ import formatEnumDescription from "../../helpers/formatEnumDescription";
 import IconLink from "../../icons/Link";
 import IconShieldCheck from "../../icons/ShieldCheck";
 import IconVariable from "../../icons/Variable";
-import { ServerInterface } from "../../types/server";
+import { chunkURL } from "../../helpers/chunkURL";
+import { Server as ServerInterface } from "../../types/asyncapi/Server";
+import { ServerVariable } from "../../types/asyncapi/ServerVariable";
+import { Tag as TagType } from "../../types/asyncapi/Tag";
+import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
+import { ServerBindingsObject } from "../../types/asyncapi/ServerBindingsObject";
 import Authorization from "../../components/Authorization";
 import Tag from "../../components/Tag";
 import Connection from "../../icons/Connection";
 import Bindings from "../../components/Bindings";
+import { chunkColors } from "../../contants";
 
 export default function Server({
   host,
@@ -18,41 +24,14 @@ export default function Server({
   security,
   bindings,
 }: ServerInterface) {
-  const chunkColors = [
-    "text-blue-600",
-    "text-indigo-600",
-    "text-purple-600",
-    "text-pink-600",
-    "text-green-700",
-  ];
-  let colorIndex = 0;
-  const urlChunks = (host.match(/({[\w\d\s\-_]+})|([^{]+)/gi) || []).map(
-    (chunk, index): JSX.Element => {
-      const isVariable = chunk.startsWith("{");
-      const variableName = isVariable ? chunk.slice(1, -1) : "";
-      return (
-        <span
-          key={index}
-          className={
-            isVariable ? chunkColors[colorIndex++ % chunkColors.length] : ""
-          }
-          title={
-            isVariable
-              ? variables?.[variableName]?.description || undefined
-              : undefined
-          }
-        >
-          {chunk}
-        </span>
-      );
-    }
-  );
+
+  const urlChunks = chunkURL(host, variables);
 
   const variableElems = (
     <>
       {variables &&
-        Object.keys(variables).map((variable, i) => {
-          const variableProps = variables[variable];
+        Array.from(variables.keys()).map((variable, i) => {
+          const variableProps = variables.get(variable) as ServerVariable;
           return (
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
               <dt className="text-sm font-medium text-gray-500">
@@ -95,19 +74,22 @@ export default function Server({
         </div>
         <div className="mt-2">
           {tags &&
-            tags.map((tag, index) => (
-              <Tag
-                key={index}
-                href={tag.externalDocs && tag.externalDocs.url}
-                title={
-                  tag.description ||
-                  (tag.externalDocs && tag.externalDocs.description
-                    ? tag.externalDocs.description
-                    : undefined)
-                }
-                name={tag.name}
-              />
-            ))}
+            tags.map((tag, index) => {
+              const t = tag as TagType;
+              const extDocs = t.externalDocs as ExternalDocs | undefined;
+              return (
+                <Tag
+                  key={index}
+                  href={extDocs && extDocs.url}
+                  title={
+                    t.description ||
+                    (extDocs && extDocs.description ? extDocs.description : undefined)
+                  }
+                  name={t.name}
+                />
+              );
+            })
+          }
         </div>
       </div>
       <Markdown>{description}</Markdown>
@@ -142,7 +124,7 @@ export default function Server({
           </h3>
           <Bindings
             expand={false}
-            bindings={bindings[protocol]}
+            bindings={(bindings as ServerBindingsObject)[protocol as keyof ServerBindingsObject]}
             protocol={protocol}
           />
         </div>

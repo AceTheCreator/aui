@@ -1,24 +1,19 @@
+// import { useState } from "react";
 import Section from "../../components/Section";
 import { Operation_TEXT } from "../../contants";
 import { useAsyncAPIDocument } from "../../contexts";
-import { PayloadType } from "../../types/operation";
+import { chunkURL } from "../../helpers/chunkURL";
+import { Channel } from "../../types/asyncapi/Channel";
+import { Operation } from "../../types/asyncapi/Operation";
+import { OperationAction } from "../../types/asyncapi/OperationAction";
 import { resolveRefs } from "../../utils/hasRef";
 
 interface OperationsProps {
-  operations: Record<
-    string,
-    {
-      action?: string;
-      channel?: {
-        address?: string | null;
-        [key: string]: unknown;
-      };
-      [key: string]: unknown;
-    }
-  >;
+  operations: Record<string, Operation>;
 }
 
 export default function Operations({ operations }: OperationsProps) {
+  // const [open, setOpen] = useState<boolean>(false)
   const { deref } = useAsyncAPIDocument();
   if (!Object.keys(operations).length) {
     return null;
@@ -28,18 +23,19 @@ export default function Operations({ operations }: OperationsProps) {
     (operation) => {
       const op = operations[operation];
       resolveRefs(op, deref);
-      const address = op.channel?.address;
-      const isSend = op.action === PayloadType.SEND;
+      const address = (op.channel as unknown as Channel)?.address;
+      const isSend = op.action === OperationAction.SEND;
       const actionLabel = op.action?.toUpperCase() ?? "";
+      const urlChunks = chunkURL(address, undefined);
       const badgeClassName = isSend
         ? "bg-green-100 text-green-800"
-        : op.action === PayloadType.RECEIVE
+        : op.action === OperationAction.RECEIVE
           ? "bg-blue-100 text-blue-800"
           : "bg-gray-100 text-gray-700";
       return (
-        <tr key={operation}>
+        <tr key={operation} onClick={() => console.log("test log")}>
           <td className="px-6 py-4">
-            <code className="text-xs px-2 py-1 rounded">{address}</code>
+            <code className="text-xs px-2 py-1 rounded">{urlChunks}</code>
           </td>
           <td className="px-6 py-4 w-32">
             <div
@@ -75,7 +71,7 @@ export default function Operations({ operations }: OperationsProps) {
     </div>
   );
   return (
-    <div className="container">
+    <div className="flex justify-center w-full">
       <Section
         title={Operation_TEXT}
         content={content}

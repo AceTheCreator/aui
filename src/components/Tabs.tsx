@@ -1,34 +1,51 @@
+import { useId } from "react";
+import type { ComponentType } from "react";
 import classNames from "../helpers/classNames";
 
-type Tab = {
+export type Tab = {
   id: string;
   name: string;
+  icon?: ComponentType<{ className?: string }>;
 };
 
 interface TabsProps {
   tabs: Tab[];
   current: string | null;
   onChange?: (id: string) => void;
+  ariaLabel?: string;
+  selectLabel?: string;
 }
 
 export default function Tabs({
   tabs,
   current,
   onChange = () => {},
+  ariaLabel = "Tabs",
+  selectLabel = "Select a tab",
 }: TabsProps) {
+  const selectId = useId();
+  const selectValue = current ?? tabs[0]?.id ?? "";
+  const hasIcons = tabs.some((tab) => Boolean(tab.icon));
+
+  if (!tabs.length) {
+    return null;
+  }
+
   return (
     <div>
-      {/* Dropdown for smaller screens */}
       <div className="sm:hidden">
-        <label htmlFor="AuthTabs" className="sr-only">
-          Select a tab
+        <label htmlFor={selectId} className="sr-only">
+          {selectLabel}
         </label>
         <select
-          id="AuthTabs"
+          id={selectId}
           name="tabs"
+          value={selectValue}
           onChange={(ev) => onChange(ev.target.value)}
-          className="block mt-4 w-full focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"
-          defaultValue={tabs.find((tab) => tab.id === current)?.id}
+          className={classNames(
+            "block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500",
+            hasIcons ? "mt-0" : "mt-4"
+          )}
         >
           {tabs.map((tab) => (
             <option key={tab.id} value={tab.id}>
@@ -38,37 +55,74 @@ export default function Tabs({
         </select>
       </div>
 
-      {/* Tabs for larger screens */}
-      <div className="hidden sm:block mt-6">
-        <nav
-          className="relative z-0 rounded-lg shadow flex divide-x divide-gray-200"
-          aria-label="Tabs"
-        >
-          {tabs.map((tab, tabIdx) => (
-            <button
-              key={tab.id}
-              onClick={() => onChange(tab.id)}
-              className={classNames(
-                tab.id === current
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700",
-                tabIdx === 0 ? "rounded-l-lg" : "",
-                tabIdx === tabs.length - 1 ? "rounded-r-lg" : "",
-                "group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
-              )}
-              aria-current={tab.id === current ? "page" : undefined}
-            >
-              <span>{tab.name}</span>
-              <span
-                aria-hidden="true"
+      <div className={classNames("hidden sm:block", hasIcons ? "" : "mt-6")}>
+        {hasIcons ? (
+          <div
+            className="border-b border-gray-200"
+            role="tablist"
+            aria-label={ariaLabel}
+          >
+            <div className="flex flex-wrap gap-6">
+              {tabs.map((tab) => {
+                const isActive = tab.id === current;
+                const Icon = tab.icon;
+
+                return (
+                  <button
+                    key={tab.id}
+                    id={`tab-${tab.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`panel-${tab.id}`}
+                    onClick={() => onChange(tab.id)}
+                    className={classNames(
+                      "border-b-2 px-1 py-3 text-sm font-semibold transition-colors",
+                      isActive
+                        ? "border-indigo-500 text-indigo-600"
+                        : "border-transparent text-gray-500 hover:text-gray-800"
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
+                      <span>{tab.name}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <nav
+            className="relative z-0 flex divide-x divide-gray-200 rounded-lg shadow"
+            aria-label={ariaLabel}
+          >
+            {tabs.map((tab, tabIdx) => (
+              <button
+                key={tab.id}
+                onClick={() => onChange(tab.id)}
                 className={classNames(
-                  tab.id === current ? "bg-indigo-500" : "bg-transparent",
-                  "absolute inset-x-0 bottom-0 h-0.5"
+                  tab.id === current
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-700",
+                  tabIdx === 0 ? "rounded-l-lg" : "",
+                  tabIdx === tabs.length - 1 ? "rounded-r-lg" : "",
+                  "group relative min-w-0 flex-1 overflow-hidden bg-white px-4 py-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
                 )}
-              />
-            </button>
-          ))}
-        </nav>
+                aria-current={tab.id === current ? "page" : undefined}
+              >
+                <span>{tab.name}</span>
+                <span
+                  aria-hidden="true"
+                  className={classNames(
+                    tab.id === current ? "bg-indigo-500" : "bg-transparent",
+                    "absolute inset-x-0 bottom-0 h-0.5"
+                  )}
+                />
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
     </div>
   );

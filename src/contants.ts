@@ -23,3 +23,10 @@ export const AUTHORIZATION_CODE_DESCRIPTION =
   "The Authorization Code grant type is used by confidential and public clients to exchange an authorization code for an access token.";
 export const SERVER_TEXT = "Connecting to a server";
 export const Operation_TEXT = "";
+export const chunkColors = [
+  "text-blue-600",
+  "text-indigo-600",
+  "text-purple-600",
+  "text-pink-600",
+  "text-green-700",
+];

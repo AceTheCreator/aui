@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Tabs from "./Tabs";
-import { SecurityInterface } from "../types/server";
+import { UserPassword } from "../types/asyncapi/UserPassword";
+import { ApiKey as ApiKeyType } from "../types/asyncapi/ApiKey";
+import { X509 } from "../types/asyncapi/X509";
+import { SymmetricEncryption } from "../types/asyncapi/SymmetricEncryption";
+import { AsymmetricEncryption } from "../types/asyncapi/AsymmetricEncryption";
+import { BearerHttpSecurityScheme } from "../types/asyncapi/BearerHttpSecurityScheme";
+import { ApiKeyHttpSecurityScheme } from "../types/asyncapi/ApiKeyHttpSecurityScheme";
+import { Oauth2Flows } from "../types/asyncapi/Oauth2Flows";
+import { OpenIdConnect } from "../types/asyncapi/OpenIdConnect";
+import { SaslPlainSecurityScheme } from "../types/asyncapi/SaslPlainSecurityScheme";
+import { SaslScramSecurityScheme } from "../types/asyncapi/SaslScramSecurityScheme";
+import { SaslGssapiSecurityScheme } from "../types/asyncapi/SaslGssapiSecurityScheme";
 import { formatArrayToCodeString } from "../helpers/formatEnumDescription";
 import {
   AUTHORIZATION_CODE_DESCRIPTION,
@@ -15,6 +26,20 @@ import {
 import { useAsyncAPIDocument } from "../contexts";
 import { resolveRefs } from "../utils/hasRef";
 
+type SecurityScheme =
+  | UserPassword
+  | ApiKeyType
+  | X509
+  | SymmetricEncryption
+  | AsymmetricEncryption
+  | BearerHttpSecurityScheme
+  | ApiKeyHttpSecurityScheme
+  | Oauth2Flows
+  | OpenIdConnect
+  | SaslPlainSecurityScheme
+  | SaslScramSecurityScheme
+  | SaslGssapiSecurityScheme;
+
 const tabs = [
   { id: "userPassword", name: "User/Password" },
   { id: "oauth2", name: "OAuth2" },
@@ -26,7 +51,7 @@ const tabs = [
 ];
 
 interface Props {
-  securities: SecurityInterface[];
+  securities: SecurityScheme[];
 }
 
 export default function Authorization({ securities }: Props) {
@@ -36,7 +61,7 @@ export default function Authorization({ securities }: Props) {
     return tabs.filter((tab) => {
       const tabId = tab.id;
       return securities?.some(
-        (security: SecurityInterface) =>
+        (security: SecurityScheme) =>
           security.type.toLowerCase() === tabId.toLowerCase()
       );
     });
@@ -51,10 +76,8 @@ export default function Authorization({ securities }: Props) {
     }
   }, [securities]);
 
-  function filteredType(type: string): SecurityInterface {
-    return securities.find(
-      (security: SecurityInterface) => security.type === type
-    )!;
+  function filteredType<T extends SecurityScheme>(type: string): T {
+    return securities.find((security) => security.type === type) as T;
   }
 
   return (
@@ -79,21 +102,17 @@ export default function Authorization({ securities }: Props) {
             service provider to connect to this server.
           </span>
         )}
-        {authTab === "apiKey" && <ApiKey security={filteredType("apiKey")} />}
+        {authTab === "apiKey" && <ApiKey security={filteredType<ApiKeyType>("apiKey")} />}
         {authTab === "openIdConnect" && (
-          <OpenID security={filteredType("openIdConnect")} />
+          <OpenID security={filteredType<OpenIdConnect>("openIdConnect")} />
         )}
-        {authTab === "oauth2" && <OAuth2 security={filteredType("oauth2")} />}
+        {authTab === "oauth2" && <OAuth2 security={filteredType<Oauth2Flows>("oauth2")} />}
       </div>
     </div>
   );
 }
 
-interface ISecurity {
-  security: SecurityInterface;
-}
-
-export const ApiKey = ({ security }: ISecurity) => {
+export const ApiKey = ({ security }: { security: ApiKeyType }) => {
   const keyLocation = security?.in;
   if (keyLocation === "password") {
     return (
@@ -117,7 +136,7 @@ export const ApiKey = ({ security }: ISecurity) => {
   );
 };
 
-export const OpenID = ({ security }: ISecurity) => {
+export const OpenID = ({ security }: { security: OpenIdConnect }) => {
   return (
     <>
       <p>You can use OpenID to connect to this server.</p>
@@ -140,7 +159,7 @@ export const OpenID = ({ security }: ISecurity) => {
   );
 };
 
-export const OAuth2 = ({ security }: ISecurity) => {
+export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
   const flows = security?.flows;
   return (
     <>

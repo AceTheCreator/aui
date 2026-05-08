@@ -2,7 +2,7 @@ import React from "react";
 import Section from "../../components/Section";
 import Markdown from "../../components/Markdown";
 import InfoMetadata from "../../components/InfoMetadata";
-import { AsyncAPIMetadata } from "../../types/metadata";
+import { Info as AsyncAPIMetadata } from "../../types/asyncapi/Info";
 
 const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   title,
@@ -36,7 +36,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   );
 
   return (
-    <div className="container">
+    <div className="flex justify-center w-full">
       <Section
         content={content}
         sideContent={sideContent}

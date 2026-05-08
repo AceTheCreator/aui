@@ -1,4 +1,4 @@
-import { OperationInterface } from "../../types/operation";
+import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
 
 export default function Operation(prop: OperationInterface) {
   const { action, summary, channel, messages, parameters, traits } = prop;

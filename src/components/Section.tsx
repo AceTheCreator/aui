@@ -15,12 +15,12 @@ export default function Section({
 
 }: SectionProps) {
   return (
-    <div>
+    <div className="w-full sm:w-auto">
       {title && <h2 className="text-2xl font-bold">{title}</h2>}
       <section
         className="border-gray-200 text-lg mb-10 lg:flex lg:justify-between"
       >
-        <div className="xl:w-prose lg:w-mprose">
+        <div className="sm:w-prose">
           {content}
         </div>
         <div className="pl-0 pt-8 lg:pt-0 lg:pl-12 xl:pt-0 lg:w-[400px]">
