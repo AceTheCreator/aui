@@ -32,4 +32,4 @@ interface Operation {
   'bindings'?: Reference | OperationBindingsObject;
   'additionalProperties'?: Map<string, any>;
 }
-export { Operation };
+export type { Operation };

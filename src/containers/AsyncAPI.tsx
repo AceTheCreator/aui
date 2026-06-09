@@ -73,7 +73,8 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
         break;
       }
 
-      current = current[part];
+      const decoded = part.replace(/~1/g, "/").replace(/~0/g, "~");
+      current = current[decoded];
 
       if (current == null) break;
     }
