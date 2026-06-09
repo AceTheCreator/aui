@@ -2,17 +2,13 @@ import { useState } from "react";
 import IconArrowRight from "../icons/ArrowRight";
 import IconDownRight from "../icons/ArrowDown";
 import { PROTOCOL_META } from "../contants";
-
+import { isUrl } from "../helpers/common";
 
 function prettyKey(key: string): string {
   return key
     .replace(/([A-Z])/g, " $1")
     .replace(/^(.)/, (c) => c.toUpperCase())
     .trim();
-}
-
-function isUrl(value: string): boolean {
-  return value.startsWith("http://") || value.startsWith("https://");
 }
 
 function BindingValue({ value }: { value: unknown }): React.ReactElement | null {

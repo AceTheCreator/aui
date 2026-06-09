@@ -1,5 +1,8 @@
 import { OperationBindingsObject } from "../../asyncapi-models/OperationBindingsObject";
+import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
+import { isUrl } from "../../helpers/common";
+import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
@@ -16,6 +19,9 @@ export default function Operation({ op, id }: OperationProps) {
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
   const traits = op.traits as unknown as Array<Record<string, unknown>> | undefined;
+
+  const externalDocs = op.externalDocs as unknown as ExternalDocs | undefined;
+  const security = op.security as unknown as unknown[] | undefined;
 
   const operationBindings: OperationBindingsObject | undefined =
     bindings ??
@@ -58,7 +64,7 @@ export default function Operation({ op, id }: OperationProps) {
             Operation ID
           </p>
           <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-orange-600 text-white`}
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-orange-50 text-orange-600 border border-orange-200`}
           >
             {id}
           </span>
@@ -87,6 +93,41 @@ export default function Operation({ op, id }: OperationProps) {
         </div>
       )}
 
+      {/* External Docs */}
+      {externalDocs?.url && (
+        <div>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+            External Documentation
+          </p>
+          {isUrl(externalDocs.url) ? (
+            <a
+              href={externalDocs.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm underline underline-offset-2 hover:text-blue-800 break-all"
+            >
+              {externalDocs.url}
+            </a>
+          ) : (
+            <p className="text-sm text-gray-600">{externalDocs.url}</p>
+          )}
+        </div>
+      )}
+
+      {/* Security */}
+      {security && security.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            Authorization Mechanisms
+          </p>
+          <Authorization
+            securities={
+              security as Parameters<typeof Authorization>[0]["securities"]
+            }
+          />
+        </div>
+      )}
+
       {/* Bindings */}
       {operationBindings &&
         Object.entries(operationBindings).map(([protocol, binding]) =>
@@ -112,7 +153,7 @@ export default function Operation({ op, id }: OperationProps) {
           </p>
           <div className="space-y-2">
             {messages.map((msg, i) => (
-              <Message message={msg} i={i} />
+              <Message key={i} message={msg} messageId={msg.name} i={i} />
             ))}
           </div>
         </div>

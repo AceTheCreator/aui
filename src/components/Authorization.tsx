@@ -205,13 +205,40 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
                       <a href={``}>{flowData.authorizationUrl}</a>
                     </dd>
                   </div>
-                  {security.scopes && (
+                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Token URL
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      <a href={``}>{flowData.tokenUrl}</a>
+                    </dd>
+                  </div>
+                  {flowData.refreshUrl && (
+                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Refresh URL
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <a href={``}>{flowData.refreshUrl}</a>
+                      </dd>
+                    </div>
+                  )}
+                  {flowData.availableScopes && (
                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
                       <dt className="text-sm font-medium text-gray-500">
                         Scopes
                       </dt>
                       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        <code>{formatArrayToCodeString(security.scopes)}</code>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(Array.isArray(flowData.availableScopes)
+                            ? flowData.availableScopes
+                            : Object.keys(flowData.availableScopes)
+                          ).map((scope: string) => (
+                            <code key={scope} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                              {scope}
+                            </code>
+                          ))}
+                        </div>
                       </dd>
                     </div>
                   )}

@@ -167,11 +167,24 @@
         "$ref": "#/channels/lightingMeasured"
       },
       "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "description": "Consumers of this operation receive a stream of lighting measurement events, status updates, and maintenance alerts from streetlights in the field.",
       "traits": [
         {
           "$ref": "#/components/operationTraits/kafka"
         }
       ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        },
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Smartylighting event stream integration guide",
+        "url": "https://docs.smartylighting.example.com/events/lighting-measured"
+      },
       "messages": [
         {
           "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
@@ -189,11 +202,22 @@
       "channel": {
         "$ref": "#/channels/lightTurnOn"
       },
+      "summary": "Turn on a streetlight.",
+      "description": "Sends a turn-on command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
       "traits": [
         {
           "$ref": "#/components/operationTraits/kafka"
         }
       ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-on"
+      },
       "messages": [
         {
           "$ref": "#/channels/lightTurnOn/messages/turnOn"
@@ -208,11 +232,22 @@
       "channel": {
         "$ref": "#/channels/lightTurnOff"
       },
+      "summary": "Turn off a streetlight.",
+      "description": "Sends a turn-off command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
       "traits": [
         {
           "$ref": "#/components/operationTraits/kafka"
         }
       ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-off"
+      },
       "messages": [
         {
           "$ref": "#/channels/lightTurnOff/messages/turnOff"
@@ -227,11 +262,22 @@
       "channel": {
         "$ref": "#/channels/lightsDim"
       },
+      "summary": "Dim a streetlight.",
+      "description": "Sends a dim command with a target brightness percentage to a specific streetlight. Useful for energy-saving schedules or adaptive lighting based on environmental conditions.",
       "traits": [
         {
           "$ref": "#/components/operationTraits/kafka"
         }
       ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        }
+      ],
+      "externalDocs": {
+        "description": "Adaptive lighting and dimming guide",
+        "url": "https://docs.smartylighting.example.com/commands/dim"
+      },
       "messages": [
         {
           "$ref": "#/channels/lightsDim/messages/dimLight"

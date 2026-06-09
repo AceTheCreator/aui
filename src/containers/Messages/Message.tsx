@@ -1,4 +1,5 @@
 import { useState } from "react";
+import IconArrowDown from "../../icons/ArrowDown";
 import TagComponent from "../../components/Tag";
 import Tabs from "../../components/Tabs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
@@ -7,10 +8,11 @@ import SchemaTabs from "../../components/SchemaTab";
 
 interface MessageProps {
   message: MessageObject;
+  messageId?: string;
   i: number;
 }
 
-export function Message({ message, i }: MessageProps) {
+export function Message({ message, messageId, i }: MessageProps) {
   const [expanded, setExpanded] = useState(false);
   const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
 
@@ -22,40 +24,41 @@ export function Message({ message, i }: MessageProps) {
     (message.tags && (message.tags as Tag[]).length > 0);
 
   return (
-    <div className="border border-gray-200 rounded-md px-4 py-2.5">
-      {/* Always visible */}
-      <p className="text-xs font-medium text-gray-700">
-        {message.title ?? message.name ?? `Message ${i + 1}`}
-      </p>
-      {message.summary && (
-        <p className="text-xs text-gray-500 mt-2">{message.summary}</p>
-      )}
-      <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center gap-2">
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm font-medium text-gray-800">
+            {message.title ?? message.name ?? `Message ${i + 1}`}
+          </p>
+          {(messageId ?? message.name) && (
+            <span className="text-xs font-mono bg-orange-50 text-orange-600 border border-orange-200 p-0.5 rounded shrink-0">
+              {messageId ?? message.name}
+            </span>
+          )}
+        </div>
+        {message.summary && (
+          <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+            {message.summary}
+          </p>
+        )}
+
+        <div className="flex items-center gap-1.5 shrink-0 mt-4">
           {message.contentType && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+            <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
               {message.contentType}
             </span>
           )}
           {message.deprecated && (
-            <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+            <span className="text-xs bg-red-50 text-red-500 px-1.5 py-0.5 rounded border border-red-200">
               deprecated
             </span>
           )}
         </div>
-        {hasMore && (
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-          >
-            {expanded ? "Show less" : "Show more"}
-          </button>
-        )}
       </div>
 
       {/* Expanded section */}
       {expanded && (
-        <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
+        <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
           {message.description && (
             <p className="text-sm text-gray-600 leading-relaxed">
               {message.description}
@@ -73,7 +76,7 @@ export function Message({ message, i }: MessageProps) {
                   onChange={(id) => setSchemaTab(id as "payload" | "headers")}
                 />
               ) : null}
-              <div className="mt-6">
+              <div className="mt-4">
                 {(schemaTab === "headers" || !message.payload) &&
                   message.headers && (
                     <SchemaTabs schema={message.headers} label="Headers" />
@@ -89,7 +92,6 @@ export function Message({ message, i }: MessageProps) {
               </div>
             </div>
           )}
-
           {message.tags && (message.tags as Tag[]).length > 0 && (
             <div className="flex flex-wrap gap-1">
               {(message.tags as Tag[]).map((tag, j) => (
@@ -98,6 +100,19 @@ export function Message({ message, i }: MessageProps) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Toggle button */}
+      {hasMore && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors text-xs text-gray-400 hover:text-gray-600"
+        >
+          <span>{expanded ? "Show less" : "Show more"}</span>
+          <IconArrowDown
+            className={`w-3 h-3 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
       )}
     </div>
   );
