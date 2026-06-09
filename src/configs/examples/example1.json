@@ -14,7 +14,7 @@
   "servers": {
     "scram-connections": {
       "host": "test.mykafkacluster.org:18092",
-      "protocol": "kafka-secure",
+      "protocol": "kafka",
       "description": "Test broker secured with scramSha256",
       "security": [
         {
@@ -37,7 +37,14 @@
           "name": "visibility:private",
           "description": "This resource is private and only available to certain users"
         }
-      ]
+      ],
+      "bindings": {
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
+        }
+      }
     },
     "mtls-connections": {
       "host": "test.mykafkacluster.org:28092",
@@ -73,7 +80,14 @@
           "name": "visibility:private",
           "description": "This resource is private and only available to certain users"
         }
-      ]
+      ],
+      "bindings": {
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
+        }
+      }
     }
   },
   "channels": {
@@ -82,6 +96,12 @@
       "messages": {
         "lightMeasured": {
           "$ref": "#/components/messages/lightMeasured"
+        },
+        "statusUpdate": {
+          "$ref": "#/components/messages/statusUpdate"
+        },
+        "maintenanceAlert": {
+          "$ref": "#/components/messages/maintenanceAlert"
         }
       },
       "description": "The topic on which measured values may be produced and consumed.",
@@ -96,6 +116,9 @@
       "messages": {
         "turnOn": {
           "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
         }
       },
       "parameters": {
@@ -109,6 +132,9 @@
       "messages": {
         "turnOff": {
           "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
         }
       },
       "parameters": {
@@ -122,6 +148,9 @@
       "messages": {
         "dimLight": {
           "$ref": "#/components/messages/dimLight"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
         }
       },
       "parameters": {
@@ -146,6 +175,12 @@
       "messages": [
         {
           "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/statusUpdate"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/maintenanceAlert"
         }
       ]
     },
@@ -162,6 +197,9 @@
       "messages": [
         {
           "$ref": "#/channels/lightTurnOn/messages/turnOn"
+        },
+        {
+          "$ref": "#/channels/lightTurnOn/messages/commandAck"
         }
       ]
     },
@@ -178,6 +216,9 @@
       "messages": [
         {
           "$ref": "#/channels/lightTurnOff/messages/turnOff"
+        },
+        {
+          "$ref": "#/channels/lightTurnOff/messages/commandAck"
         }
       ]
     },
@@ -194,6 +235,9 @@
       "messages": [
         {
           "$ref": "#/channels/lightsDim/messages/dimLight"
+        },
+        {
+          "$ref": "#/channels/lightsDim/messages/commandAck"
         }
       ]
     }
@@ -238,6 +282,119 @@
         ],
         "payload": {
           "$ref": "#/components/schemas/dimLightPayload"
+        }
+      },
+      "statusUpdate": {
+        "name": "statusUpdate",
+        "title": "Streetlight Status Update",
+        "summary": "Reports the current operational state of a streetlight.",
+        "description": "Emitted whenever a streetlight transitions between operational states such as coming online, going offline, or entering an error condition.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "status" },
+          { "name": "telemetry" }
+        ],
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight reporting its status."
+            },
+            "state": {
+              "type": "string",
+              "enum": ["online", "offline", "error", "maintenance"],
+              "description": "The current operational state of the streetlight."
+            },
+            "message": {
+              "type": "string",
+              "description": "Optional human-readable detail about the state change."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "state", "sentAt"]
+        }
+      },
+      "maintenanceAlert": {
+        "name": "maintenanceAlert",
+        "title": "Maintenance Alert",
+        "summary": "Signals that a streetlight requires maintenance.",
+        "description": "Published when a streetlight detects a hardware fault, connectivity issue, or scheduled maintenance window. Consumers should dispatch a maintenance crew accordingly.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "maintenance" },
+          { "name": "alerts" }
+        ],
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Alert-Priority": {
+              "type": "string",
+              "description": "Priority level for routing and paging."
+            }
+          }
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight requiring maintenance."
+            },
+            "issue": {
+              "type": "string",
+              "description": "Description of the maintenance issue detected."
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"],
+              "description": "Severity level of the maintenance issue."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "issue", "severity", "sentAt"]
+        }
+      },
+      "commandAck": {
+        "name": "commandAck",
+        "title": "Command Acknowledgement",
+        "summary": "Acknowledgement that a control command was received and processed.",
+        "description": "Sent by the streetlight controller after processing a turn on, turn off, or dim command. Indicates whether the command was accepted and executed.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "commands" },
+          { "name": "acknowledgement" }
+        ],
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight that processed the command."
+            },
+            "command": {
+              "type": "string",
+              "enum": ["turnOn", "turnOff", "dim"],
+              "description": "The command that was acknowledged."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["accepted", "rejected", "pending"],
+              "description": "Whether the command was accepted and executed."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Reason for rejection if status is rejected."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "command", "status", "sentAt"]
         }
       }
     },

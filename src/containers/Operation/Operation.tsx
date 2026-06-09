@@ -1,3 +1,5 @@
+import { OperationBindingsObject } from "../../asyncapi-models/OperationBindingsObject";
+import Bindings from "../../components/Bindings";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
@@ -11,8 +13,15 @@ interface OperationProps {
 
 export default function Operation({ op, id }: OperationProps) {
   const messages = (op.messages ?? []) as unknown as MessageObject[];
-  console.log(messages)
   const tags = (op.tags ?? []) as unknown as Tag[];
+  const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
+  const traits = op.traits as unknown as Array<Record<string, unknown>> | undefined;
+
+  const operationBindings: OperationBindingsObject | undefined =
+    bindings ??
+    (Array.isArray(traits)
+      ? (traits.find((t) => t.bindings)?.bindings as OperationBindingsObject | undefined)
+      : undefined);
 
   const isSend = op.action === OperationAction.SEND;
   const badgeClassName = isSend
@@ -33,9 +42,7 @@ export default function Operation({ op, id }: OperationProps) {
           <p className="text-sm text-gray-600">{op.summary}</p>
         </div>
       )}
-      <div
-        className={`flex justify-between w-[400px]`}
-      >
+      <div className={`flex justify-between w-[400px]`}>
         <div>
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
             Operation Method
@@ -79,6 +86,23 @@ export default function Operation({ op, id }: OperationProps) {
           </p>
         </div>
       )}
+
+      {/* Bindings */}
+      {operationBindings &&
+        Object.entries(operationBindings).map(([protocol, binding]) =>
+          binding ? (
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+                Operation configuration
+              </p>
+              <Bindings
+                key={protocol}
+                protocol={protocol}
+                bindings={binding as Record<string, unknown>}
+              />
+            </div>
+          ) : null,
+        )}
 
       {/* Messages */}
       {messages.length > 0 && (

@@ -22,7 +22,12 @@
         {
           "$ref": "#/components/securitySchemes/oauth2AuthCode"
         }
-      ]
+      ],
+      "bindings": {
+        "https": {
+          "bindingVersion": "0.3.0"
+        }
+      }
     },
     "simulator": {
       "host": "sim-api.tradestation.com",
@@ -32,7 +37,12 @@
         {
           "$ref": "#/components/securitySchemes/oauth2AuthCode"
         }
-      ]
+      ],
+      "bindings": {
+        "http": {
+          "bindingVersion": "0.3.0"
+        }
+      }
     }
   },
   "channels": {

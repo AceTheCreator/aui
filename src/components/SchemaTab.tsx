@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SchemaViewer } from "../containers/Schema/SchemaViewer";
 
 interface SchemaProperty {
   type?: string;
@@ -53,9 +54,7 @@ function SchemaTabs({
       </div>
 
       {tab === "json" ? (
-        <pre className="text-xs bg-gray-50 text-gray-700 p-2 rounded overflow-x-auto">
-          {JSON.stringify(schema, null, 2)}
-        </pre>
+        <SchemaViewer schema={schema} />
       ) : isRef ? (
         <p className="text-xs text-gray-500 italic">
           Referenced schema:{" "}

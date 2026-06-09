@@ -83,13 +83,14 @@ export default function Server({
                   href={extDocs && extDocs.url}
                   title={
                     t.description ||
-                    (extDocs && extDocs.description ? extDocs.description : undefined)
+                    (extDocs && extDocs.description
+                      ? extDocs.description
+                      : undefined)
                   }
                   name={t.name}
                 />
               );
-            })
-          }
+            })}
         </div>
       </div>
       <Markdown>{description}</Markdown>
@@ -116,19 +117,23 @@ export default function Server({
           <Authorization securities={security} />
         </div>
       )}
-      {bindings && (
-        <div>
-          <h3 className="font-bold text-gray-700 mt-8">
-            <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
-            Connection Settings
-          </h3>
-          <Bindings
-            expand={false}
-            bindings={(bindings as ServerBindingsObject)[protocol as keyof ServerBindingsObject]}
-            protocol={protocol}
-          />
-        </div>
-      )}
+      {(() => {
+        const protocolBinding = (bindings as ServerBindingsObject)?.[protocol as keyof ServerBindingsObject] as Record<string, unknown> | undefined;
+        const hasContent = protocolBinding && Object.keys(protocolBinding).some((k) => k !== "bindingVersion");
+        if (!hasContent) return null;
+        return (
+          <div>
+            <h3 className="font-bold text-gray-700 mt-8">
+              <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+              Connection Settings
+            </h3>
+            <p className="prose text-gray-500 mt-4">
+              This server accepts the following connection configuration:
+            </p>
+            <Bindings bindings={protocolBinding} protocol={protocol} />
+          </div>
+        );
+      })()}
     </div>
   );
 }

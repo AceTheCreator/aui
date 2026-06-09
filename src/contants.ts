@@ -30,3 +30,41 @@ export const chunkColors = [
   "text-pink-600",
   "text-green-700",
 ];
+
+export const PROTOCOL_META: Record<string, { label: string; color: string }> = {
+  kafka: {
+    label: "Kafka",
+    color: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  mqtt: {
+    label: "MQTT",
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+  http: { label: "HTTP", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  https: { label: "HTTPS", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  ws: {
+    label: "WebSocket",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  wss: {
+    label: "WebSocket Secure",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  amqp: {
+    label: "AMQP",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  },
+  amqps: {
+    label: "AMQPS",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  },
+  ibmmq: {
+    label: "IBM MQ",
+    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  },
+  solace: {
+    label: "Solace",
+    color: "bg-pink-100 text-pink-700 border-pink-200",
+  },
+  nats: { label: "NATS", color: "bg-teal-100 text-teal-700 border-teal-200" },
+};
