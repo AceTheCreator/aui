@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { SchemaViewer } from "../containers/Schema/SchemaViewer";
+import { Examples } from "./Examples";
 
 interface SchemaProperty {
   type?: string;
@@ -16,7 +17,7 @@ function SchemaTabs({
   label: string;
   description?: string;
 }) {
-  const [tab, setTab] = useState<"schema" | "json">("schema");
+  const [tab, setTab] = useState<"schema" | "json" | "examples">("schema");
 
   const obj = schema as Record<string, unknown>;
   const isRef = "$ref" in obj;
@@ -50,11 +51,21 @@ function SchemaTabs({
           >
             JSON
           </button>
+          <button
+            onClick={() => setTab("examples")}
+            className={`px-2 py-0.5 border-l border-gray-200 ${tab === "examples" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+          >
+            Examples
+          </button>
         </div>
       </div>
 
       {tab === "json" ? (
         <SchemaViewer schema={schema} />
+      ) : tab === "examples" ? (
+        <Suspense fallback={<p className="text-xs text-gray-400">Generating...</p>}>
+          <Examples schema={schema} />
+        </Suspense>
       ) : isRef ? (
         <p className="text-xs text-gray-500 italic">
           Referenced schema:{" "}
