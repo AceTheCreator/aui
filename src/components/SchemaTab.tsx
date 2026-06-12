@@ -63,7 +63,13 @@ function SchemaTabs({
       {tab === "json" ? (
         <SchemaViewer schema={schema} />
       ) : tab === "examples" ? (
-        <Suspense fallback={<p className="text-xs text-gray-400">Generating...</p>}>
+        <Suspense
+          fallback={
+            <div className="min-h-28 bg-gray-50 p-2">
+              <p className="text-xs text-gray-400">Rendering examples...</p>
+            </div>
+          }
+        >
           <Examples schema={schema} />
         </Suspense>
       ) : isRef ? (

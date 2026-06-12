@@ -149,7 +149,17 @@ export default function Operation({ op, id }: OperationProps) {
       {messages.length > 0 && (
         <div>
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-            {messages.length > 1 ? "messages" : "message"}
+            <span className="text-black font-bold">{id}</span> {isSend ? "accepts" : "expects"}{" "}
+            {messages.length > 1 ? (
+              <>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-black">
+                  one of
+                </span>
+                the following messages:
+              </>
+            ) : (
+              "the following message:"
+            )}
           </p>
           <div className="space-y-2">
             {messages.map((msg, i) => (
