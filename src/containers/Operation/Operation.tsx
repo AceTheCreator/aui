@@ -1,4 +1,4 @@
-import { OperationBindingsObject } from "../../asyncapi-models/OperationBindingsObject";
+import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
 import { isUrl } from "../../helpers/common";
@@ -6,8 +6,10 @@ import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
+import { OperationReply } from "../../types/asyncapi/OperationReply";
 import { Tag } from "../../types/asyncapi/Tag";
 import { Message } from "../Messages/Message";
+import { Reply } from "../../components/Reply";
 
 interface OperationProps {
   op: OperationInterface;
@@ -19,7 +21,7 @@ export default function Operation({ op, id }: OperationProps) {
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
   const traits = op.traits as unknown as Array<Record<string, unknown>> | undefined;
-
+  const reply = op.reply as unknown as OperationReply | undefined;
   const externalDocs = op.externalDocs as unknown as ExternalDocs | undefined;
   const security = op.security as unknown as unknown[] | undefined;
 
@@ -35,6 +37,14 @@ export default function Operation({ op, id }: OperationProps) {
     : op.action === OperationAction.RECEIVE
       ? "bg-blue-100 text-blue-800"
       : "bg-gray-100 text-gray-700";
+  
+  const messageList = (
+    <div className="space-y-2">
+      {messages.map((msg, i) => (
+        <Message key={i} message={msg} messageId={msg.name} i={i} />
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -146,27 +156,28 @@ export default function Operation({ op, id }: OperationProps) {
         )}
 
       {/* Messages */}
-      {messages.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-            <span className="text-black font-bold">{id}</span> {isSend ? "accepts" : "expects"}{" "}
-            {messages.length > 1 ? (
-              <>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-black">
-                  one of
-                </span>
-                the following messages:
-              </>
-            ) : (
-              "the following message:"
-            )}
-          </p>
-          <div className="space-y-2">
-            {messages.map((msg, i) => (
-              <Message key={i} message={msg} messageId={msg.name} i={i} />
-            ))}
+      {reply ? (
+        <Reply requestMessages={messages} reply={reply} isSend={isSend} operationId={id} />
+      ) : (
+        messages.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              <span className="text-black font-bold">{id}</span>{" "}
+              {isSend ? "accepts" : "expects"}
+              {messages.length > 1 ? (
+                <>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-black">
+                    one of
+                  </span>
+                  the following messages:
+                </>
+              ) : (
+                "the following message:"
+              )}
+            </p>
+            {messageList}
           </div>
-        </div>
+        )
       )}
 
       {/* Tags */}

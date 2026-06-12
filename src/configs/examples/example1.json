@@ -225,7 +225,17 @@
         {
           "$ref": "#/channels/lightTurnOn/messages/commandAck"
         }
-      ]
+      ],
+      "reply": {
+        "channel": {
+          "$ref": "#/channels/lightingMeasured"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
     },
     "turnOff": {
       "action": "send",
@@ -255,7 +265,18 @@
         {
           "$ref": "#/channels/lightTurnOff/messages/commandAck"
         }
-      ]
+      ],
+      "reply": {
+        "address": {
+          "location": "$message.header#/replyTo",
+          "description": "Reply address is taken from the replyTo header of the incoming message."
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
     },
     "dimLight": {
       "action": "send",
