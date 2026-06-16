@@ -1,22 +1,21 @@
+import SchemaTree from "../../components/schema/SchemaTree";
 import Section from "../../components/Section";
-
-interface SchemaDefinition extends Record<string, unknown> {
-  type?: string;
-  format?: string;
-  description?: string;
-  properties?: Record<string, unknown>;
-}
+import { SchemaNodeData } from "../../types/schema";
 
 interface SchemasProps {
-  schemas: Record<string, SchemaDefinition>;
+  /** Map of schema name → schema definition (from `asyncapi.components.schemas`). */
+  schemas: Record<string, SchemaNodeData>;
 }
 
+// Renders the Schemas tab: lists every reusable schema defined under `components.schemas`
 export default function Schemas({ schemas }: SchemasProps) {
   const schemaEntries = Object.entries(schemas);
 
   const content = schemaEntries.length ? (
     <div className="mt-10 grid gap-6">
       {schemaEntries.map(([schemaName, schema]) => {
+        // Top-level property count only.
+        // IMP: Nested properties are not expanded here .
         const propertyCount = schema.properties
           ? Object.keys(schema.properties).length
           : 0;
@@ -55,9 +54,7 @@ export default function Schemas({ schemas }: SchemasProps) {
                 )}
               </div>
             )}
-            <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs leading-6 text-slate-100">
-              {JSON.stringify(schema, null, 2)}
-            </pre>
+            <SchemaTree schema={schema} rootName={schemaName} className="mt-4" />
           </article>
         );
       })}

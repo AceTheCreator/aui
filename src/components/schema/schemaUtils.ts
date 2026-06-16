@@ -1,0 +1,288 @@
+import { asSchemaNode, isSchemaRecord, SchemaNodeData } from "../../types/schema";
+
+/** Extracts the schema name from a JSON Pointer, e.g. "#/components/schemas/sentAt" → "sentAt". */
+export const refNameFromPath = (ref: string) =>
+  ref.replace(/^#\//, "").split("/").pop() ?? ref;
+
+export interface NormalizedSchema {
+  schema: SchemaNodeData;
+  refLabel?: string;
+  circular?: boolean;
+}
+
+/** Resolves $ref inline via deref; refStack tracks the active chain to detect circular refs. */
+export const normalizeSchema = (
+  raw: SchemaNodeData,
+  deref: (ref: string) => unknown,
+  refStack: Set<string>
+): NormalizedSchema => {
+  if (!raw.$ref) return { schema: raw };
+
+  const ref = raw.$ref;
+  const refLabel = refNameFromPath(ref);
+
+  if (refStack.has(ref)) {
+    return { schema: raw, refLabel, circular: true };
+  }
+
+  const resolved = asSchemaNode(deref(ref));
+  if (!resolved) return { schema: raw, refLabel };
+
+  refStack.add(ref);
+  const inner = normalizeSchema(resolved, deref, refStack);
+  refStack.delete(ref);
+
+  return {
+    schema: inner.schema,
+    refLabel: inner.circular ? undefined : refLabel,
+    circular: inner.circular,
+  };
+};
+
+/** Returns the first item schema from an array definition, if any. */
+export const getItemSchema = (
+  schema: SchemaNodeData
+): SchemaNodeData | null => {
+  const items = schema.items;
+  const item = Array.isArray(items) ? items[0] : items;
+  return isSchemaRecord(item) ? item : null;
+};
+
+/** Combines array- and item-level descriptions when they differ. */
+export const mergeDescriptions = (
+  arrayDescription?: string,
+  itemDescription?: string
+): string | undefined => {
+  if (!arrayDescription && !itemDescription) return undefined;
+  if (!itemDescription || arrayDescription === itemDescription) {
+    return arrayDescription ?? itemDescription;
+  }
+  if (!arrayDescription) return itemDescription;
+  return `${arrayDescription}\n\n${itemDescription}`;
+};
+
+const MERGE_SKIP_KEYS = new Set([
+  "allOf",
+  "oneOf",
+  "anyOf",
+  "$ref",
+  "properties",
+  "required",
+  "description",
+  "items",
+]);
+
+/** Merges two schema records for display; later values win on scalar conflicts. */
+export const mergeSchemaObjects = (
+  a: SchemaNodeData,
+  b: SchemaNodeData,
+  deref: (ref: string) => unknown,
+  refStack: Set<string>
+): SchemaNodeData => {
+  const result: SchemaNodeData = { ...a };
+
+  if (b.description) {
+    result.description = mergeDescriptions(
+      typeof result.description === "string" ? result.description : undefined,
+      typeof b.description === "string" ? b.description : undefined
+    );
+  }
+
+  if (b.required) {
+    result.required = Array.from(
+      new Set([...(result.required ?? []), ...b.required])
+    );
+  }
+
+  if (b.properties) {
+    result.properties = { ...(result.properties ?? {}) };
+    for (const [key, prop] of Object.entries(b.properties)) {
+      if (!isSchemaRecord(prop)) continue;
+      const existing = result.properties[key];
+      if (isSchemaRecord(existing)) {
+        result.properties[key] = mergeSchemaObjects(existing, prop, deref, refStack);
+      } else {
+        result.properties[key] = prop;
+      }
+    }
+  }
+
+  if (b.items) {
+    const bItem = getItemSchema(b);
+    const aItem = getItemSchema(result);
+    if (bItem && aItem) {
+      result.items = mergeSchemaObjects(aItem, bItem, deref, refStack);
+    } else if (bItem) {
+      result.items = b.items;
+    }
+  }
+
+  for (const [key, value] of Object.entries(b)) {
+    if (MERGE_SKIP_KEYS.has(key) || value === undefined) continue;
+    result[key] = value;
+  }
+
+  return result;
+};
+
+/** Recursively flattens nested properties/items that contain allOf. */
+const flattenAllOfNested = (
+  schema: SchemaNodeData,
+  deref: (ref: string) => unknown,
+  refStack: Set<string>
+): SchemaNodeData => {
+  const result: SchemaNodeData = { ...schema };
+  delete result.allOf;
+
+  if (result.properties) {
+    result.properties = Object.fromEntries(
+      Object.entries(result.properties).map(([key, prop]) =>
+        isSchemaRecord(prop)
+          ? [key, flattenAllOf(prop, deref, refStack)]
+          : [key, prop]
+      )
+    );
+  }
+
+  const itemSchema = getItemSchema(result);
+  if (itemSchema) {
+    result.items = flattenAllOf(itemSchema, deref, refStack);
+  }
+
+  return result;
+};
+
+/** Merges allOf subschemas into one; no allOf key in the result. */
+export const flattenAllOf = (
+  schema: SchemaNodeData,
+  deref: (ref: string) => unknown,
+  refStack: Set<string>
+): SchemaNodeData => {
+  const allOfItems = schema.allOf;
+  if (Array.isArray(allOfItems) && allOfItems.length > 0) {
+    let merged: SchemaNodeData = {};
+    for (const item of allOfItems) {
+      if (!isSchemaRecord(item)) continue;
+      const { schema: normalized, circular } = normalizeSchema(item, deref, refStack);
+      if (circular) continue;
+      const flattened = flattenAllOf(normalized, deref, refStack);
+      merged = mergeSchemaObjects(merged, flattened, deref, refStack);
+    }
+
+    const siblings = { ...schema };
+    delete siblings.allOf;
+    const withSiblings =
+      Object.keys(siblings).length > 0
+        ? mergeSchemaObjects(merged, siblings as SchemaNodeData, deref, refStack)
+        : merged;
+
+    return flattenAllOfNested(withSiblings, deref, refStack);
+  }
+
+  return flattenAllOfNested(schema, deref, refStack);
+};
+
+/** Returns oneOf subschemas when present. */
+export const getOneOfItems = (schema: SchemaNodeData): SchemaNodeData[] | null => {
+  const items = schema.oneOf;
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const filtered = items.filter((item): item is SchemaNodeData => isSchemaRecord(item));
+  return filtered.length > 0 ? filtered : null;
+};
+
+/** Returns anyOf subschemas when present. */
+export const getAnyOfItems = (schema: SchemaNodeData): SchemaNodeData[] | null => {
+  const items = schema.anyOf;
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const filtered = items.filter((item): item is SchemaNodeData => isSchemaRecord(item));
+  return filtered.length > 0 ? filtered : null;
+};
+
+/** True when a schema has no nested structure worth expanding. */
+export const isLeafItemSchema = (schema: SchemaNodeData): boolean => {
+  if (getOneOfItems(schema)) return false;
+  if (getAnyOfItems(schema)) return false;
+  if (schema.properties && Object.keys(schema.properties).length > 0) return false;
+  if (schema.items) return false;
+  if (schema.type === "array" || schema.type === "object") return false;
+  return true;
+};
+
+/** Appends item-level constraints to a type label (pattern, enum, etc.). */
+export const getItemConstraintsLabel = (schema: SchemaNodeData): string => {
+  const parts: string[] = [];
+  if (schema.format) parts.push(schema.format);
+  if (schema.pattern) parts.push(`pattern: ${schema.pattern}`);
+  if (schema.const !== undefined) parts.push(`const: ${JSON.stringify(schema.const)}`);
+  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
+    parts.push(
+      `enum: ${schema.enum.map((value) => JSON.stringify(value)).join(" | ")}`
+    );
+  }
+  return parts.length > 0 ? `, ${parts.join(", ")}` : "";
+};
+
+/** Builds the human-readable type string shown on the right side of each row. */
+export const getTypeLabel = (schema: SchemaNodeData, refLabel?: string): string => {
+  const oneOfItems = getOneOfItems(schema);
+  if (oneOfItems) {
+    return `one of (${oneOfItems.length})`;
+  }
+
+  const anyOfItems = getAnyOfItems(schema);
+  if (anyOfItems) {
+    return `any of (${anyOfItems.length})`;
+  }
+
+  if (schema.type === "array" || schema.items) {
+    const itemSchema = getItemSchema(schema);
+    if (itemSchema) {
+      const itemType = itemSchema.type;
+      if (itemType === "object") {
+        const name = itemSchema.$ref
+          ? refNameFromPath(itemSchema.$ref)
+          : refLabel;
+        return name ? `Array of objects, (${name})` : "Array of objects";
+      }
+      if (typeof itemType === "string") {
+        let label = `Array of ${itemType}`;
+        if (isLeafItemSchema(itemSchema)) {
+          label += getItemConstraintsLabel(itemSchema);
+        }
+        return label;
+      }
+    }
+    return "array";
+  }
+
+  const types = Array.isArray(schema.type)
+    ? schema.type.join(" | ")
+    : schema.type;
+  let label = types ?? "unknown";
+
+  if (schema.format) label += `, ${schema.format}`;
+  if (refLabel && types === "object") label += `, (${refLabel})`;
+
+  return label;
+};
+
+/** Whether a schema node has children worth showing behind an expand toggle. */
+export const hasExpandableContent = (
+  schema: SchemaNodeData,
+  deref?: (ref: string) => unknown
+): boolean => {
+  if (getOneOfItems(schema)) return true;
+  if (getAnyOfItems(schema)) return true;
+  if (schema.properties && Object.keys(schema.properties).length > 0) return true;
+  if (schema.type === "array" || schema.items) {
+    const itemSchema = getItemSchema(schema);
+    if (!itemSchema) return false;
+    if (itemSchema.$ref && deref) {
+      const { schema: resolved } = normalizeSchema(itemSchema, deref, new Set());
+      const flattened = flattenAllOf(resolved, deref, new Set());
+      return !isLeafItemSchema(flattened);
+    }
+    return !isLeafItemSchema(itemSchema);
+  }
+  return false;
+};

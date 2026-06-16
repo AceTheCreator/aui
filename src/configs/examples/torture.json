@@ -1,0 +1,1658 @@
+{
+    "asyncapi": "3.1.0",
+    "id": "urn:example:asyncapi:composition-torture-test",
+    "info": {
+      "title": "AsyncAPI Composition Torture Test",
+      "version": "1.0.0",
+      "description": "A deliberately broad rendering test for oneOf, anyOf, allOf, not, and if/then/else across payloads, headers, objects, arrays, maps, refs, nested schemas, traits, and examples.\n"
+    },
+    "defaultContentType": "application/json",
+    "servers": {
+      "production": {
+        "host": "broker.example.com",
+        "protocol": "kafka",
+        "description": "Kafka broker used only for renderer testing."
+      }
+    },
+    "channels": {
+      "accountEvents": {
+        "address": "account/{accountId}/events",
+        "title": "Account Events Channel",
+        "description": "Channel with messages that exercise schema composition keywords.",
+        "parameters": {
+          "accountId": {
+            "description": "Account identifier with a oneOf parameter schema."
+          }
+        },
+        "messages": {
+          "AccountEvent": {
+            "$ref": "#/components/messages/AccountEventMessage"
+          },
+          "ConditionalEvent": {
+            "$ref": "#/components/messages/ConditionalEventMessage"
+          },
+          "CollectionEvent": {
+            "$ref": "#/components/messages/CollectionEventMessage"
+          }
+        }
+      },
+      "auditEvents": {
+        "address": "audit/events",
+        "title": "Audit Events Channel",
+        "description": "Channel with allOf and anyOf heavy audit messages.",
+        "messages": {
+          "AuditEvent": {
+            "$ref": "#/components/messages/AuditEventMessage"
+          }
+        }
+      }
+    },
+    "operations": {
+      "receiveAccountEvents": {
+        "action": "receive",
+        "channel": {
+          "$ref": "#/channels/accountEvents"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/accountEvents/messages/AccountEvent"
+          },
+          {
+            "$ref": "#/channels/accountEvents/messages/ConditionalEvent"
+          },
+          {
+            "$ref": "#/channels/accountEvents/messages/CollectionEvent"
+          }
+        ]
+      },
+      "sendAuditEvents": {
+        "action": "send",
+        "channel": {
+          "$ref": "#/channels/auditEvents"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/auditEvents/messages/AuditEvent"
+          }
+        ]
+      }
+    },
+    "components": {
+      "messageTraits": {
+        "Traceable": {
+          "title": "Traceable message trait",
+          "headers": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BaseHeaders"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "traceparent"
+                ],
+                "properties": {
+                  "traceparent": {
+                    "type": "string",
+                    "pattern": "^[\\da-f]{2}-[\\da-f]{32}-[\\da-f]{16}-[\\da-f]{2}$"
+                  },
+                  "rendererTraitCase": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "const": "trait-one"
+                      },
+                      {
+                        "type": "string",
+                        "const": "trait-two"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "messages": {
+        "AccountEventMessage": {
+          "name": "AccountEventMessage",
+          "title": "Account event using message-level oneOf payload",
+          "summary": "Payload is exactly one of several event shapes.",
+          "traits": [
+            {
+              "$ref": "#/components/messageTraits/Traceable"
+            }
+          ],
+          "headers": {
+            "$ref": "#/components/schemas/ComposedHeaders"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/AccountEventEnvelope"
+          },
+          "examples": [
+            {
+              "name": "accountCreatedExample",
+              "summary": "oneOf branch, account.created",
+              "headers": {
+                "contentType": "application/json",
+                "traceparent": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01",
+                "x-request-id": "req_123"
+              },
+              "payload": {
+                "schemaVersion": "1.0",
+                "eventId": "0191f0c7-78be-7f6c-9c1d-111111111111",
+                "eventType": "account.created",
+                "occurredAt": "2026-06-14T10:00:00Z",
+                "data": {
+                  "accountId": "acct_ABCDEFGH",
+                  "email": "jane@example.com",
+                  "plan": "free"
+                }
+              }
+            }
+          ]
+        },
+        "ConditionalEventMessage": {
+          "name": "ConditionalEventMessage",
+          "title": "Event using if then else payload",
+          "headers": {
+            "$ref": "#/components/schemas/ConditionalHeaders"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ConditionalEnvelope"
+          },
+          "examples": [
+            {
+              "name": "vipFraudExample",
+              "payload": {
+                "kind": "risk.signal",
+                "severity": "high",
+                "actorType": "vip",
+                "vipTier": "platinum",
+                "score": 98,
+                "reason": "velocity"
+              }
+            }
+          ]
+        },
+        "CollectionEventMessage": {
+          "name": "CollectionEventMessage",
+          "title": "Event using arrays with oneOf, anyOf, allOf, contains",
+          "payload": {
+            "$ref": "#/components/schemas/CollectionEnvelope"
+          }
+        },
+        "AuditEventMessage": {
+          "name": "AuditEventMessage",
+          "title": "Audit event with deep nesting and maps",
+          "payload": {
+            "$ref": "#/components/schemas/AuditEnvelope"
+          }
+        }
+      },
+      "schemas": {
+        "BaseHeaders": {
+          "title": "BaseHeaders",
+          "type": "object",
+          "required": [
+            "contentType"
+          ],
+          "properties": {
+            "contentType": {
+              "type": "string",
+              "const": "application/json"
+            },
+            "x-request-id": {
+              "oneOf": [
+                {
+                  "title": "UUID request id",
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "title": "Prefixed request id",
+                  "type": "string",
+                  "pattern": "^req_[a-zA-Z0-9]+$"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "ComposedHeaders": {
+          "title": "ComposedHeaders",
+          "description": "allOf at headers root, oneOf and anyOf inside properties.",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BaseHeaders"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "routing-key": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "critical"
+                    },
+                    {
+                      "type": "string",
+                      "pattern": "^tenant\\.[a-z0-9-]+$"
+                    }
+                  ]
+                },
+                "compression": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "const": "none"
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "gzip",
+                        "zstd"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "ConditionalHeaders": {
+          "title": "ConditionalHeaders",
+          "type": "object",
+          "required": [
+            "contentType",
+            "priority"
+          ],
+          "properties": {
+            "contentType": {
+              "type": "string",
+              "const": "application/json"
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "normal",
+                "urgent"
+              ]
+            },
+            "retryAfterSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "if": {
+            "properties": {
+              "priority": {
+                "const": "urgent"
+              }
+            },
+            "required": [
+              "priority"
+            ]
+          },
+          "then": {
+            "required": [
+              "retryAfterSeconds"
+            ],
+            "properties": {
+              "retryAfterSeconds": {
+                "maximum": 300
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "retryAfterSeconds": {
+                "maximum": 86400
+              }
+            }
+          }
+        },
+        "EventMeta": {
+          "title": "EventMeta",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "eventId",
+            "eventType",
+            "occurredAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "type": "string",
+              "enum": [
+                "1.0",
+                "2.0"
+              ]
+            },
+            "eventId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "eventType": {
+              "type": "string"
+            },
+            "occurredAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "source": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uri",
+                  "title": "URI source"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^svc:[a-z0-9-]+$",
+                  "title": "Service source"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountCreatedData": {
+          "title": "AccountCreatedData",
+          "type": "object",
+          "required": [
+            "accountId",
+            "email",
+            "plan"
+          ],
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^acct_[a-zA-Z0-9]{8,}$"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "plan": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "const": "free",
+                  "title": "Free plan"
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "pro",
+                    "enterprise"
+                  ],
+                  "title": "Paid plan"
+                }
+              ]
+            },
+            "welcomeChannels": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "email",
+                      "sms",
+                      "push"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "const": "none"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountDeletedData": {
+          "title": "AccountDeletedData",
+          "type": "object",
+          "required": [
+            "accountId",
+            "deletedBy",
+            "reason"
+          ],
+          "properties": {
+            "accountId": {
+              "type": "string"
+            },
+            "deletedBy": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UserActor"
+                },
+                {
+                  "$ref": "#/components/schemas/SystemActor"
+                }
+              ]
+            },
+            "reason": {
+              "type": "string"
+            },
+            "retention": {
+              "if": {
+                "properties": {
+                  "legalHold": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "legalHold"
+                ]
+              },
+              "then": {
+                "type": "object",
+                "required": [
+                  "legalHold",
+                  "holdId"
+                ],
+                "properties": {
+                  "legalHold": {
+                    "const": true
+                  },
+                  "holdId": {
+                    "type": "string"
+                  }
+                }
+              },
+              "else": {
+                "type": "object",
+                "properties": {
+                  "legalHold": {
+                    "const": false
+                  },
+                  "purgeAfterDays": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "UserActor": {
+          "title": "UserActor",
+          "type": "object",
+          "required": [
+            "actorType",
+            "userId"
+          ],
+          "properties": {
+            "actorType": {
+              "const": "user"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "const": "admin"
+                  },
+                  {
+                    "type": "string",
+                    "const": "support"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^custom:[a-z0-9-]+$"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "SystemActor": {
+          "title": "SystemActor",
+          "type": "object",
+          "required": [
+            "actorType",
+            "serviceName"
+          ],
+          "properties": {
+            "actorType": {
+              "const": "system"
+            },
+            "serviceName": {
+              "type": "string"
+            },
+            "automation": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountEventEnvelope": {
+          "title": "AccountEventEnvelope",
+          "description": "allOf combines common metadata with exactly one event-specific shape.",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EventMeta"
+            },
+            {
+              "oneOf": [
+                {
+                  "title": "Account created event",
+                  "type": "object",
+                  "required": [
+                    "eventType",
+                    "data"
+                  ],
+                  "properties": {
+                    "eventType": {
+                      "const": "account.created"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AccountCreatedData"
+                    }
+                  }
+                },
+                {
+                  "title": "Account deleted event",
+                  "type": "object",
+                  "required": [
+                    "eventType",
+                    "data"
+                  ],
+                  "properties": {
+                    "eventType": {
+                      "const": "account.deleted"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AccountDeletedData"
+                    }
+                  }
+                },
+                {
+                  "title": "Account merged event with nested anyOf",
+                  "type": "object",
+                  "required": [
+                    "eventType",
+                    "data"
+                  ],
+                  "properties": {
+                    "eventType": {
+                      "const": "account.merged"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "winnerAccountId",
+                        "loserAccountId",
+                        "mergeStrategy"
+                      ],
+                      "properties": {
+                        "winnerAccountId": {
+                          "type": "string"
+                        },
+                        "loserAccountId": {
+                          "type": "string"
+                        },
+                        "mergeStrategy": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "const": "manual"
+                            },
+                            {
+                              "type": "string",
+                              "const": "automatic"
+                            },
+                            {
+                              "type": "object",
+                              "required": [
+                                "algorithm",
+                                "confidence"
+                              ],
+                              "properties": {
+                                "algorithm": {
+                                  "type": "string"
+                                },
+                                "confidence": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "discriminator": "eventType"
+            }
+          ]
+        },
+        "ConditionalEnvelope": {
+          "title": "ConditionalEnvelope",
+          "type": "object",
+          "required": [
+            "kind",
+            "severity",
+            "actorType"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "risk.signal",
+                "marketing.signal"
+              ]
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "actorType": {
+              "type": "string",
+              "enum": [
+                "anonymous",
+                "customer",
+                "vip"
+              ]
+            },
+            "customerId": {
+              "type": "string"
+            },
+            "anonymousId": {
+              "type": "string"
+            },
+            "vipTier": {
+              "type": "string",
+              "enum": [
+                "gold",
+                "platinum",
+                "black"
+              ]
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "reason": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "velocity",
+                    "geo",
+                    "device"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "detail"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "actorType": {
+                    "const": "anonymous"
+                  }
+                },
+                "required": [
+                  "actorType"
+                ]
+              },
+              "then": {
+                "required": [
+                  "anonymousId"
+                ],
+                "not": {
+                  "required": [
+                    "customerId"
+                  ]
+                }
+              },
+              "else": {
+                "required": [
+                  "customerId"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "actorType": {
+                    "const": "vip"
+                  }
+                },
+                "required": [
+                  "actorType"
+                ]
+              },
+              "then": {
+                "required": [
+                  "vipTier"
+                ],
+                "properties": {
+                  "score": {
+                    "minimum": 80
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "vipTier": false
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "kind": {
+                    "const": "risk.signal"
+                  },
+                  "severity": {
+                    "const": "high"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "severity"
+                ]
+              },
+              "then": {
+                "required": [
+                  "reason"
+                ]
+              },
+              "else": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "score"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "reason"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "CollectionEnvelope": {
+          "title": "CollectionEnvelope",
+          "type": "object",
+          "required": [
+            "batchId",
+            "items",
+            "summary"
+          ],
+          "properties": {
+            "batchId": {
+              "type": "string"
+            },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CardPayment"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BankPayment"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CryptoPayment"
+                  }
+                ]
+              },
+              "contains": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "paymentMethod": {
+                        "const": "card"
+                      }
+                    },
+                    "required": [
+                      "paymentMethod"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "amount": {
+                        "minimum": 1000
+                      }
+                    },
+                    "required": [
+                      "amount"
+                    ]
+                  }
+                ]
+              }
+            },
+            "tupleLikeItems": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 3,
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            },
+            "summary": {
+              "allOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "totalCount"
+                  ],
+                  "properties": {
+                    "totalCount": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "currency"
+                  ],
+                  "properties": {
+                    "currency": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "const": "USD"
+                        },
+                        {
+                          "type": "string",
+                          "const": "EUR"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^[A-Z]{3}$"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "optionalDebug": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ]
+            }
+          }
+        },
+        "PaymentBase": {
+          "title": "PaymentBase",
+          "type": "object",
+          "required": [
+            "paymentId",
+            "paymentMethod",
+            "amount"
+          ],
+          "properties": {
+            "paymentId": {
+              "type": "string"
+            },
+            "paymentMethod": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "CardPayment": {
+          "title": "CardPayment",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PaymentBase"
+            },
+            {
+              "type": "object",
+              "required": [
+                "paymentMethod",
+                "card"
+              ],
+              "properties": {
+                "paymentMethod": {
+                  "const": "card"
+                },
+                "card": {
+                  "type": "object",
+                  "required": [
+                    "last4",
+                    "brand"
+                  ],
+                  "properties": {
+                    "last4": {
+                      "type": "string",
+                      "pattern": "^\\d{4}$"
+                    },
+                    "brand": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "visa",
+                            "mastercard",
+                            "amex"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^private-label-[a-z0-9]+$"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "BankPayment": {
+          "title": "BankPayment",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PaymentBase"
+            },
+            {
+              "type": "object",
+              "required": [
+                "paymentMethod",
+                "bank"
+              ],
+              "properties": {
+                "paymentMethod": {
+                  "const": "bank"
+                },
+                "bank": {
+                  "type": "object",
+                  "required": [
+                    "scheme",
+                    "accountRef"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "ach"
+                        },
+                        {
+                          "type": "string",
+                          "const": "sepa"
+                        }
+                      ]
+                    },
+                    "accountRef": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^iban:"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^routing:"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "CryptoPayment": {
+          "title": "CryptoPayment",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PaymentBase"
+            },
+            {
+              "type": "object",
+              "required": [
+                "paymentMethod",
+                "chain",
+                "wallet"
+              ],
+              "properties": {
+                "paymentMethod": {
+                  "const": "crypto"
+                },
+                "chain": {
+                  "enum": [
+                    "ethereum",
+                    "polygon",
+                    "bitcoin"
+                  ]
+                },
+                "wallet": {
+                  "if": {
+                    "properties": {
+                      "chain": {
+                        "const": "bitcoin"
+                      }
+                    }
+                  },
+                  "then": {
+                    "type": "string",
+                    "pattern": "^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,}$"
+                  },
+                  "else": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "AuditEnvelope": {
+          "title": "AuditEnvelope",
+          "type": "object",
+          "required": [
+            "auditId",
+            "records",
+            "metadata"
+          ],
+          "properties": {
+            "auditId": {
+              "type": "string"
+            },
+            "records": {
+              "type": "object",
+              "description": "Map values use anyOf, each branch may contain allOf or oneOf.",
+              "propertyNames": {
+                "anyOf": [
+                  {
+                    "pattern": "^rec_[a-z0-9]+$"
+                  },
+                  {
+                    "pattern": "^legacy-[0-9]+$"
+                  }
+                ]
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/AuditRecordBase"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "change"
+                        ],
+                        "properties": {
+                          "change": {
+                            "oneOf": [
+                              {
+                                "$ref": "#/components/schemas/CreateChange"
+                              },
+                              {
+                                "$ref": "#/components/schemas/UpdateChange"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeleteChange"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "redacted"
+                    ],
+                    "properties": {
+                      "redacted": {
+                        "const": true
+                      },
+                      "reason": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "metadata": {
+              "type": "object",
+              "patternProperties": {
+                "^x-flag-": {
+                  "oneOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "on",
+                        "off"
+                      ]
+                    }
+                  ]
+                },
+                "^x-count-": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "string",
+                      "pattern": "^\\d+$"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "allOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "minLength": 1
+                  }
+                ]
+              }
+            },
+            "rendererEdgeCases": {
+              "type": "object",
+              "properties": {
+                "alwaysValid": {
+                  "description": "Boolean true schema as a property schema.",
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "impossibleValue": {
+                  "description": "Boolean false schema using not with true.",
+                  "not": true
+                },
+                "nullableOrComposed": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "required": [
+                            "value"
+                          ],
+                          "properties": {
+                            "value": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "AuditRecordBase": {
+          "title": "AuditRecordBase",
+          "type": "object",
+          "required": [
+            "actor",
+            "timestamp"
+          ],
+          "properties": {
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UserActor"
+                },
+                {
+                  "$ref": "#/components/schemas/SystemActor"
+                }
+              ]
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "CreateChange": {
+          "title": "CreateChange",
+          "type": "object",
+          "required": [
+            "changeType",
+            "after"
+          ],
+          "properties": {
+            "changeType": {
+              "const": "create"
+            },
+            "after": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "UpdateChange": {
+          "title": "UpdateChange",
+          "type": "object",
+          "required": [
+            "changeType",
+            "before",
+            "after",
+            "diff"
+          ],
+          "properties": {
+            "changeType": {
+              "const": "update"
+            },
+            "before": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "after": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "diff": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "path"
+                    ],
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "required": [
+                          "oldValue",
+                          "newValue"
+                        ],
+                        "properties": {
+                          "oldValue": true,
+                          "newValue": true
+                        }
+                      },
+                      {
+                        "required": [
+                          "op"
+                        ],
+                        "properties": {
+                          "op": {
+                            "enum": [
+                              "add",
+                              "remove",
+                              "replace"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "DeleteChange": {
+          "title": "DeleteChange",
+          "type": "object",
+          "required": [
+            "changeType",
+            "before"
+          ],
+          "properties": {
+            "changeType": {
+              "const": "delete"
+            },
+            "before": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "purge": {
+              "if": {
+                "properties": {
+                  "immediate": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "immediate"
+                ]
+              },
+              "then": {
+                "required": [
+                  "approvedBy"
+                ],
+                "properties": {
+                  "immediate": {
+                    "const": true
+                  },
+                  "approvedBy": {
+                    "type": "string"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "immediate": {
+                    "const": false
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "StandaloneOneOfPrimitive": {
+          "title": "StandaloneOneOfPrimitive",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "StandaloneAnyOfOverlapping": {
+          "title": "StandaloneAnyOfOverlapping",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "pattern": "^acct_"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "StandaloneAllOfRefAndInline": {
+          "title": "StandaloneAllOfRefAndInline",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EventMeta"
+            },
+            {
+              "type": "object",
+              "required": [
+                "tenantId"
+              ],
+              "properties": {
+                "tenantId": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": "2.0"
+                  }
+                },
+                "required": [
+                  "schemaVersion"
+                ]
+              },
+              "then": {
+                "required": [
+                  "tenantId"
+                ]
+              },
+              "else": {
+                "properties": {
+                  "tenantId": {
+                    "pattern": "^legacy-"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "NestedEverything": {
+          "title": "NestedEverything",
+          "description": "Deeply nested oneOf, anyOf, allOf, and if/then/else in one schema.",
+          "allOf": [
+            {
+              "type": "object",
+              "required": [
+                "mode",
+                "body"
+              ],
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "simple",
+                    "advanced"
+                  ]
+                },
+                "body": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "simpleValue"
+                      ],
+                      "properties": {
+                        "simpleValue": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "advancedValue"
+                      ],
+                      "properties": {
+                        "advancedValue": {
+                          "allOf": [
+                            {
+                              "type": "object",
+                              "required": [
+                                "kind"
+                              ],
+                              "properties": {
+                                "kind": {
+                                  "enum": [
+                                    "alpha",
+                                    "beta"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "if": {
+                                "properties": {
+                                  "kind": {
+                                    "const": "alpha"
+                                  }
+                                },
+                                "required": [
+                                  "kind"
+                                ]
+                              },
+                              "then": {
+                                "required": [
+                                  "alphaOnly"
+                                ],
+                                "properties": {
+                                  "alphaOnly": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "else": {
+                                "required": [
+                                  "betaOnly"
+                                ],
+                                "properties": {
+                                  "betaOnly": {
+                                    "type": "integer"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "const": "advanced"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "body": {
+                    "required": [
+                      "advancedValue"
+                    ]
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "body": {
+                    "required": [
+                      "simpleValue"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }

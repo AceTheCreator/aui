@@ -4,7 +4,7 @@ import TagComponent from "../../components/Tag";
 import Tabs from "../../components/Tabs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Tag } from "../../types/asyncapi/Tag";
-import SchemaTabs from "../../components/SchemaTab";
+import SchemaTabs from "../../components/schema/SchemaTab";
 
 interface MessageProps {
   message: MessageObject;

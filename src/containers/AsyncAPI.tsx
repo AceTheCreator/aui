@@ -12,6 +12,7 @@ import Messages from "./Messages/Messages";
 import Servers from "./Server/Servers";
 import Operations from "./Operation/Operations";
 import Schemas from "./Schema/Schemas";
+import { SchemaNodeData } from "../types/schema";
 
 interface AsyncAPIMessageDefinition {
   name?: string;
@@ -24,12 +25,7 @@ interface AsyncAPIMessageDefinition {
   };
 }
 
-interface AsyncAPISchemaDefinition extends Record<string, unknown> {
-  type?: string;
-  format?: string;
-  description?: string;
-  properties?: Record<string, unknown>;
-}
+interface AsyncAPISchemaDefinition extends SchemaNodeData {}
 
 interface AsyncAPIDocumentData extends Record<string, unknown> {
   info: Info;
@@ -50,20 +46,32 @@ type AsyncAPITabKey = "operations" | "messages" | "schemas";
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+/** Type guard: ensures a tab id from ContentTab is one of the supported AsyncAPI sections. */
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
+/**
+ * Root UI for rendering an AsyncAPI document.
+ * Expects a pre-parsed object; provides `deref` to child components via context.
+ */
 const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
   const [activeTab, setActiveTab] = useState<AsyncAPITabKey>("operations");
+
+  // Memoized cache so repeated $ref lookups don't re-walk the document tree.
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
 
+  // Invalidate cached $ref results when a different document is loaded.
   useEffect(() => {
     derefCache.clear();
   }, [asyncapi, derefCache]);
 
+  /**
+   * Dereference a JSON Pointer ($ref) against the current document.
+   */
   const deref = useCallback((refPath: string) => {
     if (derefCache.has(refPath)) return derefCache.get(refPath);
 
+    // Strip leading "#/" and split into path segments.
     const parts = refPath.replace(/^#\//, "").split("/");
     let current: unknown = asyncapi;
 
@@ -73,6 +81,7 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
         break;
       }
 
+      // JSON Pointer escape sequences: ~1 → /, ~0 → ~
       const decoded = part.replace(/~1/g, "/").replace(/~0/g, "~");
       current = current[decoded];
 
@@ -86,6 +95,7 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
     return current;
   }, [asyncapi, derefCache]);
 
+  // Shared context value consumed by child components via useAsyncAPIDocument().
   const value = useMemo(
     () => ({ document: asyncapi, deref }),
     [asyncapi, deref]
@@ -109,6 +119,7 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
     },
   ];
 
+  // Render the section that matches the currently selected tab.
   const activeContent =
     activeTab === "operations" ? (
       <Operations operations={asyncapi.operations ?? {}} />
