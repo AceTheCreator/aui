@@ -4,7 +4,7 @@
     "info": {
       "title": "AsyncAPI Composition Torture Test",
       "version": "1.0.0",
-      "description": "A deliberately broad rendering test for oneOf, anyOf, allOf, not, and if/then/else across payloads, headers, objects, arrays, maps, refs, nested schemas, traits, and examples.\n"
+      "description": "A deliberately broad rendering test for JSON Schema validation keywords (type, required, numeric/string/array/object constraints, enum, const, examples, if/then/else, readOnly, writeOnly, composition, and map/tuple keywords) across payloads, headers, objects, arrays, maps, refs, nested schemas, traits, and message examples.\n"
     },
     "defaultContentType": "application/json",
     "servers": {
@@ -33,6 +33,9 @@
           },
           "CollectionEvent": {
             "$ref": "#/components/messages/CollectionEventMessage"
+          },
+          "KeywordShowcaseEvent": {
+            "$ref": "#/components/messages/KeywordShowcaseMessage"
           }
         }
       },
@@ -62,6 +65,9 @@
           },
           {
             "$ref": "#/channels/accountEvents/messages/CollectionEvent"
+          },
+          {
+            "$ref": "#/channels/accountEvents/messages/KeywordShowcaseEvent"
           }
         ]
       },
@@ -189,6 +195,37 @@
           "payload": {
             "$ref": "#/components/schemas/AuditEnvelope"
           }
+        },
+        "KeywordShowcaseMessage": {
+          "name": "KeywordShowcaseMessage",
+          "title": "Payload exercising every JSON Schema validation keyword",
+          "summary": "Single message whose payload schema includes type, required, numeric/string/array/object constraints, enum, const, examples, if/then/else, readOnly, writeOnly, properties, patternProperties, additionalProperties, additionalItems, items, propertyNames, contains, allOf, oneOf, anyOf, and not.",
+          "payload": {
+            "$ref": "#/components/schemas/SchemaKeywordShowcase"
+          },
+          "examples": [
+            {
+              "name": "keywordShowcaseExample",
+              "summary": "Minimal valid instance for SchemaKeywordShowcase",
+              "payload": {
+                "label": "showcase-label",
+                "quantity": 10,
+                "fixedStatus": "published",
+                "tags": [
+                  "alpha",
+                  1,
+                  true
+                ],
+                "metadata": {
+                  "x-flag-enabled": true,
+                  "note": "ok"
+                },
+                "branch": {
+                  "kind": "primary"
+                }
+              }
+            }
+          ]
         }
       },
       "schemas": {
@@ -1432,6 +1469,250 @@
               }
             }
           }
+        },
+        "SchemaKeywordShowcase": {
+          "title": "SchemaKeywordShowcase",
+          "description": "One schema tree that exercises every JSON Schema validation keyword supported in AsyncAPI payloads.",
+          "type": "object",
+          "required": [
+            "label",
+            "quantity",
+            "fixedStatus",
+            "tags",
+            "metadata",
+            "branch"
+          ],
+          "minProperties": 1,
+          "maxProperties": 12,
+          "readOnly": false,
+          "writeOnly": false,
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+              "examples": [
+                "showcase-label",
+                "demo_value"
+              ]
+            },
+            "quantity": {
+              "type": "integer",
+              "multipleOf": 5,
+              "minimum": 0,
+              "maximum": 100,
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 101,
+              "examples": [
+                10,
+                25
+              ]
+            },
+            "fixedStatus": {
+              "type": "string",
+              "const": "published",
+              "examples": [
+                "published"
+              ]
+            },
+            "preferredChannel": {
+              "type": "string",
+              "enum": [
+                "email",
+                "sms",
+                "push"
+              ],
+              "examples": [
+                "email"
+              ]
+            },
+            "serverAssignedId": {
+              "type": "string",
+              "readOnly": true,
+              "examples": [
+                "srv_01HXYZ"
+              ]
+            },
+            "clientSecret": {
+              "type": "string",
+              "writeOnly": true,
+              "minLength": 8,
+              "examples": [
+                "s3cr3t-key"
+              ]
+            },
+            "tags": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z]+$"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "additionalItems": {
+                "type": "boolean"
+              },
+              "contains": {
+                "type": "string",
+                "pattern": "^alpha$"
+              },
+              "examples": [
+                [
+                  "alpha",
+                  1,
+                  true
+                ]
+              ]
+            },
+            "metadata": {
+              "type": "object",
+              "minProperties": 1,
+              "maxProperties": 8,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "patternProperties": {
+                "^x-flag-": {
+                  "type": "boolean"
+                },
+                "^x-count-": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              },
+              "examples": [
+                {
+                  "x-flag-enabled": true,
+                  "note": "ok"
+                }
+              ]
+            },
+            "branch": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "kind"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "primary"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "fallback"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "secondary"
+                    },
+                    "fallback": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ],
+              "examples": [
+                {
+                  "kind": "primary"
+                }
+              ]
+            },
+            "composedScore": {
+              "allOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "number",
+                  "maximum": 1
+                }
+              ],
+              "examples": [
+                0.75
+              ]
+            },
+            "disallowedValue": {
+              "not": {
+                "const": "forbidden"
+              },
+              "examples": [
+                "allowed"
+              ]
+            },
+            "conditionalNote": {
+              "if": {
+                "properties": {
+                  "preferredChannel": {
+                    "const": "sms"
+                  }
+                },
+                "required": [
+                  "preferredChannel"
+                ]
+              },
+              "then": {
+                "type": "string",
+                "pattern": "^\\+[1-9]\\d{6,14}$"
+              },
+              "else": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "anyOfHint": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 16
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "examples": [
+            {
+              "label": "showcase-label",
+              "quantity": 10,
+              "fixedStatus": "published",
+              "tags": [
+                "alpha",
+                1,
+                true
+              ],
+              "metadata": {
+                "x-flag-enabled": true,
+                "note": "ok"
+              },
+              "branch": {
+                "kind": "primary"
+              }
+            }
+          ]
         },
         "StandaloneOneOfPrimitive": {
           "title": "StandaloneOneOfPrimitive",

@@ -6,8 +6,8 @@ import SchemaTreeRow from "./SchemaTreeRow";
 import {
   flattenAllOf,
   getItemSchema,
-  getTypeLabel,
   hasExpandableContent,
+  isLeafItemSchema,
   mergeDescriptions,
   refNameFromPath,
 } from "./schemaUtils";
@@ -72,17 +72,24 @@ export default function SchemaTree({
         ? `${initialPath}[]`
         : initialPath;
 
+    const itemSchema = getItemSchema(flattenedNode);
+    const resolvedItem =
+      itemSchema ? flattenAllOf(itemSchema, deref, refStack) : null;
+    const isLeafArray =
+      resolvedItem !== null && isLeafItemSchema(resolvedItem);
+
     return (
       <div className={className}>
         <SchemaTreeRow
           path={arrayPath}
           depth={0}
-          typeLabel={getTypeLabel(flattenedNode)}
+          schema={flattenedNode}
+          itemSchema={isLeafArray ? resolvedItem : undefined}
           description={
             flattenedNode.type === "array" || flattenedNode.items
               ? mergeDescriptions(
                 flattenedNode.description,
-                getItemSchema(flattenedNode)?.description
+                itemSchema?.description
               )
               : flattenedNode.description
           }

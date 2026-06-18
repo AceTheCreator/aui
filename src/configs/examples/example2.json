@@ -264,7 +264,7 @@
         "properties": {
           "event": {
             "type": "string",
-            "const": "pong"
+            "const": "'pong"
           },
           "reqid": {
             "$ref": "#/components/schemas/reqid"
@@ -297,7 +297,9 @@
           "maintenance",
           "cancel_only",
           "limit_only",
-          "post_only"
+          "post_only",
+          "post_only2",
+          "post_only3"
         ]
       },
       "subscribe": {

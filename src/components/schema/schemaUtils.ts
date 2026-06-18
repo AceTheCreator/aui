@@ -1,4 +1,5 @@
 import { asSchemaNode, isSchemaRecord, SchemaNodeData } from "../../types/schema";
+import { buildTypeDisplay } from "./schemaDisplayUtils";
 
 /** Extracts the schema name from a JSON Pointer, e.g. "#/components/schemas/sentAt" → "sentAt". */
 export const refNameFromPath = (ref: string) =>
@@ -208,61 +209,44 @@ export const isLeafItemSchema = (schema: SchemaNodeData): boolean => {
   return true;
 };
 
-/** Appends item-level constraints to a type label (pattern, enum, etc.). */
-export const getItemConstraintsLabel = (schema: SchemaNodeData): string => {
-  const parts: string[] = [];
-  if (schema.format) parts.push(schema.format);
-  if (schema.pattern) parts.push(`pattern: ${schema.pattern}`);
-  if (schema.const !== undefined) parts.push(`const: ${JSON.stringify(schema.const)}`);
-  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-    parts.push(
-      `enum: ${schema.enum.map((value) => JSON.stringify(value)).join(" | ")}`
-    );
+function schemaHasConstraints(schema: SchemaNodeData): boolean {
+  return (
+    typeof schema.multipleOf === "number" ||
+    typeof schema.minimum === "number" ||
+    typeof schema.exclusiveMinimum === "number" ||
+    typeof schema.maximum === "number" ||
+    typeof schema.exclusiveMaximum === "number" ||
+    typeof schema.minLength === "number" ||
+    typeof schema.maxLength === "number" ||
+    typeof schema.minItems === "number" ||
+    typeof schema.maxItems === "number" ||
+    typeof schema.minProperties === "number" ||
+    typeof schema.maxProperties === "number" ||
+    (typeof schema.pattern === "string" && schema.pattern.length > 0) ||
+    (Array.isArray(schema.enum) && schema.enum.length > 0) ||
+    schema.const !== undefined ||
+    schema.uniqueItems === true
+  );
+}
+
+/** Whether a schema (and optional array item schema) has constraints to show. */
+export const hasConstraints = (
+  schema: SchemaNodeData,
+  itemSchema?: SchemaNodeData | null
+): boolean => {
+  if (schemaHasConstraints(schema)) return true;
+  if (itemSchema && isLeafItemSchema(itemSchema)) {
+    return schemaHasConstraints(itemSchema);
   }
-  return parts.length > 0 ? `, ${parts.join(", ")}` : "";
+  return false;
 };
 
 /** Builds the human-readable type string shown on the right side of each row. */
 export const getTypeLabel = (schema: SchemaNodeData, refLabel?: string): string => {
-  const oneOfItems = getOneOfItems(schema);
-  if (oneOfItems) {
-    return `one of (${oneOfItems.length})`;
-  }
-
-  const anyOfItems = getAnyOfItems(schema);
-  if (anyOfItems) {
-    return `any of (${anyOfItems.length})`;
-  }
-
-  if (schema.type === "array" || schema.items) {
-    const itemSchema = getItemSchema(schema);
-    if (itemSchema) {
-      const itemType = itemSchema.type;
-      if (itemType === "object") {
-        const name = itemSchema.$ref
-          ? refNameFromPath(itemSchema.$ref)
-          : refLabel;
-        return name ? `Array of objects, (${name})` : "Array of objects";
-      }
-      if (typeof itemType === "string") {
-        let label = `Array of ${itemType}`;
-        if (isLeafItemSchema(itemSchema)) {
-          label += getItemConstraintsLabel(itemSchema);
-        }
-        return label;
-      }
-    }
-    return "array";
-  }
-
-  const types = Array.isArray(schema.type)
-    ? schema.type.join(" | ")
-    : schema.type;
-  let label = types ?? "unknown";
-
-  if (schema.format) label += `, ${schema.format}`;
-  if (refLabel && types === "object") label += `, (${refLabel})`;
-
+  const { text, format, refHint } = buildTypeDisplay(schema, refLabel);
+  let label = text;
+  if (format) label += `, ${format}`;
+  if (refHint) label += `, (${refHint})`;
   return label;
 };
 

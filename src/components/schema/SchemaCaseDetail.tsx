@@ -1,9 +1,9 @@
 import { SchemaNodeData } from "../../types/schema";
-import {
-  getItemConstraintsLabel,
-  getTypeLabel,
-  isLeafItemSchema,
-} from "./schemaUtils";
+import SchemaConstraints from "./SchemaConstraints";
+import { hasConstraints } from "./schemaUtils";
+import SchemaTypeLabel from "./SchemaTypeLabel";
+
+const CONTENT_INDENT = "ml-6";
 
 /** Compact details for a leaf oneOf branch — avoids duplicating the property path row. */
 export default function SchemaCaseDetail({
@@ -13,13 +13,6 @@ export default function SchemaCaseDetail({
   schema: SchemaNodeData;
   showBorder?: boolean;
 }) {
-  let typeLabel = getTypeLabel(schema);
-  if (isLeafItemSchema(schema)) {
-    const types = Array.isArray(schema.type)
-      ? schema.type.join(" | ")
-      : schema.type;
-    typeLabel = (types ?? "unknown") + getItemConstraintsLabel(schema);
-  }
   const description =
     typeof schema.description === "string" ? schema.description : undefined;
 
@@ -29,13 +22,19 @@ export default function SchemaCaseDetail({
     >
       <div className="flex items-center gap-2 min-h-[24px]">
         <span className="w-4 shrink-0" aria-hidden="true" />
-        <span className="text-xs text-gray-500">{typeLabel}</span>
+        <SchemaTypeLabel schema={schema} />
       </div>
+      {hasConstraints(schema) && (
+        <SchemaConstraints
+          schema={schema}
+          className={`flex flex-col gap-1 mt-1 ${CONTENT_INDENT}`}
+        />
+      )}
       {description &&
         description.split("\n\n").map((paragraph, index) => (
           <p
             key={index}
-            className="text-xs text-gray-500 mt-1 ml-6 leading-relaxed"
+            className={`text-xs text-gray-500 mt-1 ${CONTENT_INDENT} leading-relaxed`}
           >
             {paragraph}
           </p>

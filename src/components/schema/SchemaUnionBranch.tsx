@@ -42,7 +42,7 @@ export default function SchemaUnionBranch({
       </div>
 
       <div
-        className="inline-flex items-center gap-0.5 p-1 bg-gray-100 rounded-full border border-gray-200"
+        className="inline-flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-md border border-gray-200"
         role="tablist"
         aria-label={ariaLabel}
       >
@@ -59,8 +59,8 @@ export default function SchemaUnionBranch({
               onClick={() => onSelectCase(index)}
               className={
                 isActive
-                  ? "px-3 py-1 text-xs font-semibold text-gray-900 bg-white rounded-full shadow-sm border border-gray-200"
-                  : "px-3 py-1 text-xs font-medium text-gray-400 hover:text-gray-600 rounded-full"
+                  ? "px-3 py-1 text-xs font-semibold text-gray-900 bg-white rounded-md shadow-sm border border-gray-200"
+                  : "px-3 py-1 text-xs font-medium text-gray-400 hover:text-gray-600 rounded-md"
               }
             >
               {label}

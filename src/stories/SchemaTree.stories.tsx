@@ -215,7 +215,7 @@ export const PropertyAnyOf: Story = {
     await expect(
       canvas.getByRole("tab", { name: "Tenant routing" })
     ).toBeInTheDocument();
-    await expect(canvas.getByText(/const: "critical"/i)).toBeInTheDocument();
+    await expect(canvas.getByText('"critical"')).toBeInTheDocument();
     await expect(canvas.queryByText(/\.anyOf\[/)).not.toBeInTheDocument();
 
     const contentTypeRow = canvas.getByText(/BaseHeaders\.contentType/);
@@ -263,5 +263,95 @@ export const CircularRef: Story = {
   args: {
     rootName: "nodeA",
     schema: { $ref: "#/components/schemas/nodeA" },
+  },
+};
+
+export const ConstraintsShowcase: Story = {
+  args: {
+    rootName: "Constraints",
+    schema: {
+      type: "object",
+      properties: {
+        multipleOfField: { type: "number", multipleOf: 0.01 },
+        boundedNumber: {
+          type: "integer",
+          minimum: 0,
+          exclusiveMinimum: 0,
+          maximum: 100,
+          exclusiveMaximum: 101,
+        },
+        boundedString: {
+          type: "string",
+          minLength: 1,
+          maxLength: 255,
+          pattern: "^[A-Z]+$",
+        },
+        boundedArray: {
+          type: "array",
+          minItems: 1,
+          maxItems: 10,
+          uniqueItems: true,
+          items: { type: "string" },
+        },
+        boundedObject: {
+          type: "object",
+          minProperties: 1,
+          maxProperties: 5,
+          properties: { id: { type: "string" } },
+        },
+        enumField: {
+          type: "string",
+          enum: ["on", "off", "pending"],
+        },
+        constField: {
+          type: "string",
+          const: "application/json",
+        },
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("multiple of")).toBeInTheDocument();
+    await expect(canvas.getByText("0.01")).toBeInTheDocument();
+    await expect(canvas.getByText("0")).toBeInTheDocument();
+    await expect(canvas.getByText("boundedNumber")).toBeInTheDocument();
+    await expect(canvas.getByText("101")).toBeInTheDocument();
+    await expect(canvas.getAllByText("<").length).toBeGreaterThan(0);
+    await expect(canvas.getByText("255")).toBeInTheDocument();
+    await expect(canvas.getByText("pattern")).toBeInTheDocument();
+    await expect(canvas.getByText("unique")).toBeInTheDocument();
+    await expect(canvas.getByText("enum")).toBeInTheDocument();
+    await expect(canvas.getByText('"on" | "off" | "pending"')).toBeInTheDocument();
+    await expect(canvas.getByText('"application/json"')).toBeInTheDocument();
+  },
+};
+
+export const ArrayItemConstraints: Story = {
+  args: {
+    rootName: "tags",
+    schema: {
+      type: "array",
+      minItems: 1,
+      maxItems: 12,
+      items: {
+        type: "string",
+        minLength: 3,
+        maxLength: 100,
+        pattern: "^[A-Z]+$",
+        enum: ["Jr.", "Dr.", "Tester"],
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("tags[]")).toBeInTheDocument();
+    await expect(canvas.getByText(/Array of string/)).toBeInTheDocument();
+    await expect(canvas.getByText("12")).toBeInTheDocument();
+    await expect(canvas.getByText("item")).toBeInTheDocument();
+    await expect(canvas.getByText("3")).toBeInTheDocument();
+    await expect(canvas.getByText("100")).toBeInTheDocument();
+    await expect(canvas.getByText("pattern")).toBeInTheDocument();
+    await expect(canvas.getByText('"Jr." | "Dr." | "Tester"')).toBeInTheDocument();
   },
 };

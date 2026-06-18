@@ -10,7 +10,6 @@ import {
   getAnyOfItems,
   getItemSchema,
   getOneOfItems,
-  getTypeLabel,
   isLeafItemSchema,
   mergeDescriptions,
   normalizeSchema,
@@ -54,7 +53,7 @@ export default function SchemaNode({
       <SchemaTreeRow
         path={path}
         depth={depth}
-        typeLabel={`↩ ${rawSchema.$ref}`}
+        typeLabelOverride={`↩ ${rawSchema.$ref}`}
         expandable={false}
         expanded={false}
         onToggle={() => undefined}
@@ -115,7 +114,7 @@ export default function SchemaNode({
         <SchemaTreeRow
           path={path}
           depth={depth}
-          typeLabel={getTypeLabel(schema, refLabel)}
+          schema={schema}
           refLabel={refLabel}
           required={required}
           description={schema.description}
@@ -136,7 +135,6 @@ export default function SchemaNode({
 
   if (hasProperties) {
     const requiredFields = new Set(schema.required ?? []);
-    const typeLabel = getTypeLabel(schema, refLabel);
 
     if (suppressRow) {
       return (
@@ -182,7 +180,7 @@ export default function SchemaNode({
         <SchemaTreeRow
           path={path}
           depth={depth}
-          typeLabel={typeLabel}
+          schema={schema}
           refLabel={refLabel}
           required={required}
           description={schema.description}
@@ -216,7 +214,6 @@ export default function SchemaNode({
     const itemSchema = getItemSchema(schema);
     const hasItem = itemSchema !== null;
     const arrayPath = `${path}[]`;
-    const typeLabel = getTypeLabel(schema, refLabel);
 
     const resolvedItem = hasItem
       ? flattenAllOf(
@@ -243,7 +240,8 @@ export default function SchemaNode({
         <SchemaTreeRow
           path={arrayPath}
           depth={depth}
-          typeLabel={typeLabel}
+          schema={schema}
+          itemSchema={resolvedItem}
           refLabel={refLabel}
           required={required}
           description={mergeDescriptions(schema.description, resolvedItem.description)}
@@ -298,7 +296,7 @@ export default function SchemaNode({
         <SchemaTreeRow
           path={arrayPath}
           depth={depth}
-          typeLabel={typeLabel}
+          schema={schema}
           refLabel={refLabel}
           required={required}
           description={schema.description}
@@ -342,7 +340,7 @@ export default function SchemaNode({
     <SchemaTreeRow
       path={path}
       depth={depth}
-      typeLabel={getTypeLabel(schema, refLabel)}
+      schema={schema}
       refLabel={refLabel}
       required={required}
       description={schema.description}

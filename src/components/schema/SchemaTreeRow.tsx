@@ -1,11 +1,18 @@
+import { SchemaNodeData } from "../../types/schema";
 import { getDepthColors } from "./depthColors";
 import ExpandToggle from "./ExpandToggle";
+import SchemaConstraints from "./SchemaConstraints";
+import { hasConstraints } from "./schemaUtils";
+import SchemaTypeLabel from "./SchemaTypeLabel";
+import { shouldShowRefFootnote } from "./schemaDisplayUtils";
 
 export interface SchemaTreeRowProps {
   path: string;
   depth: number;
-  typeLabel: string;
+  schema?: SchemaNodeData;
   refLabel?: string;
+  itemSchema?: SchemaNodeData | null;
+  typeLabelOverride?: string;
   required?: boolean;
   description?: string;
   expandable: boolean;
@@ -15,12 +22,17 @@ export interface SchemaTreeRowProps {
   showBorder?: boolean;
 }
 
-/** Single tree row: expand toggle, dot-notation path, type label, and optional description. */
+/** Indent for constraints and description — aligns with text after expand toggle. */
+const CONTENT_INDENT = "ml-6";
+
+/** Single tree row: name, type, constraints, and optional description. */
 export default function SchemaTreeRow({
   path,
   depth,
-  typeLabel,
+  schema,
   refLabel,
+  itemSchema,
+  typeLabelOverride,
   required,
   description,
   expandable,
@@ -29,6 +41,7 @@ export default function SchemaTreeRow({
   showBorder = true,
 }: SchemaTreeRowProps) {
   const colors = getDepthColors(depth);
+  const showRef = schema && shouldShowRefFootnote(schema, refLabel);
 
   // Split "parent.child.name", "parent.pair[]", or "parent[].name" — highlight final segment.
   let prefix = "";
@@ -67,20 +80,38 @@ export default function SchemaTreeRow({
         <span className="text-xs font-mono flex-1 min-w-0 truncate">
           {prefix && <span className="text-gray-400">{prefix}</span>}
           <span className={`font-semibold ${colors.text}`}>{name}</span>
-          {required && <span className="text-red-500 ml-0.5">*</span>}
-        </span>
-        <span className="text-xs text-gray-500 shrink-0 text-right">
-          {typeLabel}
-          {refLabel && !typeLabel.includes(`(${refLabel})`) && (
-            <span className="text-gray-400"> (ref: {refLabel})</span>
+          {required && (
+            <span className="text-red-500 ml-2 text-[10px]">required</span>
           )}
         </span>
+        {schema ? (
+          <div className="shrink-0 text-right">
+            <SchemaTypeLabel schema={schema} refLabel={refLabel} />
+            {showRef && (
+              <span className="text-xs text-gray-400"> (ref: {refLabel})</span>
+            )}
+          </div>
+        ) : (
+          typeLabelOverride && (
+            <span className="text-xs text-gray-500 shrink-0">
+              {typeLabelOverride}
+            </span>
+          )
+        )}
       </div>
+      {schema && hasConstraints(schema, itemSchema) && (
+        <SchemaConstraints
+          schema={schema}
+          itemSchema={itemSchema}
+          fieldName={name}
+          className={`flex flex-col gap-1 mt-1 ${CONTENT_INDENT}`}
+        />
+      )}
       {description &&
         description.split("\n\n").map((paragraph, index) => (
           <p
             key={index}
-            className="text-xs text-gray-500 mt-1 ml-6 leading-relaxed"
+            className={`text-xs text-gray-500 mt-1 ${CONTENT_INDENT} leading-relaxed`}
           >
             {paragraph}
           </p>
