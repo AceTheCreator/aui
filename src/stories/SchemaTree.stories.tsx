@@ -355,3 +355,82 @@ export const ArrayItemConstraints: Story = {
     await expect(canvas.getByText('"Jr." | "Dr." | "Tester"')).toBeInTheDocument();
   },
 };
+
+export const PropertyNot: Story = {
+  args: {
+    rootName: "payload",
+    schema: {
+      type: "object",
+      properties: {
+        disallowedValue: {
+          not: {
+            const: "forbidden",
+          },
+        },
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByText(/payload\.disallowedValue/)
+    ).toBeInTheDocument();
+    await expect(canvas.getByText(/^not$/i)).toBeInTheDocument();
+    await expect(canvas.getByText("Not:")).toBeInTheDocument();
+    await expect(canvas.getByText('"forbidden"')).toBeInTheDocument();
+    await expect(canvas.queryByText(/\.not\[/)).not.toBeInTheDocument();
+  },
+};
+
+export const NotBooleanTrue: Story = {
+  args: {
+    rootName: "payload",
+    schema: {
+      type: "object",
+      properties: {
+        impossibleValue: {
+          description: "Boolean false schema using not with true.",
+          not: true,
+        },
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByText(/payload\.impossibleValue/)
+    ).toBeInTheDocument();
+    await expect(canvas.getByText(/^not$/i)).toBeInTheDocument();
+    await expect(canvas.getByText("Not:")).toBeInTheDocument();
+    await expect(canvas.getByText("any value")).toBeInTheDocument();
+    await expect(
+      canvas.getByText("Boolean false schema using not with true.")
+    ).toBeInTheDocument();
+    await expect(canvas.queryByText(/\.not\[/)).not.toBeInTheDocument();
+  },
+};
+
+export const CombinedTypeAndNot: Story = {
+  args: {
+    rootName: "payload",
+    schema: {
+      type: "object",
+      properties: {
+        shortLabel: {
+          type: "string",
+          not: {
+            maxLength: 3,
+          },
+        },
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText(/payload\.shortLabel/)).toBeInTheDocument();
+    await expect(canvas.getByText(/^string$/i)).toBeInTheDocument();
+    await expect(canvas.getByText("Not:")).toBeInTheDocument();
+    await expect(canvas.getByText("3")).toBeInTheDocument();
+    await expect(canvas.queryByText(/\.not\[/)).not.toBeInTheDocument();
+  },
+};

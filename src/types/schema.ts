@@ -10,6 +10,7 @@ export interface SchemaNodeData {
   allOf?: SchemaNodeData[];
   oneOf?: SchemaNodeData[];
   anyOf?: SchemaNodeData[];
+  not?: SchemaNodeData | boolean;
   $ref?: string;
   [key: string]: unknown;
 }

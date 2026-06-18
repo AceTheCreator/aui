@@ -3,6 +3,9 @@ import {
   getAnyOfItems,
   getItemSchema,
   getOneOfItems,
+  hasNotSchema,
+  hasStructuralShape,
+  omitNot,
   refNameFromPath,
 } from "./schemaUtils";
 
@@ -25,6 +28,10 @@ export const buildTypeDisplay = (
   const anyOfItems = getAnyOfItems(schema);
   if (anyOfItems) {
     return { text: `any of (${anyOfItems.length})` };
+  }
+
+  if (hasNotSchema(schema) && !hasStructuralShape(omitNot(schema))) {
+    return { text: "not" };
   }
 
   if (schema.type === "array" || schema.items) {

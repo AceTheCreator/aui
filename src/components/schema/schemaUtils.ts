@@ -66,6 +66,7 @@ const MERGE_SKIP_KEYS = new Set([
   "allOf",
   "oneOf",
   "anyOf",
+  "not",
   "$ref",
   "properties",
   "required",
@@ -199,8 +200,39 @@ export const getAnyOfItems = (schema: SchemaNodeData): SchemaNodeData[] | null =
   return filtered.length > 0 ? filtered : null;
 };
 
+/** Returns the not subschema when present. */
+export const getNotSchema = (
+  schema: SchemaNodeData
+): SchemaNodeData | boolean | null => {
+  if (schema.not === undefined) return null;
+  if (typeof schema.not === "boolean") return schema.not;
+  if (isSchemaRecord(schema.not)) return schema.not as SchemaNodeData;
+  return null;
+};
+
+/** Whether the schema defines a not keyword. */
+export const hasNotSchema = (schema: SchemaNodeData): boolean =>
+  getNotSchema(schema) !== null;
+
+/** Returns a copy of the schema without not (for shape detection). */
+export const omitNot = (schema: SchemaNodeData): SchemaNodeData => {
+  const { not: _not, ...rest } = schema;
+  return rest;
+};
+
+/** True when the schema has a renderable shape besides not. */
+export const hasStructuralShape = (schema: SchemaNodeData): boolean => {
+  if (getOneOfItems(schema)) return true;
+  if (getAnyOfItems(schema)) return true;
+  if (schema.properties && Object.keys(schema.properties).length > 0) return true;
+  if (schema.type === "array" || schema.items) return true;
+  if (schema.type !== undefined) return true;
+  return false;
+};
+
 /** True when a schema has no nested structure worth expanding. */
 export const isLeafItemSchema = (schema: SchemaNodeData): boolean => {
+  if (hasNotSchema(schema)) return false;
   if (getOneOfItems(schema)) return false;
   if (getAnyOfItems(schema)) return false;
   if (schema.properties && Object.keys(schema.properties).length > 0) return false;
@@ -255,6 +287,7 @@ export const hasExpandableContent = (
   schema: SchemaNodeData,
   deref?: (ref: string) => unknown
 ): boolean => {
+  if (hasNotSchema(schema)) return true;
   if (getOneOfItems(schema)) return true;
   if (getAnyOfItems(schema)) return true;
   if (schema.properties && Object.keys(schema.properties).length > 0) return true;

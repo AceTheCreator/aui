@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { isSchemaRecord, SchemaNodeData } from "../../types/schema";
 import ExpandToggle from "./ExpandToggle";
 import SchemaCaseDetail from "./SchemaCaseDetail";
+import SchemaNotBranch, { BooleanNotPill } from "./SchemaNotBranch";
 import SchemaUnionBranch from "./SchemaUnionBranch";
 import SchemaTreeBranch from "./SchemaTreeBranch";
 import SchemaTreeRow from "./SchemaTreeRow";
@@ -9,10 +10,14 @@ import {
   flattenAllOf,
   getAnyOfItems,
   getItemSchema,
+  getNotSchema,
   getOneOfItems,
+  hasNotSchema,
+  hasStructuralShape,
   isLeafItemSchema,
   mergeDescriptions,
   normalizeSchema,
+  omitNot,
 } from "./schemaUtils";
 
 export interface SchemaNodeProps {
@@ -48,6 +53,59 @@ export default function SchemaNode({
     };
   }, [rawSchema, deref, refStack]);
 
+  const structuralSchema = omitNot(schema);
+  const isNotOnly = hasNotSchema(schema) && !hasStructuralShape(structuralSchema);
+
+  const renderNotSection = () => {
+    const notValue = getNotSchema(schema);
+    if (notValue === null) return null;
+
+    if (typeof notValue === "boolean") {
+      return (
+        <SchemaNotBranch>
+          <BooleanNotPill value={notValue} />
+        </SchemaNotBranch>
+      );
+    }
+
+    const normalizedNot = normalizeSchema(notValue, deref, refStack);
+    if (normalizedNot.circular) {
+      return (
+        <SchemaNotBranch>
+          <SchemaTreeRow
+            path={path}
+            depth={depth + 1}
+            typeLabelOverride={`↩ ${notValue.$ref}`}
+            expandable={false}
+            expanded={false}
+            onToggle={() => undefined}
+            showBorder={false}
+          />
+        </SchemaNotBranch>
+      );
+    }
+
+    const flattenedNot = flattenAllOf(normalizedNot.schema, deref, refStack);
+    const isLeafNot = isLeafItemSchema(flattenedNot);
+
+    return (
+      <SchemaNotBranch>
+        {isLeafNot ? (
+          <SchemaCaseDetail schema={flattenedNot} showBorder={false} />
+        ) : (
+          <SchemaNode
+            schema={notValue}
+            path={path}
+            depth={depth + 1}
+            refStack={refStack}
+            deref={deref}
+            suppressRow
+          />
+        )}
+      </SchemaNotBranch>
+    );
+  };
+
   if (circular) {
     return (
       <SchemaTreeRow
@@ -61,8 +119,33 @@ export default function SchemaNode({
     );
   }
 
-  const oneOfItems = getOneOfItems(schema);
-  const anyOfItems = getAnyOfItems(schema);
+  if (isNotOnly) {
+    if (suppressRow) {
+      return renderNotSection();
+    }
+
+    return (
+      <>
+        <SchemaTreeRow
+          path={path}
+          depth={depth}
+          schema={schema}
+          refLabel={refLabel}
+          required={required}
+          description={schema.description}
+          expandable
+          expanded={expanded}
+          onToggle={() => setExpanded((v) => !v)}
+        />
+        {expanded && (
+          <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+        )}
+      </>
+    );
+  }
+
+  const oneOfItems = getOneOfItems(structuralSchema);
+  const anyOfItems = getAnyOfItems(structuralSchema);
   const unionItems = oneOfItems ?? anyOfItems;
   const unionVariant = oneOfItems ? "oneOf" : "anyOf";
 
@@ -105,8 +188,15 @@ export default function SchemaNode({
       </SchemaUnionBranch>
     );
 
+    const unionContent = (
+      <>
+        {unionBranch}
+        {hasNotSchema(schema) && renderNotSection()}
+      </>
+    );
+
     if (suppressRow) {
-      return unionBranch;
+      return unionContent;
     }
 
     return (
@@ -123,18 +213,18 @@ export default function SchemaNode({
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>{unionBranch}</SchemaTreeBranch>
+          <SchemaTreeBranch depth={depth}>{unionContent}</SchemaTreeBranch>
         )}
       </>
     );
   }
 
-  const properties = schema.properties;
+  const properties = structuralSchema.properties;
   const hasProperties =
     properties !== undefined && Object.keys(properties).length > 0;
 
   if (hasProperties) {
-    const requiredFields = new Set(schema.required ?? []);
+    const requiredFields = new Set(structuralSchema.required ?? []);
 
     if (suppressRow) {
       return (
@@ -150,7 +240,6 @@ export default function SchemaNode({
             />
             <span>{expanded ? "Hide properties" : "Show properties"}</span>
           </div>
-          {/* i had to put this pl-1 due to the px-1 required in the div above this */}
           <div className="pl-1">
             {expanded && (
               <SchemaTreeBranch depth={0}>
@@ -168,6 +257,7 @@ export default function SchemaNode({
                     />
                   );
                 })}
+                {hasNotSchema(schema) && renderNotSection()}
               </SchemaTreeBranch>
             )}
           </div>
@@ -204,30 +294,31 @@ export default function SchemaNode({
                 />
               );
             })}
+            {hasNotSchema(schema) && renderNotSection()}
           </SchemaTreeBranch>
         )}
       </>
     );
   }
 
-  if (schema.type === "array" || schema.items) {
-    const itemSchema = getItemSchema(schema);
+  if (structuralSchema.type === "array" || structuralSchema.items) {
+    const itemSchema = getItemSchema(structuralSchema);
     const hasItem = itemSchema !== null;
     const arrayPath = `${path}[]`;
 
     const resolvedItem = hasItem
       ? flattenAllOf(
-        normalizeSchema(itemSchema, deref, refStack).schema,
-        deref,
-        refStack
-      )
+          normalizeSchema(itemSchema, deref, refStack).schema,
+          deref,
+          refStack
+        )
       : null;
     const isLeafArray = resolvedItem !== null && isLeafItemSchema(resolvedItem);
     const itemProperties =
       resolvedItem?.properties
         ? Object.entries(resolvedItem.properties).filter(([, prop]) =>
-          isSchemaRecord(prop)
-        )
+            isSchemaRecord(prop)
+          )
         : [];
     const itemRequired = new Set(
       resolvedItem && Array.isArray(resolvedItem.required)
@@ -235,7 +326,7 @@ export default function SchemaNode({
         : []
     );
 
-    if (isLeafArray) {
+    if (isLeafArray && !hasNotSchema(schema)) {
       return (
         <SchemaTreeRow
           path={arrayPath}
@@ -244,11 +335,39 @@ export default function SchemaNode({
           itemSchema={resolvedItem}
           refLabel={refLabel}
           required={required}
-          description={mergeDescriptions(schema.description, resolvedItem.description)}
+          description={mergeDescriptions(
+            schema.description,
+            resolvedItem.description
+          )}
           expandable={false}
           expanded={false}
           onToggle={() => undefined}
         />
+      );
+    }
+
+    if (isLeafArray && hasNotSchema(schema)) {
+      return (
+        <>
+          <SchemaTreeRow
+            path={arrayPath}
+            depth={depth}
+            schema={schema}
+            itemSchema={resolvedItem}
+            refLabel={refLabel}
+            required={required}
+            description={mergeDescriptions(
+              schema.description,
+              resolvedItem.description
+            )}
+            expandable
+            expanded={expanded}
+            onToggle={() => setExpanded((v) => !v)}
+          />
+          {expanded && (
+            <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+          )}
+        </>
       );
     }
 
@@ -266,25 +385,26 @@ export default function SchemaNode({
             <SchemaTreeBranch depth={1}>
               {itemProperties.length > 0
                 ? itemProperties.map(([name, prop]) => (
-                  <SchemaNode
-                    key={name}
-                    schema={prop}
-                    path={`${path}[].${name}`}
-                    depth={1}
-                    required={itemRequired.has(name)}
-                    refStack={refStack}
-                    deref={deref}
-                  />
-                ))
+                    <SchemaNode
+                      key={name}
+                      schema={prop}
+                      path={`${path}[].${name}`}
+                      depth={1}
+                      required={itemRequired.has(name)}
+                      refStack={refStack}
+                      deref={deref}
+                    />
+                  ))
                 : (
-                  <SchemaNode
-                    schema={itemSchema!}
-                    path={arrayPath}
-                    depth={1}
-                    refStack={refStack}
-                    deref={deref}
-                  />
-                )}
+                    <SchemaNode
+                      schema={itemSchema!}
+                      path={arrayPath}
+                      depth={1}
+                      refStack={refStack}
+                      deref={deref}
+                    />
+                  )}
+              {hasNotSchema(schema) && renderNotSection()}
             </SchemaTreeBranch>
           )}
         </>
@@ -300,40 +420,66 @@ export default function SchemaNode({
           refLabel={refLabel}
           required={required}
           description={schema.description}
-          expandable={hasItem}
+          expandable={hasItem || hasNotSchema(schema)}
           expanded={expanded}
           onToggle={() => setExpanded((v) => !v)}
         />
-        {expanded && hasItem && (
+        {expanded && (
           <SchemaTreeBranch depth={depth}>
-            {itemProperties.length > 0 ? (
-              itemProperties.map(([name, prop]) => (
+            {hasItem &&
+              (itemProperties.length > 0 ? (
+                itemProperties.map(([name, prop]) => (
+                  <SchemaNode
+                    key={name}
+                    schema={prop}
+                    path={`${path}[].${name}`}
+                    depth={depth + 1}
+                    required={itemRequired.has(name)}
+                    refStack={refStack}
+                    deref={deref}
+                  />
+                ))
+              ) : (
                 <SchemaNode
-                  key={name}
-                  schema={prop}
-                  path={`${path}[].${name}`}
+                  schema={itemSchema!}
+                  path={arrayPath}
                   depth={depth + 1}
-                  required={itemRequired.has(name)}
                   refStack={refStack}
                   deref={deref}
                 />
-              ))
-            ) : (
-              <SchemaNode
-                schema={itemSchema!}
-                path={arrayPath}
-                depth={depth + 1}
-                refStack={refStack}
-                deref={deref}
-              />
-            )}
+              ))}
+            {hasNotSchema(schema) && renderNotSection()}
           </SchemaTreeBranch>
         )}
       </>
     );
   }
 
-  // Leaf — when root is suppressed and name is shown externally, render nothing.
+  if (hasNotSchema(schema)) {
+    if (suppressRow) {
+      return renderNotSection();
+    }
+
+    return (
+      <>
+        <SchemaTreeRow
+          path={path}
+          depth={depth}
+          schema={schema}
+          refLabel={refLabel}
+          required={required}
+          description={schema.description}
+          expandable
+          expanded={expanded}
+          onToggle={() => setExpanded((v) => !v)}
+        />
+        {expanded && (
+          <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+        )}
+      </>
+    );
+  }
+
   if (suppressRow) return null;
 
   return (
