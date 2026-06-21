@@ -83,6 +83,15 @@ export default function SchemaTreeRow({
           {required && (
             <span className="text-red-500 ml-2 text-[10px]">required</span>
           )}
+          {schema?.readOnly === true && (
+            <span className="text-gray-500 ml-2 text-[10px]">readOnly</span>
+          )}
+          {schema?.writeOnly === true && (
+            <span className="text-gray-500 ml-2 text-[10px]">writeOnly</span>
+          )}
+          {schema?.deprecated === true && (
+            <span className="text-amber-600 ml-2 text-[10px]">deprecated</span>
+          )}
         </span>
         {schema ? (
           <div className="shrink-0 text-right">

@@ -5,6 +5,9 @@ export interface SchemaNodeData {
   enum?: unknown[];
   const?: unknown;
   required?: string[];
+  readOnly?: boolean;
+  writeOnly?: boolean;
+  deprecated?: boolean;
   properties?: Record<string, SchemaNodeData>;
   items?: SchemaNodeData | SchemaNodeData[];
   allOf?: SchemaNodeData[];
