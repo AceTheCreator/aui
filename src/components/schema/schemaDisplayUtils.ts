@@ -58,7 +58,7 @@ export const buildTypeDisplay = (
   const types = Array.isArray(schema.type)
     ? schema.type.join(" | ")
     : schema.type;
-  const text = types ?? "unknown";
+  const text = types ? `${types}` : "type: unknown";
   const format =
     typeof schema.format === "string" ? schema.format : undefined;
   const refHint =

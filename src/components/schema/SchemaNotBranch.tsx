@@ -17,8 +17,7 @@ export default function SchemaNotBranch({ children }: SchemaNotBranchProps) {
           aria-hidden="true"
         />
       </div>
-
-      <div className="mt-2">{children}</div>
+      {children}
     </div>
   );
 }
