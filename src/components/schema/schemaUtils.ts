@@ -69,6 +69,9 @@ const MERGE_SKIP_KEYS = new Set([
   "not",
   "$ref",
   "properties",
+  "patternProperties",
+  "propertyNames",
+  "additionalProperties",
   "required",
   "description",
   "items",
@@ -119,6 +122,54 @@ export const mergeSchemaObjects = (
     }
   }
 
+  if (b.patternProperties && isSchemaRecord(b.patternProperties)) {
+    const mergedPatternProperties: Record<string, unknown> = {
+      ...(isSchemaRecord(result.patternProperties)
+        ? result.patternProperties
+        : {}),
+    };
+    for (const [key, prop] of Object.entries(b.patternProperties)) {
+      if (!isSchemaRecord(prop)) {
+        mergedPatternProperties[key] = prop;
+        continue;
+      }
+      const existing = mergedPatternProperties[key];
+      if (isSchemaRecord(existing)) {
+        mergedPatternProperties[key] = mergeSchemaObjects(
+          existing,
+          prop,
+          deref,
+          refStack
+        );
+      } else {
+        mergedPatternProperties[key] = prop;
+      }
+    }
+    result.patternProperties = mergedPatternProperties;
+  }
+
+  if (b.propertyNames !== undefined) {
+    if (isSchemaRecord(b.propertyNames)) {
+      const existing = result.propertyNames;
+      result.propertyNames = isSchemaRecord(existing)
+        ? mergeSchemaObjects(existing, b.propertyNames, deref, refStack)
+        : b.propertyNames;
+    } else {
+      result.propertyNames = b.propertyNames;
+    }
+  }
+
+  if (b.additionalProperties !== undefined) {
+    if (isSchemaRecord(b.additionalProperties)) {
+      const existing = result.additionalProperties;
+      result.additionalProperties = isSchemaRecord(existing)
+        ? mergeSchemaObjects(existing, b.additionalProperties, deref, refStack)
+        : b.additionalProperties;
+    } else {
+      result.additionalProperties = b.additionalProperties;
+    }
+  }
+
   for (const [key, value] of Object.entries(b)) {
     if (MERGE_SKIP_KEYS.has(key) || value === undefined) continue;
     result[key] = value;
@@ -149,6 +200,33 @@ const flattenAllOfNested = (
   const itemSchema = getItemSchema(result);
   if (itemSchema) {
     result.items = flattenAllOf(itemSchema, deref, refStack);
+  }
+
+  const propertyNames = getPropertyNamesSchema(result);
+  if (propertyNames !== null && isSchemaRecord(propertyNames)) {
+    result.propertyNames = flattenAllOf(propertyNames, deref, refStack);
+  }
+
+  const additionalProperties = getAdditionalPropertiesSchema(result);
+  if (
+    additionalProperties !== null &&
+    isSchemaRecord(additionalProperties)
+  ) {
+    result.additionalProperties = flattenAllOf(
+      additionalProperties,
+      deref,
+      refStack
+    );
+  }
+
+  const patternEntries = getPatternPropertiesEntries(result);
+  if (patternEntries.length > 0) {
+    result.patternProperties = Object.fromEntries(
+      patternEntries.map(([pattern, sub]) => [
+        pattern,
+        flattenAllOf(sub, deref, refStack),
+      ])
+    );
   }
 
   return result;
@@ -220,11 +298,74 @@ export const omitNot = (schema: SchemaNodeData): SchemaNodeData => {
   return rest;
 };
 
+/** Returns the propertyNames subschema when present. */
+export const getPropertyNamesSchema = (
+  schema: SchemaNodeData
+): SchemaNodeData | boolean | null => {
+  if (schema.propertyNames === undefined) return null;
+  if (typeof schema.propertyNames === "boolean") return schema.propertyNames;
+  if (isSchemaRecord(schema.propertyNames)) {
+    return schema.propertyNames as SchemaNodeData;
+  }
+  return null;
+};
+
+/** Returns the additionalProperties subschema when present. */
+export const getAdditionalPropertiesSchema = (
+  schema: SchemaNodeData
+): SchemaNodeData | boolean | null => {
+  if (schema.additionalProperties === undefined) return null;
+  if (typeof schema.additionalProperties === "boolean") {
+    return schema.additionalProperties;
+  }
+  if (isSchemaRecord(schema.additionalProperties)) {
+    return schema.additionalProperties as SchemaNodeData;
+  }
+  return null;
+};
+
+/** Returns patternProperties entries whose values are schema objects. */
+export const getPatternPropertiesEntries = (
+  schema: SchemaNodeData
+): [string, SchemaNodeData][] => {
+  const patternProperties = schema.patternProperties;
+  if (!isSchemaRecord(patternProperties)) return [];
+
+  return Object.entries(patternProperties).flatMap(([pattern, value]) =>
+    isSchemaRecord(value) ? [[pattern, value as SchemaNodeData]] : []
+  );
+};
+
+/** Path segment for a patternProperties row. */
+export const patternPropertyPath = (path: string, pattern: string): string =>
+  `${path}.[pattern:${pattern}]`;
+
+/** True when the schema defines explicit named properties. */
+export const hasExplicitProperties = (schema: SchemaNodeData): boolean =>
+  schema.properties !== undefined && Object.keys(schema.properties).length > 0;
+
+/** True when map keywords yield tree rows (not boolean-only pills). */
+export const hasObjectMapContent = (schema: SchemaNodeData): boolean => {
+  const propertyNames = getPropertyNamesSchema(schema);
+  if (propertyNames !== null && isSchemaRecord(propertyNames)) return true;
+
+  const additionalProperties = getAdditionalPropertiesSchema(schema);
+  if (
+    additionalProperties !== null &&
+    isSchemaRecord(additionalProperties)
+  ) {
+    return true;
+  }
+
+  return getPatternPropertiesEntries(schema).length > 0;
+};
+
 /** True when the schema has a renderable shape besides not. */
 export const hasStructuralShape = (schema: SchemaNodeData): boolean => {
   if (getOneOfItems(schema)) return true;
   if (getAnyOfItems(schema)) return true;
-  if (schema.properties && Object.keys(schema.properties).length > 0) return true;
+  if (hasExplicitProperties(schema)) return true;
+  if (hasObjectMapContent(schema)) return true;
   if (schema.type === "array" || schema.items) return true;
   if (schema.type !== undefined) return true;
   return false;
@@ -235,11 +376,34 @@ export const isLeafItemSchema = (schema: SchemaNodeData): boolean => {
   if (hasNotSchema(schema)) return false;
   if (getOneOfItems(schema)) return false;
   if (getAnyOfItems(schema)) return false;
-  if (schema.properties && Object.keys(schema.properties).length > 0) return false;
+  if (hasExplicitProperties(schema)) return false;
+  if (hasObjectMapContent(schema)) return false;
   if (schema.items) return false;
   if (schema.type === "array" || schema.type === "object") return false;
   return true;
 };
+
+function hasMapKeywordConstraints(schema: SchemaNodeData): boolean {
+  const additionalProperties = getAdditionalPropertiesSchema(schema);
+  if (typeof additionalProperties === "boolean") return true;
+
+  const propertyNames = getPropertyNamesSchema(schema);
+  if (typeof propertyNames === "boolean") return true;
+
+  const leafPropertyNames =
+    propertyNames !== null &&
+    isSchemaRecord(propertyNames) &&
+    isLeafItemSchema(propertyNames);
+  if (
+    leafPropertyNames &&
+    typeof propertyNames.pattern === "string" &&
+    propertyNames.pattern.length > 0
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 function schemaHasConstraints(schema: SchemaNodeData): boolean {
   return (
@@ -257,7 +421,8 @@ function schemaHasConstraints(schema: SchemaNodeData): boolean {
     (typeof schema.pattern === "string" && schema.pattern.length > 0) ||
     (Array.isArray(schema.enum) && schema.enum.length > 0) ||
     schema.const !== undefined ||
-    schema.uniqueItems === true
+    schema.uniqueItems === true ||
+    hasMapKeywordConstraints(schema)
   );
 }
 
@@ -290,7 +455,8 @@ export const hasExpandableContent = (
   if (hasNotSchema(schema)) return true;
   if (getOneOfItems(schema)) return true;
   if (getAnyOfItems(schema)) return true;
-  if (schema.properties && Object.keys(schema.properties).length > 0) return true;
+  if (hasExplicitProperties(schema)) return true;
+  if (hasObjectMapContent(schema)) return true;
   if (schema.type === "array" || schema.items) {
     const itemSchema = getItemSchema(schema);
     if (!itemSchema) return false;

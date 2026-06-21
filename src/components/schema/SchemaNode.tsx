@@ -8,17 +8,24 @@ import SchemaTreeBranch from "./SchemaTreeBranch";
 import SchemaTreeRow from "./SchemaTreeRow";
 import {
   flattenAllOf,
+  getAdditionalPropertiesSchema,
   getAnyOfItems,
   getItemSchema,
   getNotSchema,
   getOneOfItems,
+  getPatternPropertiesEntries,
+  getPropertyNamesSchema,
+  hasExplicitProperties,
   hasNotSchema,
+  hasObjectMapContent,
   hasStructuralShape,
   isLeafItemSchema,
   mergeDescriptions,
   normalizeSchema,
   omitNot,
+  patternPropertyPath,
 } from "./schemaUtils";
+import SchemaMapBranch from "./SchemaMapBranch";
 
 export interface SchemaNodeProps {
   schema: SchemaNodeData;
@@ -219,13 +226,105 @@ export default function SchemaNode({
     );
   }
 
-  const properties = structuralSchema.properties;
-  const hasProperties =
-    properties !== undefined && Object.keys(properties).length > 0;
+  const renderMapSubschema = (
+    mapSchema: SchemaNodeData,
+    mapPath: string,
+    mapDepth: number
+  ) => {
+    const normalizedMap = normalizeSchema(mapSchema, deref, refStack);
+    if (normalizedMap.circular) {
+      return (
+        <SchemaTreeRow
+          path={mapPath}
+          depth={mapDepth}
+          typeLabelOverride={`↩ ${mapSchema.$ref}`}
+          expandable={false}
+          expanded={false}
+          onToggle={() => undefined}
+          showBorder={false}
+        />
+      );
+    }
 
-  if (hasProperties) {
+    const flattenedMap = flattenAllOf(normalizedMap.schema, deref, refStack);
+    if (isLeafItemSchema(flattenedMap)) {
+      return <SchemaCaseDetail schema={flattenedMap} showBorder={false} />;
+    }
+
+    return (
+      <SchemaNode
+        schema={mapSchema}
+        path={mapPath}
+        depth={mapDepth}
+        refStack={refStack}
+        deref={deref}
+      />
+    );
+  };
+
+  const renderObjectChildren = (childDepth: number) => {
+    const properties = structuralSchema.properties ?? {};
     const requiredFields = new Set(structuralSchema.required ?? []);
+    const propertyNamesSchema = getPropertyNamesSchema(structuralSchema);
+    const additionalPropertiesSchema =
+      getAdditionalPropertiesSchema(structuralSchema);
+    const patternEntries = getPatternPropertiesEntries(structuralSchema);
 
+    return (
+      <>
+        {Object.entries(properties).map(([name, prop]) => {
+          if (!isSchemaRecord(prop)) return null;
+          return (
+            <SchemaNode
+              key={name}
+              schema={prop}
+              path={`${path}.${name}`}
+              depth={childDepth}
+              required={requiredFields.has(name)}
+              refStack={refStack}
+              deref={deref}
+            />
+          );
+        })}
+        {propertyNamesSchema !== null &&
+          isSchemaRecord(propertyNamesSchema) && (
+            <SchemaMapBranch label="Property names must adhere to:">
+              {renderMapSubschema(
+                propertyNamesSchema,
+                `${path}.[propertyName]`,
+                childDepth
+              )}
+            </SchemaMapBranch>
+          )}
+        {patternEntries.map(([pattern, subSchema]) => (
+          <SchemaNode
+            key={pattern}
+            schema={subSchema}
+            path={patternPropertyPath(path, pattern)}
+            depth={childDepth}
+            refStack={refStack}
+            deref={deref}
+          />
+        ))}
+        {additionalPropertiesSchema !== null &&
+          isSchemaRecord(additionalPropertiesSchema) && (
+            <SchemaMapBranch label="Additional properties must adhere to:">
+              {renderMapSubschema(
+                additionalPropertiesSchema,
+                `${path}.[additionalProperty]`,
+                childDepth
+              )}
+            </SchemaMapBranch>
+          )}
+        {hasNotSchema(schema) && renderNotSection()}
+      </>
+    );
+  };
+
+  const hasObjectChildren =
+    hasExplicitProperties(structuralSchema) || hasObjectMapContent(structuralSchema);
+
+  if (hasObjectChildren) {
     if (suppressRow) {
       return (
         <>
@@ -243,21 +342,7 @@ export default function SchemaNode({
           <div className="pl-1">
             {expanded && (
               <SchemaTreeBranch depth={0}>
-                {Object.entries(properties).map(([name, prop]) => {
-                  if (!isSchemaRecord(prop)) return null;
-                  return (
-                    <SchemaNode
-                      key={name}
-                      schema={prop}
-                      path={`${path}.${name}`}
-                      depth={1}
-                      required={requiredFields.has(name)}
-                      refStack={refStack}
-                      deref={deref}
-                    />
-                  );
-                })}
-                {hasNotSchema(schema) && renderNotSection()}
+                {renderObjectChildren(1)}
               </SchemaTreeBranch>
             )}
           </div>
@@ -280,21 +365,7 @@ export default function SchemaNode({
         />
         {expanded && (
           <SchemaTreeBranch depth={depth}>
-            {Object.entries(properties).map(([name, prop]) => {
-              if (!isSchemaRecord(prop)) return null;
-              return (
-                <SchemaNode
-                  key={name}
-                  schema={prop}
-                  path={`${path}.${name}`}
-                  depth={depth + 1}
-                  required={requiredFields.has(name)}
-                  refStack={refStack}
-                  deref={deref}
-                />
-              );
-            })}
-            {hasNotSchema(schema) && renderNotSection()}
+            {renderObjectChildren(depth + 1)}
           </SchemaTreeBranch>
         )}
       </>

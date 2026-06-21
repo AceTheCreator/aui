@@ -1,8 +1,10 @@
-import { SchemaNodeData } from "../../types/schema";
+import { SchemaNodeData, isSchemaRecord } from "../../types/schema";
 import {
+  getAdditionalPropertiesSchema,
   getAnyOfItems,
   getItemSchema,
   getOneOfItems,
+  hasExplicitProperties,
   hasNotSchema,
   hasStructuralShape,
   omitNot,
@@ -58,11 +60,22 @@ export const buildTypeDisplay = (
   const types = Array.isArray(schema.type)
     ? schema.type.join(" | ")
     : schema.type;
-  const text = types ? `${types}` : "type: unknown";
+  let text = types ? `${types}` : "type: unknown";
+
+  const additionalProperties = getAdditionalPropertiesSchema(schema);
+  if (
+    !hasExplicitProperties(schema) &&
+    additionalProperties !== null &&
+    isSchemaRecord(additionalProperties) &&
+    (types === "object" || text === "type: unknown")
+  ) {
+    text = types === "object" ? "object (map)" : "map";
+  }
+
   const format =
     typeof schema.format === "string" ? schema.format : undefined;
   const refHint =
-    refLabel && types === "object" ? refLabel : undefined;
+    refLabel && (types === "object" || text.startsWith("object")) ? refLabel : undefined;
 
   return { text, format, refHint };
 };

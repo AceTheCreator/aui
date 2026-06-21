@@ -1,5 +1,9 @@
-import { SchemaNodeData } from "../../types/schema";
-import { isLeafItemSchema } from "./schemaUtils";
+import { SchemaNodeData, isSchemaRecord } from "../../types/schema";
+import {
+  getAdditionalPropertiesSchema,
+  getPropertyNamesSchema,
+  isLeafItemSchema,
+} from "./schemaUtils";
 
 export interface SchemaConstraintsProps {
   schema: SchemaNodeData;
@@ -250,6 +254,46 @@ function ConstraintFields({
         </span>
       )}
       {schema.uniqueItems === true && <Label>unique</Label>}
+      {(() => {
+        const additionalProperties = getAdditionalPropertiesSchema(schema);
+        if (typeof additionalProperties === "boolean") {
+          return (
+            <Label>
+              {additionalProperties
+                ? "additional properties allowed"
+                : "additional properties not allowed"}
+            </Label>
+          );
+        }
+        return null;
+      })()}
+      {(() => {
+        const propertyNames = getPropertyNamesSchema(schema);
+        if (typeof propertyNames === "boolean") {
+          return (
+            <Pill>
+              {propertyNames ? "any property name" : "no property names"}
+            </Pill>
+          );
+        }
+        if (
+          propertyNames !== null &&
+          isSchemaRecord(propertyNames) &&
+          isLeafItemSchema(propertyNames) &&
+          typeof propertyNames.pattern === "string" &&
+          propertyNames.pattern.length > 0
+        ) {
+          return (
+            <span className="inline-flex items-center gap-1">
+              <Label>property name pattern:</Label>
+              <Pill mono title={propertyNames.pattern}>
+                {propertyNames.pattern}
+              </Pill>
+            </span>
+          );
+        }
+        return null;
+      })()}
     </>
   );
 }
