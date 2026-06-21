@@ -31,7 +31,7 @@ export default function ContentTab({
   );
 
   return (
-    <div className="flex w-full justify-center">
+    <div className="sticky top-0 z-10 flex w-full justify-center bg-white border-gray-100">
         <Section content={content} stickySideContent={false} />
     </div>
   );

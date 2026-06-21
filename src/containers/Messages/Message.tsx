@@ -57,7 +57,8 @@ export function Message({ message, messageId, i }: MessageProps) {
       </div>
 
       {/* Expanded section */}
-      {expanded && (
+      <div className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
         <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
           {message.description && (
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -100,7 +101,8 @@ export function Message({ message, messageId, i }: MessageProps) {
             </div>
           )}
         </div>
-      )}
+        </div>
+      </div>
 
       {/* Toggle button */}
       {hasMore && (
