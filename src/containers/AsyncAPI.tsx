@@ -15,16 +15,6 @@ import Servers from "./Server/Servers";
 import Operations from "./Operation/Operations";
 import Schemas from "./Schema/Schemas";
 
-interface AsyncAPIMessageDefinition {
-  name?: string;
-  title?: string;
-  summary?: string;
-  description?: string;
-  contentType?: string;
-  payload?: Record<string, unknown> & {
-    type?: string;
-  };
-}
 
 interface AsyncAPISchemaDefinition extends Record<string, unknown> {
   type?: string;
@@ -38,7 +28,7 @@ interface AsyncAPIDocumentData extends Record<string, unknown> {
   servers?: Record<string, Server>;
   operations?: Record<string, Operation>;
   components?: {
-    messages?: Record<string, AsyncAPIMessageDefinition>;
+    messages?: Record<string, MessageObject>;
     schemas?: Record<string, AsyncAPISchemaDefinition>;
   };
 }
@@ -74,7 +64,9 @@ const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
 
 const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
   const [activeTab, setActiveTab] = useState<AsyncAPITabKey>("operations");
-  const [selectedItem, setSelectedItem] = useState<{ tab: AsyncAPITabKey; key: string } | null>(null);
+  const [selectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
+  const [selectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
+  const [selectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
 
   useEffect(() => {
@@ -115,19 +107,16 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
     activeTab === "operations" ? (
       <Operations
         operations={asyncapi.operations ?? {}}
-        selectedKey={selectedItem?.tab === "operations" ? selectedItem.key : null}
-        onSelectKey={(key) => setSelectedItem(key ? { tab: "operations", key } : null)}
+        selectedKey={selectedOperationKey}
+        onSelectKey={setSelectedOperationKey}
       />
     ) : activeTab === "messages" ? (
       <Messages
         messages={(asyncapi.components?.messages ?? {}) as Record<string, MessageObject>}
-        selectedKey={selectedItem?.tab === "messages" ? selectedItem.key : null}
+        selectedKey={selectedMessageKey}
       />
     ) : (
-      <Schemas
-        schemas={asyncapi.components?.schemas ?? {}}
-        selectedKey={selectedItem?.tab === "schemas" ? selectedItem.key : null}
-      />
+      <Schemas schemas={asyncapi.components?.schemas ?? {}} selectedKey={selectedSchemaKey} />
     );
 
   return (
@@ -143,8 +132,18 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
         schemas={asyncapi.components?.schemas as Record<string, unknown>}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onItemSelect={(tab, key) => { setActiveTab(tab); setSelectedItem({ tab, key }); }}
-        selectedItem={selectedItem}
+        onItemSelect={(tab, key) => {
+          setActiveTab(tab);
+          setSelectedOperationKey(tab === "operations" ? key : null);
+          setSelectedMessageKey(tab === "messages" ? key : null);
+          setSelectedSchemaKey(tab === "schemas" ? key : null);
+        }}
+        selectedItem={
+          selectedOperationKey ? { tab: "operations" as const, key: selectedOperationKey } :
+          selectedMessageKey   ? { tab: "messages"   as const, key: selectedMessageKey   } :
+          selectedSchemaKey    ? { tab: "schemas"    as const, key: selectedSchemaKey    } :
+          null
+        }
       />
       <ContentTab
         tabs={tabs}

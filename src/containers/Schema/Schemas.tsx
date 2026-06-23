@@ -1,19 +1,20 @@
 import Section from "../../components/Section";
 
-interface SchemaDefinition extends Record<string, unknown> {
+interface SchemaDefinition {
   type?: string;
   format?: string;
   description?: string;
   properties?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface SchemasProps {
-  schemas: Record<string, SchemaDefinition>;
+  schemas: Record<string, unknown>;
   selectedKey?: string | null;
 }
 
 export default function Schemas({ schemas, selectedKey }: SchemasProps) {
-  const schemaEntries = Object.entries(schemas);
+  const schemaEntries = Object.entries(schemas) as [string, SchemaDefinition][];
 
   const content = schemaEntries.length ? (
     <div className="mt-10 grid gap-6">
