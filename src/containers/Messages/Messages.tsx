@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Section from "../../components/Section";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Tag } from "../../types/asyncapi/Tag";
@@ -9,11 +9,16 @@ import TagComponent from "../../components/Tag";
 
 interface MessagesProps {
   messages: Record<string, MessageObject>;
+  selectedKey?: string | null;
 }
 
-function MessageRow({ messageKey, message, first }: { messageKey: string; message: MessageObject; first: boolean }) {
+function MessageRow({ messageKey, message, first, isSelected }: { messageKey: string; message: MessageObject; first: boolean; isSelected?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    if (isSelected) setExpanded(true);
+  }, [isSelected]);
   const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
 
   const hasMore =
@@ -29,8 +34,10 @@ function MessageRow({ messageKey, message, first }: { messageKey: string; messag
   };
 
   return (
-    <>
-      <tr className={first ? "" : "border-t border-gray-200"} {...rowEvents}>
+    <tbody
+      className={`${first ? "" : "border-t border-gray-200"} ${isSelected ? "bg-orange-50/60 outline outline-1 outline-orange-300" : ""}`}
+    >
+      <tr id={`message-${messageKey}`} className="" {...rowEvents}>
         <td className="px-6 py-4">
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-gray-800">
@@ -140,11 +147,11 @@ function MessageRow({ messageKey, message, first }: { messageKey: string; messag
           </td>
         </tr>
       )}
-    </>
+    </tbody>
   );
 }
 
-export default function Messages({ messages }: MessagesProps) {
+export default function Messages({ messages, selectedKey }: MessagesProps) {
   const messageEntries = Object.entries(messages);
 
   const content = messageEntries.length ? (
@@ -163,11 +170,9 @@ export default function Messages({ messages }: MessagesProps) {
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white">
           {messageEntries.map(([messageKey, message], i) => (
-            <MessageRow key={messageKey} messageKey={messageKey} message={message} first={i === 0} />
+            <MessageRow key={messageKey} messageKey={messageKey} message={message} first={i === 0} isSelected={selectedKey === messageKey} />
           ))}
-        </tbody>
       </table>
     </div>
   ) : (

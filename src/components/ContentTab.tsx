@@ -9,11 +9,7 @@ interface ContentTabProps {
   onChange: (id: string) => void;
 }
 
-export default function ContentTab({
-  tabs,
-  current,
-  onChange,
-}: ContentTabProps) {
+export default function ContentTab({ tabs, current, onChange }: ContentTabProps) {
   if (!tabs.length) {
     return null;
   }
@@ -31,8 +27,8 @@ export default function ContentTab({
   );
 
   return (
-    <div className="sticky top-0 z-10 flex w-full justify-center bg-white border-gray-100">
-        <Section content={content} stickySideContent={false} />
+    <div className="sticky top-0 z-10 flex w-full bg-white justify-center">
+      <Section content={content} stickySideContent={false} />
     </div>
   );
 }

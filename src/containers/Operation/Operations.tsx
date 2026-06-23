@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ChannelAddress } from "../../components/ChannelAddress";
 import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
@@ -13,11 +12,12 @@ import Operation from "./Operation";
 
 interface OperationsProps {
   operations: Record<string, OperationType>;
+  selectedKey?: string | null;
+  onSelectKey?: (key: string | null) => void;
 }
 
-export default function Operations({ operations }: OperationsProps) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  console.log(selectedKey)
+export default function Operations({ operations, selectedKey = null, onSelectKey }: OperationsProps) {
+  const setSelectedKey = (key: string | null) => onSelectKey?.(key);
   const { deref } = useAsyncAPIDocument();
 
   if (!Object.keys(operations).length) {
@@ -44,6 +44,7 @@ export default function Operations({ operations }: OperationsProps) {
     return (
       <tr
         key={key}
+        id={`operation-${key}`}
         onClick={() => setSelectedKey(key)}
         className={`group cursor-pointer ${isSelected ? "bg-gray-50" : ""}`}
       >

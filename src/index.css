@@ -30,3 +30,55 @@ a {
   .secondary-gradient-color-stop {
     stop-color: var(--color-primary-light);
   }
+
+.panel-toggle-btn {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #64748b;
+  z-index: 51;
+  pointer-events: auto;
+  transition: background 0.2s ease, color 0.2s ease, left 0.3s ease-in-out;
+}
+
+.panel-toggle-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.panel-toggle-btn-open {
+  left: calc(480px - 20px);
+}
+
+.panel-toggle-btn-open .panel-icon-rect {
+  width: 10px;
+}
+
+.panel-toggle-btn-open .panel-icon-rect:hover {
+  width: 2px;
+}
+
+.panel-icon-rect {
+  width: 6px;
+  transition: width 0.15s ease-in-out;
+}
+
+.panel-icon-rect-collapsed {
+  width: 3px;
+}
+
+.panel-toggle-btn:hover .panel-icon-rect {
+  width: 10px;
+}
+
+.panel-toggle-btn:hover .panel-icon-rect-collapsed {
+  width: 6px;
+}

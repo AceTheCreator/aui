@@ -9,9 +9,10 @@ interface SchemaDefinition extends Record<string, unknown> {
 
 interface SchemasProps {
   schemas: Record<string, SchemaDefinition>;
+  selectedKey?: string | null;
 }
 
-export default function Schemas({ schemas }: SchemasProps) {
+export default function Schemas({ schemas, selectedKey }: SchemasProps) {
   const schemaEntries = Object.entries(schemas);
 
   const content = schemaEntries.length ? (
@@ -24,7 +25,10 @@ export default function Schemas({ schemas }: SchemasProps) {
         return (
           <article
             key={schemaName}
-            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+            id={`schema-${schemaName}`}
+            className={`rounded-xl border bg-white p-5 shadow-sm transition-colors ${
+              selectedKey === schemaName ? "border-orange-300 ring-1 ring-orange-200" : "border-gray-200"
+            }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

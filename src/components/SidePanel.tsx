@@ -9,9 +9,10 @@ export interface ISidePanelProps {
   onClose: () => void;
   title?: string | React.ReactNode;
   children?: React.ReactNode;
+  width?: string;
 }
 
-export function SidePanel({ isOpen, side, onClose, title, children }: ISidePanelProps) {
+export function SidePanel({ isOpen, side, onClose, title, children, width = "w-[50rem]" }: ISidePanelProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -36,25 +37,27 @@ export function SidePanel({ isOpen, side, onClose, title, children }: ISidePanel
 
       {/* Panel */}
       <div
-        className={`absolute top-0 ${panelPosition} h-full w-[50rem] bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 ${panelPosition} h-full ${width} bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : translateClosed
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <div className="text-sm font-semibold text-gray-800 min-w-0 flex-1 overflow-hidden">
-            {typeof title === "string" ? <span className="truncate block">{title}</span> : title}
+        {title && (
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+            <div className="text-sm font-semibold text-gray-800 min-w-0 flex-1 overflow-hidden">
+              {typeof title === "string" ? <span className="truncate block">{title}</span> : title}
+            </div>
+            <button
+              onClick={onClose}
+              className="ml-4 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close panel"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M2 2l12 12M14 2L2 14" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="ml-4 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Close panel"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 2l12 12M14 2L2 14" />
-            </svg>
-          </button>
-        </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
