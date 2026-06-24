@@ -55,27 +55,21 @@ a {
 }
 
 
-.panel-toggle-btn-open .panel-icon-rect {
-  width: 10px;
-}
-
-.panel-toggle-btn-open .panel-icon-rect:hover {
-  width: 2px;
-}
-
 .panel-icon-rect {
-  width: 6px;
+  width: 5px;
   transition: width 0.15s ease-in-out;
 }
 
 .panel-icon-rect-collapsed {
-  width: 3px;
-}
-
-.panel-toggle-btn:hover .panel-icon-rect {
   width: 10px;
 }
 
+/* closed: hover grows rect to signal expand */
+.panel-toggle-btn:hover .panel-icon-rect:not(.panel-icon-rect-collapsed) {
+  width: 10px;
+}
+
+/* open: hover shrinks rect to signal collapse */
 .panel-toggle-btn:hover .panel-icon-rect-collapsed {
-  width: 6px;
+  width: 1px;
 }

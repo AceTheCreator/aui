@@ -3,8 +3,8 @@ import { ConfigInterface } from "./config";
 export const defaultConfig: ConfigInterface = {
   show: {
     sidebar: true,
-    info: false,
-    servers: false,
+    info: true,
+    servers: true,
     operations: true,
     messages: true,
     messageExamples: false,
@@ -12,9 +12,9 @@ export const defaultConfig: ConfigInterface = {
     errors: true,
   },
   expand: {
-    messageExamples: false,
+    //:TODO: add more expand options in the future especially for schemas
   },
   sidebar: {
-    useChannelAddressAsIdentifier: true,
+    useChannelAddressAsIdentifier: false,
   },
 };
