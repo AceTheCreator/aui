@@ -27,7 +27,7 @@ function extendExampleSchema(schema: JsonSchema): JsonSchema {
 export function Examples ({schema}: ExamplesProps) {
     const value = use(useMemo(() => generate(extendExampleSchema(schema), { seed: 42, useExamplesValue: true, optionalsProbability: 1 }), [schema]));
     return (
-      <div className="text-xs bg-gray-50 text-gray-700 p-2 rounded overflow-x-auto">
+      <div className="text-xs bg-neutral-50 text-neutral-700 p-2 rounded overflow-x-auto">
         <pre>{JSON.stringify(value, null, 2)}</pre>
       </div>
     );

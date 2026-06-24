@@ -15,7 +15,7 @@ export default function VerticalNavigation({ serverNames = [], current, setCurre
             key={name}
             onClick={() => setCurrent(name)}
             className={classNames(
-              current === name ? 'border-l-4 border-gray-300 text-gray-900' : 'text-gray-600 hover:text-gray-900',
+              current === name ? 'border-l-4 border-neutral-300 text-neutral-900' : 'text-neutral-600 hover:text-neutral-900',
               'flex items-center px-3 py-2 text-sm font-medium capitalize cursor-pointer'
             )}
           >

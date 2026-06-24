@@ -43,7 +43,7 @@ export default function Tabs({
           value={selectValue}
           onChange={(ev) => onChange(ev.target.value)}
           className={classNames(
-            "block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500",
+            "block w-full rounded-md border-neutral-300 focus:border-secondary-500 focus:ring-secondary-500",
             hasIcons ? "mt-0" : "mt-4"
           )}
         >
@@ -58,7 +58,7 @@ export default function Tabs({
       <div className={classNames("hidden sm:block", hasIcons ? "" : "mt-6")}>
         {hasIcons ? (
           <div
-            className="border-b border-gray-200"
+            className="border-b border-neutral-200"
             role="tablist"
             aria-label={ariaLabel}
           >
@@ -79,8 +79,8 @@ export default function Tabs({
                     className={classNames(
                       "border-b-2 px-1 py-3 text-sm font-semibold transition-colors",
                       isActive
-                        ? "border-indigo-500 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-800"
+                        ? "border-primary-500 text-primary-600"
+                        : "border-transparent text-neutral-500 hover:text-neutral-800"
                     )}
                   >
                     <span className="inline-flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function Tabs({
           </div>
         ) : (
           <nav
-            className="relative z-0 flex divide-x divide-gray-200 rounded-lg shadow"
+            className="relative z-0 flex divide-x divide-neutral-200 rounded-lg shadow"
             aria-label={ariaLabel}
           >
             {tabs.map((tab, tabIdx) => (
@@ -103,11 +103,11 @@ export default function Tabs({
                 onClick={() => onChange(tab.id)}
                 className={classNames(
                   tab.id === current
-                    ? "text-gray-900"
-                    : "text-gray-500 hover:text-gray-700",
+                    ? "text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-700",
                   tabIdx === 0 ? "rounded-l-lg" : "",
                   tabIdx === tabs.length - 1 ? "rounded-r-lg" : "",
-                  "group relative min-w-0 flex-1 overflow-hidden bg-white px-4 py-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
+                  "group relative min-w-0 flex-1 overflow-hidden bg-white px-4 py-4 text-center text-sm font-medium hover:bg-neutral-50 focus:z-10"
                 )}
                 aria-current={tab.id === current ? "page" : undefined}
               >
@@ -115,7 +115,7 @@ export default function Tabs({
                 <span
                   aria-hidden="true"
                   className={classNames(
-                    tab.id === current ? "bg-indigo-500" : "bg-transparent",
+                    tab.id === current ? "bg-secondary-500" : "bg-transparent",
                     "absolute inset-x-0 bottom-0 h-0.5"
                   )}
                 />

@@ -35,7 +35,7 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
           {replyAddress ? (
             <>
               to a channel in{" "}
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-gray-200 text-gray-600">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-neutral-200 text-neutral-600">
                 {replyAddress.location}
               </span>
             </>
@@ -43,7 +43,7 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
             <ChannelAddress
               address={replyChannel.address}
               parameters={replyChannel.parameters as unknown as Record<string, Parameter>}
-              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-gray-200 text-gray-600"
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-neutral-200 text-neutral-600"
             />
           ) }
         </>
@@ -60,8 +60,8 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
               className={`px-3 py-1.5 text-sm font-medium rounded-t-md transition-colors capitalize
                             ${
                               tab === t
-                                ? "bg-gray-100 text-gray-800 border border-b-0 border-gray-200"
-                                : "text-gray-400 hover:text-gray-600"
+                                ? "bg-neutral-100 text-neutral-800 border border-b-0 border-neutral-200"
+                                : "text-neutral-400 hover:text-neutral-600"
                             }`}
             >
               {t}
@@ -69,17 +69,17 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
           ))}
         </div>
 
-        <div className="-mx-5 px-5 py-4 bg-gray-100 border-t border-gray-200 min-h-32">
+        <div className="-mx-5 px-5 py-4 bg-neutral-100 border-t border-neutral-200 min-h-32">
           {activeMessages.length > 0 ? (
             <>
-              <p className="text-sm text-gray-600 mb-3">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-gray-200 text-gray-600">
+              <p className="text-sm text-neutral-600 mb-3">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-white border border-neutral-200 text-neutral-600">
                   {operationId}
                 </span>{" "}
                 {verb}
                 {activeMessages.length > 1 ? (
                   <>
-                    <span className="inline-flex items-center px-1.5 py-0.5 font-bold text-gray-600">
+                    <span className="inline-flex items-center px-1.5 py-0.5 font-bold text-neutral-600">
                       one of
                     </span>
                     the following messages:
@@ -95,7 +95,7 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
               </div>
             </>
           ) : (
-            <p className="text-xs text-gray-400 italic">No messages defined.</p>
+            <p className="text-xs text-neutral-400 italic">No messages defined.</p>
           )}
         </div>
       </div>

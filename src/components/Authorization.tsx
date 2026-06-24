@@ -83,7 +83,7 @@ export default function Authorization({ securities }: Props) {
   return (
     <div>
       <Tabs tabs={filteredTabs} current={authTab} onChange={setAuthTab} />
-      <div className="py-4 prose text-gray-500">
+      <div className="py-4 prose text-neutral-500">
         {authTab === "userPassword" && (
           <span>
             You have to <strong>provide user and password</strong> to connect to
@@ -149,8 +149,8 @@ export const OpenID = ({ security }: { security: OpenIdConnect }) => {
       </p>
       {security?.scopes && (
         <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 items-center sm:gap-4">
-          <dt className="text-sm font-medium text-gray-500">Scopes</dt>
-          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          <dt className="text-sm font-medium text-neutral-500">Scopes</dt>
+          <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
             <code>{formatArrayToCodeString(security.scopes)}</code>
           </dd>
         </div>
@@ -188,53 +188,53 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
           return (
             <div key={flow}>
               <div>
-                <h4 className="text-lg leading-6 font-bold text-gray-900">
+                <h4 className="text-lg leading-6 font-bold text-neutral-900">
                   {title}
                 </h4>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                <p className="mt-1 max-w-2xl text-sm text-neutral-500">
                   {description}
                 </p>
               </div>
-              <div className="mt-5 border-t border-gray-200">
-                <dl className="sm:divide-y sm:divide-gray-200">
+              <div className="mt-5 border-t border-neutral-200">
+                <dl className="sm:divide-y sm:divide-neutral-200">
                   <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-gray-500">
+                    <dt className="text-sm font-medium text-neutral-500">
                       Authorization URL
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
                       <a href={``}>{flowData.authorizationUrl}</a>
                     </dd>
                   </div>
                   <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-gray-500">
+                    <dt className="text-sm font-medium text-neutral-500">
                       Token URL
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
                       <a href={``}>{flowData.tokenUrl}</a>
                     </dd>
                   </div>
                   {flowData.refreshUrl && (
                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                      <dt className="text-sm font-medium text-gray-500">
+                      <dt className="text-sm font-medium text-neutral-500">
                         Refresh URL
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
                         <a href={``}>{flowData.refreshUrl}</a>
                       </dd>
                     </div>
                   )}
                   {flowData.availableScopes && (
                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                      <dt className="text-sm font-medium text-gray-500">
+                      <dt className="text-sm font-medium text-neutral-500">
                         Scopes
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
                         <div className="flex flex-wrap gap-1.5">
                           {(Array.isArray(flowData.availableScopes)
                             ? flowData.availableScopes
                             : Object.keys(flowData.availableScopes)
                           ).map((scope: string) => (
-                            <code key={scope} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                            <code key={scope} className="text-xs bg-neutral-100 text-neutral-700 px-1.5 py-0.5 rounded">
                               {scope}
                             </code>
                           ))}

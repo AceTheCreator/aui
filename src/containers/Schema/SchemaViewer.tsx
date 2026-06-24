@@ -7,7 +7,7 @@ interface SchemaViewerProps {
 
 export const SchemaViewer: React.FC<SchemaViewerProps> = ({ schema }) => {
   return (
-      <pre className="text-xs bg-gray-50 text-gray-700 p-2 rounded overflow-x-auto">
+      <pre className="text-xs bg-neutral-50 text-neutral-700 p-2 rounded overflow-x-auto">
         {JSON.stringify(schema, null, 2)}
       </pre>
   );

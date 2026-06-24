@@ -29,31 +29,31 @@ function SchemaTabs({
     <div>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
             {label}
           </p>
           {description && (
-            <p className="text-sm text-gray-600 leading-relaxed mt-2 mb-2">
+            <p className="text-sm text-neutral-600 leading-relaxed mt-2 mb-2">
               {description}
             </p>
           )}
         </div>
-        <div className="flex rounded overflow-hidden border border-gray-200 text-xs">
+        <div className="flex rounded overflow-hidden border border-neutral-200 text-xs">
           <button
             onClick={() => setTab("schema")}
-            className={`px-2 py-0.5 ${tab === "schema" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+            className={`px-2 py-0.5 ${tab === "schema" ? "bg-neutral-800 text-white" : "bg-white text-neutral-500 hover:bg-neutral-50"}`}
           >
             Schema
           </button>
           <button
             onClick={() => setTab("json")}
-            className={`px-2 py-0.5 border-l border-gray-200 ${tab === "json" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+            className={`px-2 py-0.5 border-l border-neutral-200 ${tab === "json" ? "bg-neutral-800 text-white" : "bg-white text-neutral-500 hover:bg-neutral-50"}`}
           >
             JSON
           </button>
           <button
             onClick={() => setTab("examples")}
-            className={`px-2 py-0.5 border-l border-gray-200 ${tab === "examples" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+            className={`px-2 py-0.5 border-l border-neutral-200 ${tab === "examples" ? "bg-neutral-800 text-white" : "bg-white text-neutral-500 hover:bg-neutral-50"}`}
           >
             Examples
           </button>
@@ -65,34 +65,34 @@ function SchemaTabs({
       ) : tab === "examples" ? (
         <Suspense
           fallback={
-            <div className="min-h-28 bg-gray-50 p-2">
-              <p className="text-xs text-gray-400">Rendering examples...</p>
+            <div className="min-h-28 bg-neutral-50 p-2">
+              <p className="text-xs text-neutral-400">Rendering examples...</p>
             </div>
           }
         >
           <Examples schema={schema} />
         </Suspense>
       ) : isRef ? (
-        <p className="text-xs text-gray-500 italic">
+        <p className="text-xs text-neutral-500 italic">
           Referenced schema:{" "}
-          <code className="bg-gray-100 px-1 rounded">
+          <code className="bg-neutral-100 px-1 rounded">
             {obj["$ref"] as string}
           </code>
         </p>
       ) : properties ? (
-        <div className="divide-y divide-gray-100 border border-gray-100 rounded">
+        <div className="divide-y divide-neutral-100 border border-neutral-100 rounded">
           {Object.entries(properties).map(([name, prop]) => (
             <div key={name} className="flex items-start gap-2 px-3 py-2">
-              <code className="text-xs font-semibold text-gray-800 shrink-0">
+              <code className="text-xs font-semibold text-neutral-800 shrink-0">
                 {name}
               </code>
               {prop.type && (
-                <span className="text-xs bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded shrink-0">
+                <span className="text-xs bg-secondary-50 text-secondary-600 px-1.5 py-0.5 rounded shrink-0">
                   {prop.type}
                 </span>
               )}
               {prop.description && (
-                <p className="text-xs text-gray-500 leading-relaxed">
+                <p className="text-xs text-neutral-500 leading-relaxed">
                   {prop.description}
                 </p>
               )}
@@ -100,7 +100,7 @@ function SchemaTabs({
           ))}
         </div>
       ) : (
-        <p className="text-xs text-gray-400 italic">
+        <p className="text-xs text-neutral-400 italic">
           No schema details available.
         </p>
       )}

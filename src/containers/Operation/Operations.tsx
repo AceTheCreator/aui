@@ -38,7 +38,7 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
       ? "bg-green-100 text-green-800"
       : op.action === OperationAction.RECEIVE
         ? "bg-blue-100 text-blue-800"
-        : "bg-gray-100 text-gray-700";
+        : "bg-neutral-100 text-neutral-700";
     const isSelected = selectedKey === key;
 
     return (
@@ -46,19 +46,19 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         key={key}
         id={`operation-${key}`}
         onClick={() => setSelectedKey(key)}
-        className={`group cursor-pointer ${isSelected ? "bg-gray-50" : ""}`}
+        className={`group cursor-pointer ${isSelected ? "bg-neutral-50" : ""}`}
       >
-        <td className="px-6 py-4 group-hover:bg-gray-50">
+        <td className="px-6 py-4 group-hover:bg-neutral-50">
           {address && <ChannelAddress address={address} parameters={parameters} />}
         </td>
-        <td className="px-6 py-4 w-32 group-hover:bg-gray-50">
+        <td className="px-6 py-4 w-32 group-hover:bg-neutral-50">
           <div
             className={`inline-flex w-24 items-center justify-center px-2 py-1 text-center rounded-md text-xs font-medium uppercase ${badgeClassName}`}
           >
             {actionLabel}
           </div>
         </td>
-        <td className="group-hover:bg-gray-50" />
+        <td className="group-hover:bg-neutral-50" />
       </tr>
     );
   });
@@ -72,20 +72,20 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
   ) : (selectedKey ?? "Operation");
 
   const content = (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
       <table className="w-full">
-        <thead className="bg-gray-100 w-full">
+        <thead className="bg-neutral-100 w-full">
           <tr>
-            <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
               Operation
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
               Method
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" />
+            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider" />
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white divide-y divide-neutral-200">
           {operationList}
         </tbody>
       </table>

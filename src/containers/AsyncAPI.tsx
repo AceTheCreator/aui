@@ -7,6 +7,7 @@ import { MessageObject } from "../types/asyncapi/MessageObject";
 import { Server } from "../types/asyncapi/Server";
 import { Operation } from "../types/asyncapi/Operation";
 import { ConfigInterface, defaultConfig } from "../config";
+import { buildThemeVars } from "../utils/theme";
 import IconMessage from "../icons/Message";
 import IconOperation from "../icons/Operation";
 import IconSchema from "../icons/Schema";
@@ -39,6 +40,8 @@ export interface IAsyncAPIProps {
   config?: ConfigInterface;
 }
 
+
+
 type AsyncAPITabKey = "operations" | "messages" | "schemas";
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -61,6 +64,7 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
   const [selectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
   const [selectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
+  const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     derefCache.clear();
@@ -91,10 +95,13 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
     return current;
   }, [asyncapi, derefCache]);
 
-  const value = useMemo(
-    () => ({ document: asyncapi, deref }),
-    [asyncapi, deref]
-  );
+const value = useMemo(() => ({
+    document: asyncapi,
+    deref,
+    portalHost,
+  }),
+  [asyncapi, deref, portalHost],
+);
 
   const activeContent =
     activeTab === "operations" ? (
@@ -112,50 +119,73 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
       <Schemas schemas={asyncapi.components?.schemas ?? {}} selectedKey={selectedSchemaKey} />
     );
 
+  const themeVars = config.theme ? buildThemeVars(config.theme) : {};
+
   return (
     <AsyncAPIDocumentContext.Provider value={value}>
-      {show.info !== false && <Information {...asyncapi.info} />}
-      {show.servers !== false && asyncapi.servers && Object.keys(asyncapi.servers).length > 0 && (
-        <Servers servers={asyncapi.servers} />
-      )}
-      {show.sidebar !== false && (
-        <Navigation
-          info={asyncapi.info}
-          operations={show.operations !== false ? asyncapi.operations : undefined}
-          messages={show.messages !== false ? asyncapi.components?.messages as Record<string, MessageObject> : undefined}
-          schemas={show.schemas !== false ? asyncapi.components?.schemas as Record<string, unknown> : undefined}
-          sidebarConfig={config.sidebar}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onItemSelect={(tab, key) => {
-            setActiveTab(tab);
-            setSelectedOperationKey(tab === "operations" ? key : null);
-            setSelectedMessageKey(tab === "messages" ? key : null);
-            setSelectedSchemaKey(tab === "schemas" ? key : null);
+      <div style={themeVars as React.CSSProperties}>
+        <div ref={setPortalHost} className="asyncapi-portal-root" />
+        {show.info !== false && <Information {...asyncapi.info} />}
+        {show.servers !== false &&
+          asyncapi.servers &&
+          Object.keys(asyncapi.servers).length > 0 && (
+            <Servers servers={asyncapi.servers} />
+          )}
+        {show.sidebar !== false && (
+          <Navigation
+            info={asyncapi.info}
+            operations={
+              show.operations !== false ? asyncapi.operations : undefined
+            }
+            messages={
+              show.messages !== false
+                ? (asyncapi.components?.messages as Record<
+                    string,
+                    MessageObject
+                  >)
+                : undefined
+            }
+            schemas={
+              show.schemas !== false
+                ? (asyncapi.components?.schemas as Record<string, unknown>)
+                : undefined
+            }
+            sidebarConfig={config.sidebar}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onItemSelect={(tab, key) => {
+              setActiveTab(tab);
+              setSelectedOperationKey(tab === "operations" ? key : null);
+              setSelectedMessageKey(tab === "messages" ? key : null);
+              setSelectedSchemaKey(tab === "schemas" ? key : null);
+            }}
+            selectedItem={
+              selectedOperationKey
+                ? { tab: "operations" as const, key: selectedOperationKey }
+                : selectedMessageKey
+                  ? { tab: "messages" as const, key: selectedMessageKey }
+                  : selectedSchemaKey
+                    ? { tab: "schemas" as const, key: selectedSchemaKey }
+                    : null
+            }
+          />
+        )}
+        <ContentTab
+          tabs={tabs}
+          current={activeTab}
+          onChange={(id) => {
+            if (isAsyncAPITabKey(id)) {
+              setActiveTab(id);
+            }
           }}
-          selectedItem={
-            selectedOperationKey ? { tab: "operations" as const, key: selectedOperationKey } :
-            selectedMessageKey   ? { tab: "messages"   as const, key: selectedMessageKey   } :
-            selectedSchemaKey    ? { tab: "schemas"    as const, key: selectedSchemaKey    } :
-            null
-          }
         />
-      )}
-      <ContentTab
-        tabs={tabs}
-        current={activeTab}
-        onChange={(id) => {
-          if (isAsyncAPITabKey(id)) {
-            setActiveTab(id);
-          }
-        }}
-      />
-      <div
-        id={`panel-${activeTab}`}
-        role="tabpanel"
-        aria-labelledby={`tab-${activeTab}`}
-      >
-        {activeContent}
+        <div
+          id={`panel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${activeTab}`}
+        >
+          {activeContent}
+        </div>
       </div>
     </AsyncAPIDocumentContext.Provider>
   );

@@ -18,7 +18,7 @@ export default function Section({
     <div className="w-full sm:w-auto">
       {title && <h2 className="text-2xl font-bold">{title}</h2>}
       <section
-        className="border-gray-200 text-lg mb-10 lg:flex lg:justify-between"
+        className="border-neutral-200 text-lg mb-10 lg:flex lg:justify-between"
       >
         <div className="sm:w-prose">
           {content}

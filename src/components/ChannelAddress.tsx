@@ -34,7 +34,7 @@ export function ChannelAddress({ address, parameters, className }: ChannelAddres
   let colorIndex = 0;
 
   return (
-    <code className={`text-xs px-2 py-1 rounded text-gray-700 break-all ${className ?? ""}`}>
+    <code className={`text-xs px-2 py-1 rounded text-neutral-700 break-all ${className ?? ""}`}>
       {parts.map((part, i) => {
         if (part.type === "text") return <span key={i}>{part.value}</span>;
         const description = parameters?.[part.value]?.description;
@@ -51,7 +51,7 @@ export function ChannelAddress({ address, parameters, className }: ChannelAddres
               {`{${part.value}}`}
             </span>
             {description && isHovered && (
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-800 text-white text-xs rounded whitespace-nowrap pointer-events-none z-20 shadow-lg text-center leading-snug">
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-neutral-800 text-white text-xs rounded whitespace-nowrap pointer-events-none z-20 shadow-lg text-center leading-snug">
                 {description}
               </span>
             )}
