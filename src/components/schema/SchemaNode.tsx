@@ -4,27 +4,38 @@ import ExpandToggle from "./ExpandToggle";
 import SchemaCaseDetail from "./SchemaCaseDetail";
 import SchemaNotBranch, { BooleanNotPill } from "./SchemaNotBranch";
 import SchemaUnionBranch from "./SchemaUnionBranch";
-import SchemaTreeBranch from "./SchemaTreeBranch";
+import SchemaTreeBranch, {
+  type SchemaTreeBranchLineVariant,
+} from "./SchemaTreeBranch";
 import SchemaTreeRow from "./SchemaTreeRow";
 import {
   flattenAllOf,
+  getAdditionalItemsSchema,
   getAdditionalPropertiesSchema,
+  getAllOfConditionals,
   getAnyOfItems,
+  getContainsSchema,
   getItemSchema,
   getNotSchema,
   getOneOfItems,
   getPatternPropertiesEntries,
   getPropertyNamesSchema,
+  getSubschema,
+  getTupleItemSchemas,
+  hasAllOfConditionals,
   hasExplicitProperties,
+  hasIfThenElse,
   hasNotSchema,
   hasObjectMapContent,
   hasStructuralShape,
   isLeafItemSchema,
   mergeDescriptions,
   normalizeSchema,
+  omitIfThenElse,
   omitNot,
   patternPropertyPath,
 } from "./schemaUtils";
+import SchemaIfThenElseBranch from "./SchemaIfThenElseBranch";
 import SchemaMapBranch from "./SchemaMapBranch";
 
 export interface SchemaNodeProps {
@@ -36,7 +47,14 @@ export interface SchemaNodeProps {
   deref: (ref: string) => unknown;
   /** When true, skip this node's row and render only a root toggle + children. */
   suppressRow?: boolean;
+  /** Left border style for nested branches; muted uses a grey dotted line. */
+  branchLineVariant?: SchemaTreeBranchLineVariant;
 }
+
+/** Nested nodes inside a branch-line-less wrapper regain depth-colored lines. */
+const childBranchLineVariant = (
+  variant: SchemaTreeBranchLineVariant
+): SchemaTreeBranchLineVariant => (variant === "none" ? "depth" : variant);
 
 /** Recursively renders one schema node and its descendants. */
 export default function SchemaNode({
@@ -47,7 +65,9 @@ export default function SchemaNode({
   refStack,
   deref,
   suppressRow = false,
+  branchLineVariant = "depth",
 }: SchemaNodeProps) {
+  const nestedBranchLineVariant = childBranchLineVariant(branchLineVariant);
   const [expanded, setExpanded] = useState(true);
   const [selectedCase, setSelectedCase] = useState(0);
 
@@ -60,8 +80,10 @@ export default function SchemaNode({
     };
   }, [rawSchema, deref, refStack]);
 
-  const structuralSchema = omitNot(schema);
-  const isNotOnly = hasNotSchema(schema) && !hasStructuralShape(structuralSchema);
+  const structuralSchema = omitNot(omitIfThenElse(schema));
+  const isMetaOnly =
+    !hasStructuralShape(structuralSchema) &&
+    (hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema));
 
   const renderNotSection = () => {
     const notValue = getNotSchema(schema);
@@ -107,9 +129,89 @@ export default function SchemaNode({
             refStack={refStack}
             deref={deref}
             suppressRow
+            branchLineVariant={nestedBranchLineVariant}
           />
         )}
       </SchemaNotBranch>
+    );
+  };
+
+  const renderIfThenElseBranchSchema = (
+    branchSchema: SchemaNodeData | boolean,
+    branchPath: string
+  ) => {
+    if (typeof branchSchema === "boolean") {
+      return (
+        <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+          {branchSchema ? "any value" : "false schema"}
+        </span>
+      );
+    }
+    const normalized = normalizeSchema(branchSchema, deref, refStack);
+    if (normalized.circular) {
+      return (
+        <SchemaTreeRow
+          path={branchPath}
+          depth={depth + 1}
+          typeLabelOverride={`↩ ${branchSchema.$ref}`}
+          expandable={false}
+          expanded={false}
+          onToggle={() => undefined}
+          showBorder={false}
+        />
+      );
+    }
+    const flattened = flattenAllOf(normalized.schema, deref, refStack);
+    if (isLeafItemSchema(flattened)) {
+      return <SchemaCaseDetail schema={flattened} showBorder={false} />;
+    }
+    return (
+      <SchemaNode
+        schema={branchSchema}
+        path={branchPath}
+        depth={depth + 1}
+        refStack={refStack}
+        deref={deref}
+        suppressRow
+        branchLineVariant="none"
+      />
+    );
+  };
+
+  /**
+   * Renders a single if/then/else as a consolidated card with labeled sections.
+   * Nested if/then/else in an else branch is handled automatically: renderIfThenElseBranchSchema
+   * passes the else schema to SchemaNode, which detects hasIfThenElse and re-enters here,
+   * producing a nested card inside the Else: section.
+   */
+  const renderSingleIfThenElse = (condSchema: SchemaNodeData) => {
+    const ifVal = getSubschema(condSchema.if);
+    if (ifVal === null) return null;
+    const thenVal = getSubschema(condSchema.then);
+    const elseVal = getSubschema(condSchema.else);
+    return (
+      <SchemaIfThenElseBranch
+        ifContent={renderIfThenElseBranchSchema(ifVal, path)}
+        thenContent={thenVal !== null ? renderIfThenElseBranchSchema(thenVal, path) : undefined}
+        elseContent={elseVal !== null ? renderIfThenElseBranchSchema(elseVal, path) : undefined}
+      />
+    );
+  };
+
+  const renderIfThenElseSection = () => renderSingleIfThenElse(schema);
+
+  const renderAllOfConditionals = () => {
+    const conditionals = getAllOfConditionals(schema);
+    if (conditionals.length === 0) return null;
+    return (
+      <>
+        {conditionals.map((cond, idx) => (
+          // Content-derived key so re-ordering allOf entries doesn't cause remounting.
+          <div key={JSON.stringify(cond.if) ?? String(idx)}>
+            {renderSingleIfThenElse(cond)}
+          </div>
+        ))}
+      </>
     );
   };
 
@@ -126,9 +228,17 @@ export default function SchemaNode({
     );
   }
 
-  if (isNotOnly) {
+  if (isMetaOnly) {
+    const metaContent = (
+      <>
+        {hasNotSchema(schema) && renderNotSection()}
+        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasAllOfConditionals(schema) && renderAllOfConditionals()}
+      </>
+    );
+
     if (suppressRow) {
-      return renderNotSection();
+      return metaContent;
     }
 
     return (
@@ -145,7 +255,9 @@ export default function SchemaNode({
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+          <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+            {metaContent}
+          </SchemaTreeBranch>
         )}
       </>
     );
@@ -180,6 +292,7 @@ export default function SchemaNode({
         refStack={refStack}
         deref={deref}
         suppressRow
+        branchLineVariant={nestedBranchLineVariant}
       />
     );
 
@@ -199,6 +312,8 @@ export default function SchemaNode({
       <>
         {unionBranch}
         {hasNotSchema(schema) && renderNotSection()}
+        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
 
@@ -220,7 +335,7 @@ export default function SchemaNode({
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>{unionContent}</SchemaTreeBranch>
+          <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>{unionContent}</SchemaTreeBranch>
         )}
       </>
     );
@@ -258,6 +373,7 @@ export default function SchemaNode({
         depth={mapDepth}
         refStack={refStack}
         deref={deref}
+        branchLineVariant={nestedBranchLineVariant}
       />
     );
   };
@@ -283,6 +399,7 @@ export default function SchemaNode({
               required={requiredFields.has(name)}
               refStack={refStack}
               deref={deref}
+              branchLineVariant={nestedBranchLineVariant}
             />
           );
         })}
@@ -304,8 +421,9 @@ export default function SchemaNode({
             depth={childDepth}
             refStack={refStack}
             deref={deref}
-          />
-        ))}
+              branchLineVariant={nestedBranchLineVariant}
+            />
+          ))}
         {additionalPropertiesSchema !== null &&
           isSchemaRecord(additionalPropertiesSchema) && (
             <SchemaMapBranch label="Additional properties must adhere to:">
@@ -317,6 +435,8 @@ export default function SchemaNode({
             </SchemaMapBranch>
           )}
         {hasNotSchema(schema) && renderNotSection()}
+        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
   };
@@ -326,27 +446,34 @@ export default function SchemaNode({
 
   if (hasObjectChildren) {
     if (suppressRow) {
+      if (depth === 0) {
+        return (
+          <>
+            <div
+              className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <ExpandToggle
+                depth={0}
+                expanded={expanded}
+                onToggle={() => setExpanded((v) => !v)}
+              />
+              <span>{expanded ? "Hide properties" : "Show properties"}</span>
+            </div>
+            <div className="pl-1">
+              {expanded && (
+                <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
+                  {renderObjectChildren(1)}
+                </SchemaTreeBranch>
+              )}
+            </div>
+          </>
+        );
+      }
       return (
-        <>
-          <div
-            className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
-            onClick={() => setExpanded((v) => !v)}
-          >
-            <ExpandToggle
-              depth={0}
-              expanded={expanded}
-              onToggle={() => setExpanded((v) => !v)}
-            />
-            <span>{expanded ? "Hide properties" : "Show properties"}</span>
-          </div>
-          <div className="pl-1">
-            {expanded && (
-              <SchemaTreeBranch depth={0}>
-                {renderObjectChildren(1)}
-              </SchemaTreeBranch>
-            )}
-          </div>
-        </>
+        <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+          {renderObjectChildren(depth + 1)}
+        </SchemaTreeBranch>
       );
     }
 
@@ -364,7 +491,7 @@ export default function SchemaNode({
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>
+          <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
             {renderObjectChildren(depth + 1)}
           </SchemaTreeBranch>
         )}
@@ -373,8 +500,18 @@ export default function SchemaNode({
   }
 
   if (structuralSchema.type === "array" || structuralSchema.items) {
-    const itemSchema = getItemSchema(structuralSchema);
+    const tupleSchemas = getTupleItemSchemas(structuralSchema);
+    const isTuple = tupleSchemas !== null;
+    const additionalItemsSchema = isTuple ? getAdditionalItemsSchema(structuralSchema) : null;
+    const containsSchema = getContainsSchema(structuralSchema);
+    const hasContainsSchema = containsSchema !== null;
+
+    const itemSchema = isTuple ? null : getItemSchema(structuralSchema);
     const hasItem = itemSchema !== null;
+    // Guards the suppressRow toggle — prevents rendering an expand button for empty arrays.
+    const hasArrayContent =
+      isTuple || hasItem || hasContainsSchema ||
+      hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema);
     const arrayPath = `${path}[]`;
 
     const resolvedItem = hasItem
@@ -384,7 +521,11 @@ export default function SchemaNode({
           refStack
         )
       : null;
-    const isLeafArray = resolvedItem !== null && isLeafItemSchema(resolvedItem);
+    const isLeafArray =
+      !isTuple &&
+      !hasContainsSchema &&
+      resolvedItem !== null &&
+      isLeafItemSchema(resolvedItem);
     const itemProperties =
       resolvedItem?.properties
         ? Object.entries(resolvedItem.properties).filter(([, prop]) =>
@@ -397,7 +538,82 @@ export default function SchemaNode({
         : []
     );
 
-    if (isLeafArray && !hasNotSchema(schema)) {
+    const renderArrayExpansion = (childDepth: number) => (
+      <>
+        {isTuple ? (
+          <>
+            {tupleSchemas.map((itemSch, idx) => (
+              <SchemaNode
+                key={idx}
+                schema={itemSch}
+                path={`${path}[${idx}]`}
+                depth={childDepth}
+                refStack={refStack}
+                deref={deref}
+                branchLineVariant={nestedBranchLineVariant}
+              />
+            ))}
+            {additionalItemsSchema !== null &&
+              typeof additionalItemsSchema !== "boolean" && (
+                <SchemaMapBranch label="Additional items:">
+                  {renderMapSubschema(
+                    additionalItemsSchema,
+                    `${path}[*]`,
+                    childDepth
+                  )}
+                </SchemaMapBranch>
+              )}
+            {additionalItemsSchema === false && (
+              <div className="py-1 pl-6 text-xs text-gray-400">
+                no additional items allowed
+              </div>
+            )}
+          </>
+        ) : (
+          hasItem &&
+          (itemProperties.length > 0
+            ? itemProperties.map(([name, prop]) => (
+                <SchemaNode
+                  key={name}
+                  schema={prop}
+                  path={`${path}[].${name}`}
+                  depth={childDepth}
+                  required={itemRequired.has(name)}
+                  refStack={refStack}
+                  deref={deref}
+                  branchLineVariant={nestedBranchLineVariant}
+                />
+              ))
+            : (
+                <SchemaNode
+                  schema={itemSchema!}
+                  path={arrayPath}
+                  depth={childDepth}
+                  refStack={refStack}
+                  deref={deref}
+                  branchLineVariant={nestedBranchLineVariant}
+                />
+              ))
+        )}
+        {hasContainsSchema && (
+          <SchemaMapBranch label="Contains at least one:">
+            {/* boolean contains: true → any item qualifies, false → impossible constraint */}
+            {typeof containsSchema === "boolean" ? (
+              <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                {containsSchema ? "any item" : "impossible constraint"}
+              </span>
+            ) : (
+              renderMapSubschema(containsSchema!, `${path}[contains]`, childDepth)
+            )}
+          </SchemaMapBranch>
+        )}
+        {hasNotSchema(schema) && renderNotSection()}
+        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasAllOfConditionals(schema) && renderAllOfConditionals()}
+      </>
+    );
+
+    if (isLeafArray && !hasNotSchema(schema) && !hasIfThenElse(schema) && !hasAllOfConditionals(schema)) {
       return (
         <SchemaTreeRow
           path={arrayPath}
@@ -408,7 +624,7 @@ export default function SchemaNode({
           required={required}
           description={mergeDescriptions(
             schema.description,
-            resolvedItem.description
+            resolvedItem!.description
           )}
           expandable={false}
           expanded={false}
@@ -417,7 +633,7 @@ export default function SchemaNode({
       );
     }
 
-    if (isLeafArray && hasNotSchema(schema)) {
+    if (isLeafArray) {
       return (
         <>
           <SchemaTreeRow
@@ -429,56 +645,54 @@ export default function SchemaNode({
             required={required}
             description={mergeDescriptions(
               schema.description,
-              resolvedItem.description
+              resolvedItem!.description
             )}
             expandable
             expanded={expanded}
             onToggle={() => setExpanded((v) => !v)}
           />
           {expanded && (
-            <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+            <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+              {hasNotSchema(schema) && renderNotSection()}
+              {hasIfThenElse(schema) && renderIfThenElseSection()}
+              {hasAllOfConditionals(schema) && renderAllOfConditionals()}
+            </SchemaTreeBranch>
           )}
         </>
       );
     }
 
     if (suppressRow) {
+      // Render nothing for bare { type:'array' } with no items/contains/conditionals.
+      if (!hasArrayContent) return null;
+      if (depth === 0) {
+        return (
+          <>
+            <div
+              className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <ExpandToggle
+                depth={0}
+                expanded={expanded}
+                onToggle={() => setExpanded((v) => !v)}
+              />
+              <span>{expanded ? "Hide items" : "Show items"}</span>
+            </div>
+            <div className="pl-1">
+              {expanded && (
+                <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
+                  {renderArrayExpansion(1)}
+                </SchemaTreeBranch>
+              )}
+            </div>
+          </>
+        );
+      }
       return (
-        <>
-          <div className="py-2">
-            <ExpandToggle
-              depth={0}
-              expanded={expanded}
-              onToggle={() => setExpanded((v) => !v)}
-            />
-          </div>
-          {expanded && hasItem && (
-            <SchemaTreeBranch depth={1}>
-              {itemProperties.length > 0
-                ? itemProperties.map(([name, prop]) => (
-                    <SchemaNode
-                      key={name}
-                      schema={prop}
-                      path={`${path}[].${name}`}
-                      depth={1}
-                      required={itemRequired.has(name)}
-                      refStack={refStack}
-                      deref={deref}
-                    />
-                  ))
-                : (
-                    <SchemaNode
-                      schema={itemSchema!}
-                      path={arrayPath}
-                      depth={1}
-                      refStack={refStack}
-                      deref={deref}
-                    />
-                  )}
-              {hasNotSchema(schema) && renderNotSection()}
-            </SchemaTreeBranch>
-          )}
-        </>
+        <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+          {renderArrayExpansion(depth + 1)}
+        </SchemaTreeBranch>
       );
     }
 
@@ -491,44 +705,37 @@ export default function SchemaNode({
           refLabel={refLabel}
           required={required}
           description={schema.description}
-          expandable={hasItem || hasNotSchema(schema)}
+          expandable={
+            isTuple ||
+            hasItem ||
+            hasContainsSchema ||
+            hasNotSchema(schema) ||
+            hasIfThenElse(schema) ||
+            hasAllOfConditionals(schema)
+          }
           expanded={expanded}
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>
-            {hasItem &&
-              (itemProperties.length > 0 ? (
-                itemProperties.map(([name, prop]) => (
-                  <SchemaNode
-                    key={name}
-                    schema={prop}
-                    path={`${path}[].${name}`}
-                    depth={depth + 1}
-                    required={itemRequired.has(name)}
-                    refStack={refStack}
-                    deref={deref}
-                  />
-                ))
-              ) : (
-                <SchemaNode
-                  schema={itemSchema!}
-                  path={arrayPath}
-                  depth={depth + 1}
-                  refStack={refStack}
-                  deref={deref}
-                />
-              ))}
-            {hasNotSchema(schema) && renderNotSection()}
+          <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+            {renderArrayExpansion(depth + 1)}
           </SchemaTreeBranch>
         )}
       </>
     );
   }
 
-  if (hasNotSchema(schema)) {
+  if (hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema)) {
+    const metaOnlyContent = (
+      <>
+        {hasNotSchema(schema) && renderNotSection()}
+        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasAllOfConditionals(schema) && renderAllOfConditionals()}
+      </>
+    );
+
     if (suppressRow) {
-      return renderNotSection();
+      return metaOnlyContent;
     }
 
     return (
@@ -545,7 +752,9 @@ export default function SchemaNode({
           onToggle={() => setExpanded((v) => !v)}
         />
         {expanded && (
-          <SchemaTreeBranch depth={depth}>{renderNotSection()}</SchemaTreeBranch>
+          <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
+            {metaOnlyContent}
+          </SchemaTreeBranch>
         )}
       </>
     );

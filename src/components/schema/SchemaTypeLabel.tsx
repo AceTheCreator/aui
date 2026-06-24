@@ -17,10 +17,7 @@ export default function SchemaTypeLabel({
 
   return (
     <span className={className}>
-      {text}
-      {format && (
-        <span className=""> {format.toUpperCase()}</span>
-      )}
+      {format ?? text}
       {refHint && !text.includes(`(${refHint})`) && (
         <span className="text-gray-400"> ({refHint})</span>
       )}

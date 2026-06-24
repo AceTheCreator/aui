@@ -77,20 +77,22 @@ export default function SchemaTreeRow({
         ) : (
           <span className="w-4 shrink-0" aria-hidden="true" />
         )}
-        <span className="text-xs font-mono flex-1 min-w-0 truncate">
-          {prefix && <span className="text-gray-400">{prefix}</span>}
-          <span className={`font-semibold ${colors.text}`}>{name}</span>
+        <span className="text-xs font-mono flex-1 min-w-0 flex items-center">
+          <span className="truncate min-w-0">
+            {prefix && <span className="text-gray-400">{prefix}</span>}
+            <span className={`font-semibold ${colors.text}`}>{name}</span>
+          </span>
           {required && (
-            <span className="text-red-500 ml-2 text-[10px]">required</span>
+            <span className="shrink-0 text-red-500 ml-2 text-[10px]">required</span>
           )}
           {schema?.readOnly === true && (
-            <span className="text-gray-500 ml-2 text-[10px]">readOnly</span>
+            <span className="shrink-0 text-gray-500 ml-2 text-[10px]">readOnly</span>
           )}
           {schema?.writeOnly === true && (
-            <span className="text-gray-500 ml-2 text-[10px]">writeOnly</span>
+            <span className="shrink-0 text-gray-500 ml-2 text-[10px]">writeOnly</span>
           )}
           {schema?.deprecated === true && (
-            <span className="text-amber-600 ml-2 text-[10px]">deprecated</span>
+            <span className="shrink-0 text-amber-600 ml-2 text-[10px]">deprecated</span>
           )}
         </span>
         {schema ? (
