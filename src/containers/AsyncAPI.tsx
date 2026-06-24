@@ -6,6 +6,7 @@ import { Info } from "../types/asyncapi/Info";
 import { MessageObject } from "../types/asyncapi/MessageObject";
 import { Server } from "../types/asyncapi/Server";
 import { Operation } from "../types/asyncapi/Operation";
+import { ConfigInterface, defaultConfig } from "../config";
 import IconMessage from "../icons/Message";
 import IconOperation from "../icons/Operation";
 import IconSchema from "../icons/Schema";
@@ -35,35 +36,27 @@ interface AsyncAPIDocumentData extends Record<string, unknown> {
 
 export interface IAsyncAPIProps {
   asyncapi: AsyncAPIDocumentData;
+  config?: ConfigInterface;
 }
 
 type AsyncAPITabKey = "operations" | "messages" | "schemas";
-
-  const tabs: ContentTabItem[] = [
-    {
-      id: "operations",
-      name: "Operations",
-      icon: IconOperation,
-    },
-    {
-      id: "messages",
-      name: "Messages",
-      icon: IconMessage,
-    },
-    {
-      id: "schemas",
-      name: "Schemas",
-      icon: IconSchema,
-    },
-  ];
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
-const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
-  const [activeTab, setActiveTab] = useState<AsyncAPITabKey>("operations");
+const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
+  const show = config.show ?? {};
+
+  const tabs: ContentTabItem[] = [
+    ...(show.operations !== false ? [{ id: "operations", name: "Operations", icon: IconOperation }] : []),
+    ...(show.messages   !== false ? [{ id: "messages",   name: "Messages",   icon: IconMessage   }] : []),
+    ...(show.schemas    !== false ? [{ id: "schemas",    name: "Schemas",    icon: IconSchema    }] : []),
+  ];
+
+  const firstTab = (tabs[0]?.id ?? "operations") as AsyncAPITabKey;
+  const [activeTab, setActiveTab] = useState<AsyncAPITabKey>(firstTab);
   const [selectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
   const [selectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
   const [selectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
@@ -121,30 +114,33 @@ const AsyncAPI = ({ asyncapi }: IAsyncAPIProps) => {
 
   return (
     <AsyncAPIDocumentContext.Provider value={value}>
-      <Information {...asyncapi.info} />
-      {asyncapi.servers && Object.keys(asyncapi.servers).length > 0 && (
+      {show.info !== false && <Information {...asyncapi.info} />}
+      {show.servers !== false && asyncapi.servers && Object.keys(asyncapi.servers).length > 0 && (
         <Servers servers={asyncapi.servers} />
       )}
-      <Navigation
-        info={asyncapi.info}
-        operations={asyncapi.operations}
-        messages={asyncapi.components?.messages as Record<string, MessageObject>}
-        schemas={asyncapi.components?.schemas as Record<string, unknown>}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onItemSelect={(tab, key) => {
-          setActiveTab(tab);
-          setSelectedOperationKey(tab === "operations" ? key : null);
-          setSelectedMessageKey(tab === "messages" ? key : null);
-          setSelectedSchemaKey(tab === "schemas" ? key : null);
-        }}
-        selectedItem={
-          selectedOperationKey ? { tab: "operations" as const, key: selectedOperationKey } :
-          selectedMessageKey   ? { tab: "messages"   as const, key: selectedMessageKey   } :
-          selectedSchemaKey    ? { tab: "schemas"    as const, key: selectedSchemaKey    } :
-          null
-        }
-      />
+      {show.sidebar !== false && (
+        <Navigation
+          info={asyncapi.info}
+          operations={show.operations !== false ? asyncapi.operations : undefined}
+          messages={show.messages !== false ? asyncapi.components?.messages as Record<string, MessageObject> : undefined}
+          schemas={show.schemas !== false ? asyncapi.components?.schemas as Record<string, unknown> : undefined}
+          sidebarConfig={config.sidebar}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onItemSelect={(tab, key) => {
+            setActiveTab(tab);
+            setSelectedOperationKey(tab === "operations" ? key : null);
+            setSelectedMessageKey(tab === "messages" ? key : null);
+            setSelectedSchemaKey(tab === "schemas" ? key : null);
+          }}
+          selectedItem={
+            selectedOperationKey ? { tab: "operations" as const, key: selectedOperationKey } :
+            selectedMessageKey   ? { tab: "messages"   as const, key: selectedMessageKey   } :
+            selectedSchemaKey    ? { tab: "schemas"    as const, key: selectedSchemaKey    } :
+            null
+          }
+        />
+      )}
       <ContentTab
         tabs={tabs}
         current={activeTab}

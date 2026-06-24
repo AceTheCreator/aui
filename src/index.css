@@ -54,9 +54,6 @@ a {
   color: #334155;
 }
 
-.panel-toggle-btn-open {
-  left: calc(480px - 20px);
-}
 
 .panel-toggle-btn-open .panel-icon-rect {
   width: 10px;

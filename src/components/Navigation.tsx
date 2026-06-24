@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SidebarIcon from "../icons/SideBar";
 import { SidePanel } from "./SidePanel";
 import IconOperation from "../icons/Operation";
@@ -8,6 +8,11 @@ import { Operation } from "../types/asyncapi/Operation";
 import { MessageObject } from "../types/asyncapi/MessageObject";
 import { Info } from "../types/asyncapi/Info";
 import { OperationAction } from "../types/asyncapi/OperationAction";
+import { SideBarConfig } from "../config/config";
+import { useAsyncAPIDocument } from "../contexts";
+import { hasRef } from "../utils/hasRef";
+import { ChannelAddress } from "./ChannelAddress";
+import { Parameter } from "../types/asyncapi/Parameter";
 
 type NavTab = "operations" | "messages" | "schemas";
 
@@ -27,6 +32,7 @@ interface NavigationProps {
   onTabChange: (tab: NavTab) => void;
   onItemSelect?: (tab: NavTab, key: string) => void;
   selectedItem?: { tab: NavTab; key: string } | null;
+  sidebarConfig?: SideBarConfig;
 }
 
 export default function Navigation({
@@ -38,8 +44,28 @@ export default function Navigation({
   onTabChange,
   onItemSelect,
   selectedItem,
+  sidebarConfig,
 }: NavigationProps) {
   const [open, setOpen] = useState(false);
+  const [panelWidth, setPanelWidth] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { deref } = useAsyncAPIDocument();
+
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setPanelWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const resolveChannel = (key: string): { address?: string | null; parameters?: Record<string, Parameter> } | null => {
+    if (!sidebarConfig?.useChannelAddressAsIdentifier) return null;
+    const op = operations[key];
+    let channel: unknown = op?.channel;
+    if (hasRef(channel)) channel = deref((channel as { $ref: string }).$ref);
+    return (channel as { address?: string | null; parameters?: Record<string, Parameter> } | null) ?? null;
+  };
 
   const sections: NavSection[] = [
     { id: "operations", label: "Operations", icon: IconOperation, items: Object.keys(operations) },
@@ -61,12 +87,13 @@ export default function Navigation({
       <button
         onClick={() => setOpen((v) => !v)}
         title={open ? "Close navigation" : "Open navigation"}
-        className={`panel-toggle-btn ${open ? "panel-toggle-btn-open" : ""}`}
+        className="panel-toggle-btn"
+        style={open && panelWidth ? { left: `${panelWidth + 10}px` } : undefined}
       >
         <SidebarIcon isCollapsed={open} />
       </button>
 
-      <SidePanel isOpen={open} side="left" onClose={() => setOpen(false)} width="w-[450px]">
+      <SidePanel ref={panelRef} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] auto">
         <nav className="space-y-1">
           {/* API info header */}
           <div className="flex items-center gap-2 pb-4 mb-2 border-b border-gray-100">
@@ -112,6 +139,7 @@ export default function Navigation({
                   <ul className="mt-0.5 space-y-0.5 pl-3 border-l border-gray-100 ml-4">
                     {items.map((item) => {
                       const op = id === "operations" ? operations[item] : null;
+                      const channel = id === "operations" ? resolveChannel(item) : null;
                       const action = op?.action;
                       const actionColor =
                         action === OperationAction.SEND
@@ -142,7 +170,10 @@ export default function Navigation({
                                 {action}
                               </span>
                             )}
-                            <span className="truncate">{item}</span>
+                            {channel?.address
+                              ? <ChannelAddress address={channel.address} parameters={channel.parameters} className="bg-transparent p-0" />
+                              : <span className="truncate">{item}</span>
+                            }
                           </button>
                         </li>
                       );

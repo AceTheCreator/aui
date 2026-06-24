@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { forwardRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export type SidePanelSide = "left" | "right";
@@ -12,7 +12,7 @@ export interface ISidePanelProps {
   width?: string;
 }
 
-export function SidePanel({ isOpen, side, onClose, title, children, width = "w-[50rem]" }: ISidePanelProps) {
+export const SidePanel = forwardRef<HTMLDivElement, ISidePanelProps>(function SidePanel({ isOpen, side, onClose, title, children, width = "w-[50rem]" }, ref) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -37,6 +37,7 @@ export function SidePanel({ isOpen, side, onClose, title, children, width = "w-[
 
       {/* Panel */}
       <div
+        ref={ref}
         className={`absolute top-0 ${panelPosition} h-full ${width} bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : translateClosed
         }`}
@@ -67,4 +68,4 @@ export function SidePanel({ isOpen, side, onClose, title, children, width = "w-[
     </div>,
     document.body
   );
-}
+});

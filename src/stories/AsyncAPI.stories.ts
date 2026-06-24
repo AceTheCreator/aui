@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import example from "../configs/examples/example1.json";
+import example from "../config/examples/example1.json";
 
 import AsyncAPI from "../containers/AsyncAPI";
 
