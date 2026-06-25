@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import SidebarIcon from "../icons/SideBar";
 import { SidePanel } from "./SidePanel";
 import IconOperation from "../icons/Operation";
@@ -48,16 +48,15 @@ export default function Navigation({
 }: NavigationProps) {
   const [open, setOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(0);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelElement, setpanelElement] = useState<HTMLDivElement | null>(null);
   const { deref } = useAsyncAPIDocument();
 
   useEffect(() => {
-    const el = panelRef.current;
-    if (!el) return;
+    if (!panelElement) return;
     const observer = new ResizeObserver(([entry]) => setPanelWidth(entry.contentRect.width));
-    observer.observe(el);
+    observer.observe(panelElement);
     return () => observer.disconnect();
-  }, []);
+  }, [panelElement]);
 
   const resolveChannel = (key: string): { address?: string | null; parameters?: Record<string, Parameter> } | null => {
     if (!sidebarConfig?.useChannelAddressAsIdentifier) return null;
@@ -93,7 +92,7 @@ export default function Navigation({
         <SidebarIcon isCollapsed={open} />
       </button>
 
-      <SidePanel ref={panelRef} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] auto">
+      <SidePanel ref={setpanelElement} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] auto">
         <nav className="space-y-1">
           {/* API info header */}
           <div className="flex items-center gap-2 pb-4 mb-2 border-b border-border">

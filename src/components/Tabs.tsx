@@ -43,7 +43,7 @@ export default function Tabs({
           value={selectValue}
           onChange={(ev) => onChange(ev.target.value)}
           className={classNames(
-            "block w-full rounded-md border-neutral-300 focus:border-secondary-500 focus:ring-secondary-500",
+            "block w-full rounded-md border-neutral-300 bg-neutral-200 focus:border-secondary-500 focus:ring-secondary-500",
             hasIcons ? "mt-0" : "mt-4"
           )}
         >
