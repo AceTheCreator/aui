@@ -119,7 +119,9 @@ export default function Operation({ op, id }: OperationProps) {
               {externalDocs.url}
             </a>
           ) : (
-            <p className="text-sm text-foreground-secondary">{externalDocs.url}</p>
+            <p className="text-sm text-foreground-secondary">
+              {externalDocs.url}
+            </p>
           )}
         </div>
       )}
@@ -157,16 +159,21 @@ export default function Operation({ op, id }: OperationProps) {
 
       {/* Messages */}
       {reply ? (
-        <Reply requestMessages={messages} reply={reply} isSend={isSend} operationId={id} />
+        <Reply
+          requestMessages={messages}
+          reply={reply}
+          isSend={isSend}
+          operationId={id}
+        />
       ) : (
         messages.length > 0 && (
           <div>
             <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
-              <span className="text-black font-bold">{id}</span>{" "}
+              <span className="font-bold">{id}</span>{" "}
               {isSend ? "accepts" : "expects"}
               {messages.length > 1 ? (
                 <>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-black">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-foreground-mute">
                     one of
                   </span>
                   the following messages:

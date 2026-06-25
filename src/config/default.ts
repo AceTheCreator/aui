@@ -12,7 +12,6 @@ export const defaultConfig: ConfigInterface = {
     // errors: true,
   },
   theme: {
-    mode: "dark",
     primary: {
       50: "#76d3fefd",
       100: "#E0F2FE",
