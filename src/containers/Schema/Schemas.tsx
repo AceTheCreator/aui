@@ -27,27 +27,27 @@ export default function Schemas({ schemas, selectedKey }: SchemasProps) {
           <article
             key={schemaName}
             id={`schema-${schemaName}`}
-            className={`rounded-xl border bg-white p-5 shadow-sm transition-colors ${
-              selectedKey === schemaName ? "border-primary-300 ring-1 ring-primary-200" : "border-neutral-200"
+            className={`rounded-xl border bg-surface p-5 shadow-sm transition-colors ${
+              selectedKey === schemaName ? "border-primary-300 ring-1 ring-primary-200" : "border-border"
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="text-base font-semibold text-neutral-900">
+                <h3 className="text-base font-semibold text-foreground">
                   {schemaName}
                 </h3>
                 {schema.description && (
-                  <p className="mt-1 text-sm text-neutral-600">
+                  <p className="mt-1 text-sm text-foreground-secondary">
                     {schema.description}
                   </p>
                 )}
               </div>
-              <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700">
+              <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
                 {schema.type ?? "unknown"}
               </span>
             </div>
             {(schema.format || propertyCount > 0) && (
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-neutral-600">
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-foreground-secondary">
                 {schema.format && (
                   <span className="rounded-full bg-neutral-100 px-3 py-1">
                     Format: {schema.format}
@@ -68,7 +68,7 @@ export default function Schemas({ schemas, selectedKey }: SchemasProps) {
       })}
     </div>
   ) : (
-    <div className="mt-10 rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
+    <div className="mt-10 rounded-xl border border-dashed border-neutral-300 bg-surface p-8 text-center text-sm text-foreground-muted">
       No schemas defined in this AsyncAPI document.
     </div>
   );

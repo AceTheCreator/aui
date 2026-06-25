@@ -27,7 +27,7 @@ export default function ContentTab({ tabs, current, onChange }: ContentTabProps)
   );
 
   return (
-    <div className="sticky top-0 z-10 flex w-full bg-white justify-center">
+    <div className="sticky top-0 z-10 flex w-full justify-center bg-background">
       <Section content={content} stickySideContent={false} />
     </div>
   );

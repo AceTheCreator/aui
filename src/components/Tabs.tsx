@@ -58,7 +58,7 @@ export default function Tabs({
       <div className={classNames("hidden sm:block", hasIcons ? "" : "mt-6")}>
         {hasIcons ? (
           <div
-            className="border-b border-neutral-200"
+            className="border-b border-border"
             role="tablist"
             aria-label={ariaLabel}
           >
@@ -80,7 +80,7 @@ export default function Tabs({
                       "border-b-2 px-1 py-3 text-sm font-semibold transition-colors",
                       isActive
                         ? "border-primary-500 text-primary-600"
-                        : "border-transparent text-neutral-500 hover:text-neutral-800"
+                        : "border-transparent text-foreground-muted hover:text-foreground"
                     )}
                   >
                     <span className="inline-flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function Tabs({
           </div>
         ) : (
           <nav
-            className="relative z-0 flex divide-x divide-neutral-200 rounded-lg shadow"
+            className="relative z-0 flex divide-x divide-border rounded-lg shadow"
             aria-label={ariaLabel}
           >
             {tabs.map((tab, tabIdx) => (
@@ -103,11 +103,11 @@ export default function Tabs({
                 onClick={() => onChange(tab.id)}
                 className={classNames(
                   tab.id === current
-                    ? "text-neutral-900"
-                    : "text-neutral-500 hover:text-neutral-700",
+                    ? "text-foreground"
+                    : "text-foreground-muted hover:text-foreground-secondary",
                   tabIdx === 0 ? "rounded-l-lg" : "",
                   tabIdx === tabs.length - 1 ? "rounded-r-lg" : "",
-                  "group relative min-w-0 flex-1 overflow-hidden bg-white px-4 py-4 text-center text-sm font-medium hover:bg-neutral-50 focus:z-10"
+                  "group relative min-w-0 flex-1 overflow-hidden bg-surface px-4 py-4 text-center text-sm font-medium hover:bg-neutral-50 focus:z-10"
                 )}
                 aria-current={tab.id === current ? "page" : undefined}
               >

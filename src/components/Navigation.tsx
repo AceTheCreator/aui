@@ -96,8 +96,8 @@ export default function Navigation({
       <SidePanel ref={panelRef} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] auto">
         <nav className="space-y-1">
           {/* API info header */}
-          <div className="flex items-center gap-2 pb-4 mb-2 border-b border-neutral-100">
-            <span className="text-sm font-semibold text-neutral-900 truncate">{info.title}</span>
+          <div className="flex items-center gap-2 pb-4 mb-2 border-b border-border">
+            <span className="text-sm font-semibold text-foreground truncate">{info.title}</span>
             {info.version && (
               <span className="shrink-0 text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200 px-1.5 py-0.5 rounded">
                 v{info.version}
@@ -118,17 +118,17 @@ export default function Navigation({
                   }`}
                 >
                   <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
-                    isActive ? "text-primary-500" : "text-neutral-400 group-hover:text-neutral-600"
+                    isActive ? "text-primary-500" : "text-foreground-muted group-hover:text-foreground-secondary"
                   }`} />
                   <span className={`text-xs font-semibold uppercase tracking-wider transition-colors ${
-                    isActive ? "text-primary-600" : "text-neutral-400 group-hover:text-neutral-600"
+                    isActive ? "text-primary-600" : "text-foreground-muted group-hover:text-foreground-secondary"
                   }`}>
                     {label}
                   </span>
                   <span className={`ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded transition-colors ${
                     isActive
                       ? "bg-primary-100 text-primary-500 border border-primary-200"
-                      : "bg-neutral-100 text-neutral-400"
+                      : "bg-neutral-100 text-foreground-muted"
                   }`}>
                     {items.length}
                   </span>
@@ -136,7 +136,7 @@ export default function Navigation({
 
                 {/* Items */}
                 {items.length > 0 && (
-                  <ul className="mt-0.5 space-y-0.5 pl-3 border-l border-neutral-100 ml-4">
+                  <ul className="mt-0.5 space-y-0.5 pl-3 border-l border-border ml-4">
                     {items.map((item) => {
                       const op = id === "operations" ? operations[item] : null;
                       const channel = id === "operations" ? resolveChannel(item) : null;
@@ -161,8 +161,8 @@ export default function Navigation({
                               isItemSelected
                                 ? "bg-primary-50 text-primary-200 font-medium"
                                 : isActive
-                                ? "text-neutral-700 hover:text-neutral-900 hover:bg-primary-50"
-                                : "text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50"
+                                ? "text-foreground-secondary hover:text-foreground hover:bg-primary-50"
+                                : "text-foreground-muted hover:text-foreground-secondary hover:bg-neutral-50"
                             }`}
                           >
                             {actionColor && (

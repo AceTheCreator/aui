@@ -17,10 +17,18 @@ a {
   text-decoration: none;
 }
 
-
   :root {
-    --color-primary: #64748B;
-    --color-primary-light: #E2E8F0;
+
+  --color-background: 248 250 252;
+  --color-surface: 255 255 255;
+  --color-border: 226 232 240;
+
+  --color-text-primary: 30 41 59;
+  --color-text-secondary: 71 85 105;
+  --color-text-muted: 100 116 139;
+
+    /* --color-primary: #64748B;
+    --color-primary-light: #E2E8F0; */
 
     /* Primary theme scale — orange by default */
     --color-primary-50:  255 247 237;

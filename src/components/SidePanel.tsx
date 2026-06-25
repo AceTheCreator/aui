@@ -41,19 +41,19 @@ export const SidePanel = forwardRef<HTMLDivElement, ISidePanelProps>(function Si
 
       <div
         ref={ref}
-        className={`absolute top-0 ${panelPosition} h-full ${width} bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 ${panelPosition} h-full ${width} bg-surface shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : translateClosed
         }`}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
-            <div className="text-sm font-semibold text-neutral-800 min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="text-sm font-semibold text-foreground min-w-0 flex-1 overflow-hidden">
               {typeof title === "string" ? <span className="truncate block">{title}</span> : title}
             </div>
             <button
               onClick={onClose}
-              className="ml-4 p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors"
+              className="ml-4 p-1 rounded hover:bg-neutral-100 text-foreground-muted hover:text-foreground-secondary transition-colors"
               aria-label="Close panel"
             >
               <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">

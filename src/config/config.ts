@@ -29,6 +29,7 @@ export interface SideBarConfig {
 }
 
 export interface ThemeConfig {
+  mode?: string,
   primary?: {
     50?: string;
     100?: string;
@@ -56,4 +57,12 @@ export interface ThemeConfig {
     600?: string;
     700?: string;
   };
+  colors?: {
+    background?: string;
+    surface?: string;
+    border?: string;
+    textPrimary?: string;
+    textSecondary?: string;
+    textMuted?: string;
+  }
 }

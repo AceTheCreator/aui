@@ -51,7 +51,16 @@ export default {
           500: 'rgb(var(--color-neutral-500) / <alpha-value>)',
           600: 'rgb(var(--color-neutral-600) / <alpha-value>)',
           700: 'rgb(var(--color-neutral-700) / <alpha-value>)',
+          800: 'rgb(var(--color-neutral-800) / <alpha-value>)',
+          900: 'rgb(var(--color-neutral-900) / <alpha-value>)',
         },
+        // Semantic tokens — these are what dark mode overrides
+        background:           'rgb(var(--color-background) / <alpha-value>)',
+        surface:              'rgb(var(--color-surface) / <alpha-value>)',
+        border:               'rgb(var(--color-border) / <alpha-value>)',
+        foreground:           'rgb(var(--color-text-primary) / <alpha-value>)',
+        'foreground-secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'foreground-muted':   'rgb(var(--color-text-muted) / <alpha-value>)',
       },
       maxWidth: {
         '9xl': '98rem'

@@ -35,12 +35,12 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
 
   return (
     <tbody
-      className={`${first ? "" : "border-t border-neutral-200"} ${isSelected ? "bg-primary-50/60 outline outline-1 outline-primary-300" : ""}`}
+      className={`${first ? "" : "border-t border-border"} ${isSelected ? "bg-primary-50/60 outline outline-1 outline-primary-300" : ""}`}
     >
       <tr id={`message-${messageKey}`} className="" {...rowEvents}>
         <td className="px-6 py-4">
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-800">
+            <span className="text-sm font-medium text-foreground">
               {message.title ?? message.name ?? messageKey}
             </span>
             <span className="w-fit text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200 px-1.5 py-0.5 rounded">
@@ -48,13 +48,13 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
             </span>
           </div>
         </td>
-        <td className="px-6 py-4 text-sm text-neutral-500">
+        <td className="px-6 py-4 text-sm text-foreground-muted">
           {message.summary ?? "—"}
         </td>
         <td className="px-6 py-4">
           <div className="flex flex-col items-start gap-1.5">
             {message.contentType && (
-              <span className="text-xs font-mono bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded">
+              <span className="text-xs font-mono bg-neutral-100 text-foreground-muted px-1.5 py-0.5 rounded">
                 {message.contentType ?? "—"}
               </span>
             )}
@@ -73,9 +73,9 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
             className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
           >
             <div className="overflow-hidden">
-              <div className="px-6 pb-4 space-y-4 border-t border-neutral-100 pt-3">
+              <div className="px-6 pb-4 space-y-4 border-t border-border pt-3">
                 {message.description && (
-                  <p className="text-sm text-neutral-600 leading-relaxed">
+                  <p className="text-sm text-foreground-secondary leading-relaxed">
                     {message.description}
                   </p>
                 )}
@@ -136,7 +136,7 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
             >
               <button
                 onClick={() => setExpanded((v) => !v)}
-                className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-neutral-100 bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs text-neutral-400 hover:text-neutral-600"
+                className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-border bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs text-foreground-muted hover:text-foreground-secondary"
               >
                 <span>{expanded ? "Show less" : "Show more"}</span>
                 <IconArrowDown
@@ -155,17 +155,17 @@ export default function Messages({ messages, selectedKey }: MessagesProps) {
   const messageEntries = Object.entries(messages);
 
   const content = messageEntries.length ? (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+    <div className="bg-surface rounded-lg border border-border overflow-hidden">
       <table className="w-full">
         <thead className="bg-neutral-100">
           <tr>
-            <th className="px-6 py-5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Message
             </th>
-            <th className="px-6 py-5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Summary
             </th>
-            <th className="px-6 py-5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Details
             </th>
           </tr>
@@ -176,7 +176,7 @@ export default function Messages({ messages, selectedKey }: MessagesProps) {
       </table>
     </div>
   ) : (
-    <div className="mt-10 rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
+    <div className="mt-10 rounded-xl border border-dashed border-neutral-300 bg-surface p-8 text-center text-sm text-foreground-muted">
       No messages defined in this AsyncAPI document.
     </div>
   );

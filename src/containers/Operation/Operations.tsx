@@ -38,7 +38,7 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
       ? "bg-green-100 text-green-800"
       : op.action === OperationAction.RECEIVE
         ? "bg-blue-100 text-blue-800"
-        : "bg-neutral-100 text-neutral-700";
+        : "bg-neutral-100 text-foreground-secondary";
     const isSelected = selectedKey === key;
 
     return (
@@ -72,20 +72,20 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
   ) : (selectedKey ?? "Operation");
 
   const content = (
-    <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+    <div className="bg-surface rounded-lg border border-border overflow-hidden">
       <table className="w-full">
         <thead className="bg-neutral-100 w-full">
           <tr>
-            <th className="px-6 py-5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Operation
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Method
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider" />
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider" />
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-neutral-200">
+        <tbody className="bg-surface divide-y divide-border">
           {operationList}
         </tbody>
       </table>

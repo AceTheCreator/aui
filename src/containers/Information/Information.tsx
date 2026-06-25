@@ -17,10 +17,10 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   // console.log(extensions);
   const content = (
     <>
-      <h1 className="inline-block text-3xl font-extrabold text-neutral-900 tracking-tight">
+      <h1 className="inline-block text-3xl font-extrabold text-foreground tracking-tight">
         {title}
       </h1>
-      <div className="prose mt-4 text-neutral-500">
+      <div className="prose mt-4">
         <Markdown>{description}</Markdown>
       </div>
     </>

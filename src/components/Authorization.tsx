@@ -83,30 +83,43 @@ export default function Authorization({ securities }: Props) {
   return (
     <div>
       <Tabs tabs={filteredTabs} current={authTab} onChange={setAuthTab} />
-      <div className="py-4 prose text-neutral-500">
+      <div className="py-4 prose text-foreground-muted">
         {authTab === "userPassword" && (
           <span>
-            You have to <strong>provide user and password</strong> to connect to
-            this server.
+            You have to{" "}
+            <strong className="text-foreground-secondary">
+              provide user and password
+            </strong>{" "}
+            to connect to this server.
           </span>
         )}
         {authTab && ["scramSha256", "scramSha512"].includes(authTab) && (
           <span>
-            You have to <strong>provide username and password</strong> to
-            connect to this server.
+            You have to{" "}
+            <strong className="text-foreground-secondary">
+              provide username and password
+            </strong>{" "}
+            to connect to this server.
           </span>
         )}
         {authTab === "X509" && (
           <span>
-            You have to <strong>download the certificate file</strong> from the
-            service provider to connect to this server.
+            You have to{" "}
+            <strong className="text-foreground-secondary">
+              download the certificate file
+            </strong>{" "}
+            from the service provider to connect to this server.
           </span>
         )}
-        {authTab === "apiKey" && <ApiKey security={filteredType<ApiKeyType>("apiKey")} />}
+        {authTab === "apiKey" && (
+          <ApiKey security={filteredType<ApiKeyType>("apiKey")} />
+        )}
         {authTab === "openIdConnect" && (
           <OpenID security={filteredType<OpenIdConnect>("openIdConnect")} />
         )}
-        {authTab === "oauth2" && <OAuth2 security={filteredType<Oauth2Flows>("oauth2")} />}
+        {authTab === "oauth2" && (
+          <OAuth2 security={filteredType<Oauth2Flows>("oauth2")} />
+        )}
       </div>
     </div>
   );
@@ -118,7 +131,7 @@ export const ApiKey = ({ security }: { security: ApiKeyType }) => {
     return (
       <span>
         You have to{" "}
-        <strong>
+        <strong className="text-foreground-secondary">
           provide your API key as the password and leave the user name empty
         </strong>{" "}
         to connect to this server.
@@ -128,7 +141,7 @@ export const ApiKey = ({ security }: { security: ApiKeyType }) => {
   return (
     <span>
       You have to{" "}
-      <strong>
+      <strong className="text-foreground-secondary">
         provide your API key as the user name and leave the password empty
       </strong>{" "}
       to connect to this server.
@@ -149,8 +162,8 @@ export const OpenID = ({ security }: { security: OpenIdConnect }) => {
       </p>
       {security?.scopes && (
         <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 items-center sm:gap-4">
-          <dt className="text-sm font-medium text-neutral-500">Scopes</dt>
-          <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
+          <dt className="text-sm font-medium text-foreground-muted">Scopes</dt>
+          <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
             <code>{formatArrayToCodeString(security.scopes)}</code>
           </dd>
         </div>
@@ -188,53 +201,62 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
           return (
             <div key={flow}>
               <div>
-                <h4 className="text-lg leading-6 font-bold text-neutral-900">
+                <h4 className="text-lg leading-6 font-bold text-foreground">
                   {title}
                 </h4>
-                <p className="mt-1 max-w-2xl text-sm text-neutral-500">
+                <p className="mt-1 max-w-2xl text-sm text-foreground-muted">
                   {description}
                 </p>
               </div>
-              <div className="mt-5 border-t border-neutral-200">
-                <dl className="sm:divide-y sm:divide-neutral-200">
+              <div className="mt-5 border-t border-border">
+                <dl className="sm:divide-y sm:divide-border">
                   <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-neutral-500">
+                    <dt className="text-sm font-medium text-foreground-muted">
                       Authorization URL
                     </dt>
-                    <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
-                      <a href={``}>{flowData.authorizationUrl}</a>
+                    <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                      <a href={``} className="text-foreground">
+                        {flowData.authorizationUrl}
+                      </a>
                     </dd>
                   </div>
                   <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-neutral-500">
+                    <dt className="text-sm font-medium text-foreground-muted">
                       Token URL
                     </dt>
-                    <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
-                      <a href={``}>{flowData.tokenUrl}</a>
+                    <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                      <a href={``} className="text-foreground">
+                        {flowData.tokenUrl}
+                      </a>
                     </dd>
                   </div>
                   {flowData.refreshUrl && (
                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                      <dt className="text-sm font-medium text-neutral-500">
+                      <dt className="text-sm font-medium text-foreground-muted">
                         Refresh URL
                       </dt>
-                      <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
-                        <a href={``}>{flowData.refreshUrl}</a>
+                      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                        <a href={``} className="text-foreground">
+                          {flowData.refreshUrl}
+                        </a>
                       </dd>
                     </div>
                   )}
                   {flowData.availableScopes && (
                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
-                      <dt className="text-sm font-medium text-neutral-500">
+                      <dt className="text-sm font-medium text-foreground-muted">
                         Scopes
                       </dt>
-                      <dd className="mt-1 text-sm text-neutral-900 sm:mt-0 sm:col-span-2">
+                      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
                         <div className="flex flex-wrap gap-1.5">
                           {(Array.isArray(flowData.availableScopes)
                             ? flowData.availableScopes
                             : Object.keys(flowData.availableScopes)
                           ).map((scope: string) => (
-                            <code key={scope} className="text-xs bg-neutral-100 text-neutral-700 px-1.5 py-0.5 rounded">
+                            <code
+                              key={scope}
+                              className="text-xs bg-neutral-100 text-foreground-secondary px-1.5 py-0.5 rounded"
+                            >
                               {scope}
                             </code>
                           ))}
