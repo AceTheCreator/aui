@@ -26,6 +26,7 @@ export default function Servers({ servers }: ServersInterface) {
           />
         }
         stickySideContent={true}
+        reverseLayoutOnMobile={true}
       />
     </div>
   );

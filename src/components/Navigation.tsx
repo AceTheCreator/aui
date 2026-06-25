@@ -87,7 +87,7 @@ export default function Navigation({
       <button
         onClick={() => setOpen((v) => !v)}
         title={open ? "Close navigation" : "Open navigation"}
-        className="panel-toggle-btn"
+        className="panel-toggle-btn bg-neutral-50"
         style={open && panelWidth ? { left: `${panelWidth + 10}px` } : undefined}
       >
         <SidebarIcon isCollapsed={open} />
@@ -108,9 +108,13 @@ export default function Navigation({
           {sections.map(({ id, label, icon: Icon, items }) => {
             const isActive = activeTab === id;
 
+            if(items.length < 1){
+                return
+            }
+
             return (
               <div key={id} className="pb-1">
-                {/* Section header */}
+                {/* Nav Section header */}
                 <button
                   onClick={() => navigate(id)}
                   className={`flex items-center gap-2 w-full text-left px-2 py-2 rounded-md group transition-colors ${
@@ -134,7 +138,7 @@ export default function Navigation({
                   </span>
                 </button>
 
-                {/* Items */}
+                {/* Nav Section Children Items */}
                 {items.length > 0 && (
                   <ul className="mt-0.5 space-y-0.5 pl-3 border-l border-border ml-4">
                     {items.map((item) => {

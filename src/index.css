@@ -79,7 +79,6 @@ a {
   left: 12px;
   width: 40px;
   height: 40px;
-  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,7 +91,6 @@ a {
 }
 
 .panel-toggle-btn:hover {
-  background: #f1f5f9;
   color: #334155;
 }
 
