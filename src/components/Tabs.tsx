@@ -115,7 +115,7 @@ export default function Tabs({
                 <span
                   aria-hidden="true"
                   className={classNames(
-                    tab.id === current ? "bg-secondary-500" : "bg-transparent",
+                    tab.id === current ? "bg-primary-500" : "bg-transparent",
                     "absolute inset-x-0 bottom-0 h-0.5"
                   )}
                 />

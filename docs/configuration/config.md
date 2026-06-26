@@ -1,160 +1,118 @@
 # Configuration
 
-The `config` prop accepts a `ConfigInterface` object. All fields are optional — any omitted value falls back to the default.
+## Overview
+
+Learn how to use various configuration options available in `ConfigInterface`.
+
+## Definition
+
+See the definition of the object that you must pass to the `config` prop to modify the component configuration:
+
+```ts
+interface ConfigInterface {
+  show?: {
+    sidebar?: boolean;
+    info?: boolean;
+    servers?: boolean;
+    operations?: boolean;
+    messages?: boolean;
+    messageExamples?: boolean;
+    schemas?: boolean;
+  };
+  expand?: {
+    messageExamples?: boolean;
+  };
+  sidebar?: {
+    useChannelAddressAsIdentifier?: boolean;
+  };
+  theme?: {
+    mode?: string;
+    primary?: {
+      50?: string; 100?: string; 200?: string;
+      300?: string; 500?: string; 600?: string; 700?: string;
+    };
+    secondary?: {
+      50?: string; 100?: string; 200?: string;
+      300?: string; 500?: string; 600?: string; 700?: string;
+    };
+    neutral?: {
+      50?: string; 100?: string; 200?: string;
+      300?: string; 500?: string; 600?: string; 700?: string;
+    };
+    colors?: {
+      background?: string;
+      surface?: string;
+      border?: string;
+      textPrimary?: string;
+      textSecondary?: string;
+      textMuted?: string;
+    };
+  };
+  requestLabel?: string;
+  replyLabel?: string;
+}
+```
+
+- **show?: Partial\<ShowConfig\>**
+
+  This field contains configuration responsible for rendering specific parts of the AsyncAPI component.
+  The `schemas` and `messageExamples` fields are set to `false` by default. The default for all other fields is `true`.
+
+  Setting a tab (`operations`, `messages`, `schemas`) to `false` removes it from both the tab bar and the side navigation panel.
+
+- **sidebar?: Partial\<SideBarConfig\>**
+
+  This field contains configuration responsible for the behaviour of the sidebar.
+
+  `useChannelAddressAsIdentifier`: when `true`, operation items in the sidebar display the channel address instead of the operation key. This field is set to `false` by default.
+
+- **expand?: Partial\<ExpandConfig\>**
+
+  This field contains configuration responsible for collapsing and expanding component sections.
+  `messageExamples` field is set to `false` by default.
+
+- **theme?: Partial\<ThemeConfig\>**
+
+  This field contains configuration responsible for the visual appearance of the component. All color values must be hex strings (e.g. `"#0EA5E9"`).
+
+  - **mode?: string** — Set to `"dark"` to activate dark mode. This inverts the neutral color scale and applies the `colors` semantic overrides. Light mode is used when this field is omitted.
+
+  - **primary / secondary / neutral** — Color scales used for accents, interactive elements, and surface tones. Each scale accepts shades `50`, `100`, `200`, `300`, `500`, `600`, and `700`. Only the shades you provide are overridden; the rest fall back to the defaults defined in the component's CSS.
+
+  - **colors** — Semantic surface and text overrides. Only applied when `mode` is `"dark"`.
+    - `background` — Main page/component background.
+    - `surface` — Card, panel, and elevated surface backgrounds.
+    - `border` — Dividers, input borders, and separators.
+    - `textPrimary` — Primary body text.
+    - `textSecondary` — Supporting and secondary text.
+    - `textMuted` — Placeholders, disabled labels, and faint text.
+
+<!-- - **requestLabel?: string**
+
+  This field contains configuration responsible for customising the label for request operations.
+  This field is set to `Request` by default.
+
+- **replyLabel?: string**
+
+  This field contains configuration responsible for customising the label for reply operations.
+  This field is set to `Reply` by default. -->
+
+## Examples
+
+See exemplary component configuration in TypeScript and JavaScript.
+
+### TypeScript
 
 ```tsx
-import AsyncAPI from "aui";
+import AsyncAPI, { ConfigInterface } from "aui";
+import doc from "./asyncapi.json";
 
-<AsyncAPI asyncapi={doc} config={{ /* ... */ }} />
-```
-
-## Show
-
-Controls which sections of the user interfaces are visible.
-
-| Field             | Type      | Default | Description                                      |
-|-------------------|-----------|---------|--------------------------------------------------|
-| `sidebar`         | `boolean` | `true`  | Show/hide the side navigation panel              |
-| `info`            | `boolean` | `true`  | Show/hide the API info header                    |
-| `servers`         | `boolean` | `true`  | Show/hide the Servers section                    |
-| `operations`      | `boolean` | `true`  | Show/hide the Operations tab and its content     |
-| `messages`        | `boolean` | `true`  | Show/hide the Messages tab and its content       |
-| `schemas`         | `boolean` | `false` | Show/hide the Schemas tab and its content        |
-| `messageExamples` | `boolean` | `false` | Show/hide generated examples within messages     |
-
-Setting a tab to `false` removes it from both the tab bar and the side navigation.
-
-```ts
-config: {
+const config: ConfigInterface = {
   show: {
-    sidebar: true,
-    schemas: false,
-    messageExamples: true,
-  }
-}
-```
-
-## Sidebar
-
-Options for the side navigation panel.
-
-| Field                        | Type      | Default | Description                                                                         |
-|------------------------------|-----------|---------|-------------------------------------------------------------------------------------|
-| `useChannelAddressAsIdentifier` | `boolean` | `false` | Display the channel address instead of the operation key in the nav item label |
-
-```ts
-config: {
-  sidebar: {
-    useChannelAddressAsIdentifier: true,
-  }
-}
-```
-
-## Expand
-
-Controls default expanded/collapsed state of collapsible sections.
-
-
-## Theme
-
-Customise the visual appearance. All color values must be hex strings (e.g. `"#0EA5E9"`).
-
-### Mode
-
-| Value    | Description                                                                                 |
-|----------|---------------------------------------------------------------------------------------------|
-| `"dark"` | Activates dark mode. Inverts the neutral color scale and applies `colors` semantic overrides |
-
-
-When `mode` is not `"dark"`, light mode defaults from the CSS variables in `index.css` are used.
-
----
-
-### `primary` / `secondary` / `neutral`
-
-Color scales used for accents, interactive elements, and backgrounds. Each scale accepts individual shade values.
-
-| Shade | Usage example                              |
-|-------|--------------------------------------------|
-| `50`  | Very light tint: hover backgrounds        |
-| `100` | Light tint: badges, tag backgrounds       |
-| `200` | Light: borders on tinted elements         |
-| `300` | Mid-light: muted accents                  |
-| `500` | Base: icons, active indicators            |
-| `600` | Dark: active text, links                  |
-| `700` | Darkest: pressed/focus states             |
-
-```ts
-config: {
-  theme: {
-    primary: {
-      50:  "#F0F9FF",
-      100: "#E0F2FE",
-      200: "#BAE6FD",
-      300: "#7DD3FC",
-      500: "#0EA5E9",
-      600: "#0284C7",
-      700: "#0369A1",
-    },
-  }
-}
-```
-
----
-
-### `colors`
-
-Semantic overrides for background and text surfaces. Only applied when `mode: "dark"` is set.
-
-| Field           | CSS target             | Description                          |
-|-----------------|------------------------|--------------------------------------|
-| `background`    | `--color-background`   | Page/component background            |
-| `surface`       | `--color-surface`      | Card and panel backgrounds           |
-| `border`        | `--color-border`       | Dividers, input borders              |
-| `textPrimary`   | `--color-text-primary` | Primary body text                    |
-| `textSecondary` | `--color-text-secondary` | Secondary / supporting text        |
-| `textMuted`     | `--color-text-muted`   | Placeholder, disabled, faint labels  |
-
-```ts
-config: {
-  theme: {
-    mode: "dark",
-    colors: {
-      background:    "#0f172a",
-      surface:       "#1e293b",
-      border:        "#334155",
-      textPrimary:   "#f8fafc",
-      textSecondary: "#cbd5e1",
-      textMuted:     "#94a3b8",
-    },
-  }
-}
-```
-
-
-<!-- ## requestLabel / replyLabel
-
-Override the labels used for request/reply message pairs.
-
-| Field          | Type     | Default     |
-|----------------|----------|-------------|
-| `requestLabel` | `string` | `"Request"` |
-| `replyLabel`   | `string` | `"Reply"`   |
-
---- -->
-
-## Full example
-
-```ts
-const config = {
-  show: {
-    sidebar: true,
-    info: true,
-    servers: true,
     operations: true,
     messages: true,
-    messageExamples: false,
-    schemas: true,
+    schemas: false,
+    messageExamples: true,
   },
   sidebar: {
     useChannelAddressAsIdentifier: true,
@@ -178,6 +136,86 @@ const config = {
       textSecondary: "#cbd5e1",
       textMuted:     "#94a3b8",
     },
-  }
+  },
 };
+
+export default function App() {
+  return <AsyncAPI asyncapi={doc} config={config} />;
+}
+```
+
+### JavaScript
+
+```jsx
+import AsyncAPI from "aui";
+import doc from "./example1.json";
+
+const config = {
+  show: {
+    operations: true,
+    messages: true,
+    schemas: false,
+    messageExamples: true,
+  },
+  sidebar: {
+    useChannelAddressAsIdentifier: true,
+  },
+  theme: {
+    mode: "dark",
+    colors: {
+      background:    "#0f172a",
+      surface:       "#1e293b",
+      border:        "#334155",
+      textPrimary:   "#f8fafc",
+      textSecondary: "#cbd5e1",
+      textMuted:     "#94a3b8",
+    },
+  },
+};
+
+export default function App() {
+  return <AsyncAPI asyncapi={doc} config={config} />;
+}
+```
+
+In the above examples, after merging with the default configuration, the resulting configuration looks as follows:
+
+```js
+{
+  show: {
+    sidebar:         true,
+    info:            true,
+    servers:         true,
+    operations:      true,
+    messages:        true,
+    messageExamples: true, 
+    schemas:         false,
+  },
+  sidebar: {
+    useChannelAddressAsIdentifier: true,
+  },
+  expand: {},
+  theme: {
+    mode: "dark",
+    primary: {
+      50:  "#F0F9FF",
+      100: "#E0F2FE",
+      200: "#BAE6FD",
+      300: "#7DD3FC",
+      500: "#0EA5E9",
+      600: "#0284C7",
+      700: "#0369A1",
+    },
+    colors: {
+      background:    "#0f172a",
+      surface:       "#1e293b",
+      border:        "#334155",
+      textPrimary:   "#f8fafc",
+      textSecondary: "#cbd5e1",
+      textMuted:     "#94a3b8",
+    },
+  },
+  // requestLabel: "Request",
+  // replyLabel:   "Reply",
+}
 ```

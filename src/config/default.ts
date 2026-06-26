@@ -12,15 +12,6 @@ export const defaultConfig: ConfigInterface = {
     // errors: true,
   },
   theme: {
-    primary: {
-      50: "#76d3fefd",
-      100: "#E0F2FE",
-      200: "#BAE6FD",
-      300: "#7DD3FC",
-      500: "#0EA5E9",
-      600: "#0284C7",
-      700: "#0369A1",
-    },
     colors: {
       background: "#0f172a",
       surface: "#000000",
