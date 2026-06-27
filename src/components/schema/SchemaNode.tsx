@@ -206,8 +206,7 @@ export default function SchemaNode({
     return (
       <>
         {conditionals.map((cond, idx) => (
-          // Content-derived key so re-ordering allOf entries doesn't cause remounting.
-          <div key={JSON.stringify(cond.if) ?? String(idx)}>
+          <div key={idx}>
             {renderSingleIfThenElse(cond)}
           </div>
         ))}
@@ -702,6 +701,7 @@ export default function SchemaNode({
           path={arrayPath}
           depth={depth}
           schema={schema}
+          itemSchema={resolvedItem}
           refLabel={refLabel}
           required={required}
           description={schema.description}

@@ -30,14 +30,16 @@ export const normalizeSchema = (
   if (!resolved) return { schema: raw, refLabel };
 
   refStack.add(ref);
-  const inner = normalizeSchema(resolved, deref, refStack);
-  refStack.delete(ref);
-
-  return {
-    schema: inner.schema,
-    refLabel: inner.circular ? undefined : refLabel,
-    circular: inner.circular,
-  };
+  try {
+    const inner = normalizeSchema(resolved, deref, refStack);
+    return {
+      schema: inner.schema,
+      refLabel: inner.circular ? undefined : refLabel,
+      circular: inner.circular,
+    };
+  } finally {
+    refStack.delete(ref);
+  }
 };
 
 /** Returns the first item schema from an array definition, if any. */
@@ -156,12 +158,27 @@ export const mergeSchemaObjects = (
   }
 
   if (b.items) {
-    const bItem = getItemSchema(b);
-    const aItem = getItemSchema(result);
-    if (bItem && aItem) {
-      result.items = mergeSchemaObjects(aItem, bItem, deref, refStack);
-    } else if (bItem) {
-      result.items = b.items;
+    if (Array.isArray(b.items)) {
+      // Tuple mode: preserve all positional schemas. b's tuple wins over a scalar a.items;
+      // if a is also a tuple, merge element-wise so shared slots pick up both schemas' keywords.
+      if (Array.isArray(result.items)) {
+        result.items = b.items.map((bSlot, i) => {
+          const aSlot = (result.items as SchemaNodeData[])[i];
+          return isSchemaRecord(bSlot) && isSchemaRecord(aSlot)
+            ? mergeSchemaObjects(aSlot as SchemaNodeData, bSlot as SchemaNodeData, deref, refStack)
+            : (isSchemaRecord(bSlot) ? bSlot as SchemaNodeData : aSlot);
+        });
+      } else {
+        result.items = b.items;
+      }
+    } else {
+      const bItem = getItemSchema(b);
+      const aItem = getItemSchema(result);
+      if (bItem && aItem) {
+        result.items = mergeSchemaObjects(aItem, bItem, deref, refStack);
+      } else if (bItem) {
+        result.items = b.items;
+      }
     }
   }
 
@@ -550,9 +567,7 @@ export const hasConstraints = (
   itemSchema?: SchemaNodeData | null
 ): boolean => {
   if (schemaHasConstraints(schema)) return true;
-  if (itemSchema && isLeafItemSchema(itemSchema)) {
-    return schemaHasConstraints(itemSchema);
-  }
+  if (itemSchema) return schemaHasConstraints(itemSchema);
   return false;
 };
 
