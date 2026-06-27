@@ -24,27 +24,27 @@ export function Message({ message, messageId, i }: MessageProps) {
     (message.tags && (message.tags as Tag[]).length > 0);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="border border-border rounded-lg overflow-hidden">
       <div className="px-4 py-3">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-medium text-gray-800">
+          <p className="text-sm font-medium text-foreground">
             {message.title ?? message.name ?? `Message ${i + 1}`}
           </p>
           {(messageId ?? message.name) && (
-            <span className="text-xs font-mono bg-orange-50 text-orange-600 border border-orange-200 p-0.5 rounded shrink-0">
+            <span className="text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200 p-0.5 rounded shrink-0">
               {messageId ?? message.name}
             </span>
           )}
         </div>
         {message.summary && (
-          <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+          <p className="text-xs text-foreground-muted mt-1.5 leading-relaxed">
             {message.summary}
           </p>
         )}
 
         <div className="flex items-center gap-1.5 shrink-0 mt-4">
           {message.contentType && (
-            <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+            <span className="text-xs font-mono bg-neutral-100 text-foreground-muted px-1.5 py-0.5 rounded">
               {message.contentType}
             </span>
           )}
@@ -57,10 +57,11 @@ export function Message({ message, messageId, i }: MessageProps) {
       </div>
 
       {/* Expanded section */}
-      {expanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
+      <div className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+        <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
           {message.description && (
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-foreground-secondary leading-relaxed">
               {message.description}
             </p>
           )}
@@ -100,13 +101,14 @@ export function Message({ message, messageId, i }: MessageProps) {
             </div>
           )}
         </div>
-      )}
+        </div>
+      </div>
 
       {/* Toggle button */}
       {hasMore && (
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors text-xs text-gray-400 hover:text-gray-600"
+          className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-border bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs text-foreground-muted hover:text-foreground-secondary"
         >
           <span>{expanded ? "Show less" : "Show more"}</span>
           <IconArrowDown

@@ -34,24 +34,24 @@ export default function Server({
           const variableProps = variables.get(variable) as ServerVariable;
           return (
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-500">
+              <dt className="text-sm font-medium text-foreground-muted">
                 <code
                   className={`${chunkColors[i % chunkColors.length]} font-bold`}
                 >{`{${variable}}`}</code>
               </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose">
+              <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2 prose">
                 {variableProps.description}{" "}
                 {variableProps.enum &&
                   formatEnumDescription(variableProps.enum)}
                 <div className="mt-2">
-                  <span className="font-bold text-gray-500 mt-4 mr-2">
+                  <span className="font-bold text-foreground-muted mt-4 mr-2">
                     Default value:
                   </span>
                   <code>{variableProps.default}</code>
                 </div>
                 {variableProps.examples && (
                   <div className="mt-2">
-                    <span className="font-bold text-gray-500 mt-4 mr-2">
+                    <span className="font-bold text-foreground-muted mt-4 mr-2">
                       Examples:
                     </span>
                     {variableProps.examples.map((example) => {
@@ -67,9 +67,9 @@ export default function Server({
   );
   return (
     <div>
-      <div className="font-bold text-gray-700 mt-8 mb-4 bg-gray-200 border border-gray-500 p-4 rounded-lg">
-        <div className="border border-dotted border-black p-2 rounded-lg bg-white">
-          <IconLink className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+      <div className="font-bold text-foreground-secondary mt-8 mb-4 bg-neutral-200 border border-neutral-500 p-4 rounded-lg">
+        <div className="border border-dotted border-black p-2 rounded-lg bg-surface">
+          <IconLink className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
           {urlChunks}
         </div>
         <div className="mt-2">
@@ -96,22 +96,22 @@ export default function Server({
       <Markdown>{description}</Markdown>
       {variables && (
         <>
-          <h3 className="font-bold text-gray-700 mt-8">
-            <IconVariable className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+          <h3 className="font-bold text-foreground-secondary mt-8">
+            <IconVariable className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
             URL Variables
           </h3>
-          <div className="mt-5 border-t border-gray-200">
-            <dl className="sm:divide-y sm:divide-gray-200">{variableElems}</dl>
+          <div className="mt-5 border-t border-border">
+            <dl className="sm:divide-y sm:divide-border">{variableElems}</dl>
           </div>
         </>
       )}
       {security && security.length > 0 && (
         <div>
-          <h3 className="font-bold text-gray-700 mt-8">
-            <IconShieldCheck className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+          <h3 className="font-bold text-foreground-secondary mt-8">
+            <IconShieldCheck className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
             Authorization
           </h3>
-          <p className="prose text-gray-500 mt-4">
+          <p className="prose text-foreground-muted mt-4">
             This server accepts the following authorization mechanisms:
           </p>
           <Authorization securities={security} />
@@ -123,11 +123,11 @@ export default function Server({
         if (!hasContent) return null;
         return (
           <div>
-            <h3 className="font-bold text-gray-700 mt-8">
-              <Connection className="inline-block mr-2 -mt-1 h-6 text-gray-500" />
+            <h3 className="font-bold text-foreground-secondary mt-8">
+              <Connection className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
               Connection Settings
             </h3>
-            <p className="prose text-gray-500 mt-4">
+            <p className="prose text-foreground-muted mt-4">
               This server accepts the following connection configuration:
             </p>
             <Bindings bindings={protocolBinding} protocol={protocol} />

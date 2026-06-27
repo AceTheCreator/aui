@@ -1,10 +1,11 @@
 import { createContext, useContext } from "react";
 
-type AsyncAPIDocument = Record<string, any>;
+type AsyncAPIDocument = Record<string, unknown>;
 
 interface AsyncAPIContextValue {
   document: AsyncAPIDocument;
-  deref: (refPath: string) => any;
+  deref: (ref: string) => unknown;
+  portalHost: HTMLElement | null;
 }
 
 export const AsyncAPIDocumentContext =

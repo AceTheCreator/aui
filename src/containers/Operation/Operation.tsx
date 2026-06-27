@@ -1,4 +1,4 @@
-import { OperationBindingsObject } from "../../asyncapi-models/OperationBindingsObject";
+import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
 import { isUrl } from "../../helpers/common";
@@ -6,8 +6,10 @@ import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
+import { OperationReply } from "../../types/asyncapi/OperationReply";
 import { Tag } from "../../types/asyncapi/Tag";
 import { Message } from "../Messages/Message";
+import { Reply } from "../../components/Reply";
 
 interface OperationProps {
   op: OperationInterface;
@@ -19,7 +21,7 @@ export default function Operation({ op, id }: OperationProps) {
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
   const traits = op.traits as unknown as Array<Record<string, unknown>> | undefined;
-
+  const reply = op.reply as unknown as OperationReply | undefined;
   const externalDocs = op.externalDocs as unknown as ExternalDocs | undefined;
   const security = op.security as unknown as unknown[] | undefined;
 
@@ -34,23 +36,31 @@ export default function Operation({ op, id }: OperationProps) {
     ? "bg-green-100 text-green-800"
     : op.action === OperationAction.RECEIVE
       ? "bg-blue-100 text-blue-800"
-      : "bg-gray-100 text-gray-700";
+      : "bg-neutral-100 text-foreground-secondary";
+  
+  const messageList = (
+    <div className="space-y-2">
+      {messages.map((msg, i) => (
+        <Message key={i} message={msg} messageId={msg.name} i={i} />
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       {op.title && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{op.title}</h2>
+          <h2 className="text-lg font-semibold text-foreground">{op.title}</h2>
         </div>
       )}
       {op.summary && (
         <div>
-          <p className="text-sm text-gray-600">{op.summary}</p>
+          <p className="text-sm text-foreground-secondary">{op.summary}</p>
         </div>
       )}
       <div className={`flex justify-between w-[400px]`}>
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             Operation Method
           </p>
           <span
@@ -60,11 +70,11 @@ export default function Operation({ op, id }: OperationProps) {
           </span>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             Operation ID
           </p>
           <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-orange-50 text-orange-600 border border-orange-200`}
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200`}
           >
             {id}
           </span>
@@ -74,20 +84,20 @@ export default function Operation({ op, id }: OperationProps) {
       {/* Title */}
       {op.title && (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             Title
           </p>
-          <p className="text-sm text-gray-800">{op.title}</p>
+          <p className="text-sm text-foreground">{op.title}</p>
         </div>
       )}
 
       {/* Description */}
       {op.description && (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             Description
           </p>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-foreground-secondary leading-relaxed">
             {op.description}
           </p>
         </div>
@@ -96,7 +106,7 @@ export default function Operation({ op, id }: OperationProps) {
       {/* External Docs */}
       {externalDocs?.url && (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             External Documentation
           </p>
           {isUrl(externalDocs.url) ? (
@@ -109,7 +119,9 @@ export default function Operation({ op, id }: OperationProps) {
               {externalDocs.url}
             </a>
           ) : (
-            <p className="text-sm text-gray-600">{externalDocs.url}</p>
+            <p className="text-sm text-foreground-secondary">
+              {externalDocs.url}
+            </p>
           )}
         </div>
       )}
@@ -117,7 +129,7 @@ export default function Operation({ op, id }: OperationProps) {
       {/* Security */}
       {security && security.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Authorization Mechanisms
           </p>
           <Authorization
@@ -133,7 +145,7 @@ export default function Operation({ op, id }: OperationProps) {
         Object.entries(operationBindings).map(([protocol, binding]) =>
           binding ? (
             <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+              <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
                 Operation configuration
               </p>
               <Bindings
@@ -146,30 +158,46 @@ export default function Operation({ op, id }: OperationProps) {
         )}
 
       {/* Messages */}
-      {messages.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-            {messages.length > 1 ? "messages" : "message"}
-          </p>
-          <div className="space-y-2">
-            {messages.map((msg, i) => (
-              <Message key={i} message={msg} messageId={msg.name} i={i} />
-            ))}
+      {reply ? (
+        <Reply
+          requestMessages={messages}
+          reply={reply}
+          isSend={isSend}
+          operationId={id}
+        />
+      ) : (
+        messages.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
+              <span className="font-bold">{id}</span>{" "}
+              {isSend ? "accepts" : "expects"}
+              {messages.length > 1 ? (
+                <>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-foreground-mute">
+                    one of
+                  </span>
+                  the following messages:
+                </>
+              ) : (
+                "the following message:"
+              )}
+            </p>
+            {messageList}
           </div>
-        </div>
+        )
       )}
 
       {/* Tags */}
       {tags.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Tags
           </p>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag, i) => (
               <span
                 key={i}
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-neutral-100 text-foreground-secondary"
               >
                 {tag.name}
               </span>

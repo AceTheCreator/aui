@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ChannelAddress } from "../../components/ChannelAddress";
 import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
@@ -13,11 +12,12 @@ import Operation from "./Operation";
 
 interface OperationsProps {
   operations: Record<string, OperationType>;
+  selectedKey?: string | null;
+  onSelectKey?: (key: string | null) => void;
 }
 
-export default function Operations({ operations }: OperationsProps) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  console.log(selectedKey)
+export default function Operations({ operations, selectedKey = null, onSelectKey }: OperationsProps) {
+  const setSelectedKey = (key: string | null) => onSelectKey?.(key);
   const { deref } = useAsyncAPIDocument();
 
   if (!Object.keys(operations).length) {
@@ -38,26 +38,27 @@ export default function Operations({ operations }: OperationsProps) {
       ? "bg-green-100 text-green-800"
       : op.action === OperationAction.RECEIVE
         ? "bg-blue-100 text-blue-800"
-        : "bg-gray-100 text-gray-700";
+        : "bg-neutral-100 text-foreground-secondary";
     const isSelected = selectedKey === key;
 
     return (
       <tr
         key={key}
+        id={`operation-${key}`}
         onClick={() => setSelectedKey(key)}
-        className={`group cursor-pointer ${isSelected ? "bg-gray-50" : ""}`}
+        className={`group cursor-pointer ${isSelected ? "bg-neutral-50" : ""}`}
       >
-        <td className="px-6 py-4 group-hover:bg-gray-50">
+        <td className="px-6 py-4 group-hover:bg-neutral-50">
           {address && <ChannelAddress address={address} parameters={parameters} />}
         </td>
-        <td className="px-6 py-4 w-32 group-hover:bg-gray-50">
+        <td className="px-6 py-4 w-32 group-hover:bg-neutral-50">
           <div
             className={`inline-flex w-24 items-center justify-center px-2 py-1 text-center rounded-md text-xs font-medium uppercase ${badgeClassName}`}
           >
             {actionLabel}
           </div>
         </td>
-        <td className="group-hover:bg-gray-50" />
+        <td className="group-hover:bg-neutral-50" />
       </tr>
     );
   });
@@ -71,20 +72,20 @@ export default function Operations({ operations }: OperationsProps) {
   ) : (selectedKey ?? "Operation");
 
   const content = (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-surface rounded-lg border border-border overflow-hidden">
       <table className="w-full">
-        <thead className="bg-gray-100 w-full">
+        <thead className="bg-neutral-100 w-full">
           <tr>
-            <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-5 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Operation
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
               Method
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" />
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider" />
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-surface divide-y divide-border">
           {operationList}
         </tbody>
       </table>

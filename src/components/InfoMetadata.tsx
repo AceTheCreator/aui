@@ -49,7 +49,7 @@ export default function InfoMetadata({
           term={LICENSE_TEXT}
           visibleTerm={details.licenseName ? false : true}
           href={details.licenseUrl}
-          className="inline-block mb-4 text-gray-700 hover:text-pink-500"
+          className="inline-block mb-4 text-foreground-secondary hover:text-pink-500"
         />
       )}
       {details.externalDocsUrl && (
@@ -59,7 +59,7 @@ export default function InfoMetadata({
           href={details.externalDocsUrl}
           term={EXTERNAL_DOCUMENTATION_TEXT}
           visibleTerm={details.externalDocsTitle ? false : true}
-          className="inline-block mb-4 text-gray-700 hover:text-indigo-500"
+          className="inline-block mb-4 text-foreground-secondary hover:text-secondary-500"
         />
       )}
       {details.contactEmail && (
@@ -69,7 +69,7 @@ export default function InfoMetadata({
           term={EMAIL_TEXT}
           visibleTerm={details.contactEmail ? false : true}
           href={`mailto:${details.contactEmail}`}
-          className="inline-block mb-4 text-gray-700 hover:text-green-500"
+          className="inline-block mb-4 text-foreground-secondary hover:text-green-500"
         />
       )}
       {details.contactUrl && (
@@ -79,14 +79,14 @@ export default function InfoMetadata({
           term={CONTACT_TEXT}
           visibleTerm={details.contactName ? false : true}
           href={details.contactUrl}
-          className="inline-block mb-4 text-gray-700 hover:text-green-500"
+          className="inline-block mb-4 text-foreground-secondary hover:text-green-500"
         />
       )}
       {details.tags && (
         <DefinitionListItem
           IconClass={IconTag}
           term={TAGS_TEXT}
-          className="mb-2 text-gray-700 inline-block"
+          className="mb-2 text-foreground-secondary inline-block"
           vertical
           text={
             details.tags && (

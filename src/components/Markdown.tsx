@@ -15,7 +15,7 @@ const Markdown: React.FunctionComponent<{
 
   return (
     <div
-      className="prose max-w-none"
+      className="prose max-w-none text-foreground-muted prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary-600 prose-code:text-foreground-secondary prose-blockquote:text-foreground-muted prose-blockquote:border-border"
       dangerouslySetInnerHTML={{
         __html: DOMPurify.sanitize(renderMarkdown(children)),
       }}

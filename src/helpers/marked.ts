@@ -39,7 +39,7 @@ marked.use({
     {
       name: "link",
       renderer(token) {
-        return `<a class="hover:underline hover:text-indigo-600" href="${token.href}" rel="noopener noreferrer" target="_blank">${token.text}</a>`;
+        return `<a class="hover:underline hover:text-secondary-600" href="${token.href}" rel="noopener noreferrer" target="_blank">${token.text}</a>`;
       },
     },
   ],

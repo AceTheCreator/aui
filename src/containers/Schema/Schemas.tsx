@@ -3,12 +3,11 @@ import Section from "../../components/Section";
 import { SchemaNodeData } from "../../types/schema";
 
 interface SchemasProps {
-  /** Map of schema name → schema definition (from `asyncapi.components.schemas`). */
   schemas: Record<string, SchemaNodeData>;
+  selectedKey?: string | null;
 }
 
-// Renders the Schemas tab: lists every reusable schema defined under `components.schemas`
-export default function Schemas({ schemas }: SchemasProps) {
+export default function Schemas({ schemas, selectedKey }: SchemasProps) {
   const schemaEntries = Object.entries(schemas);
 
   const content = schemaEntries.length ? (
@@ -23,32 +22,35 @@ export default function Schemas({ schemas }: SchemasProps) {
         return (
           <article
             key={schemaName}
-            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+            id={`schema-${schemaName}`}
+            className={`rounded-xl border bg-surface p-5 shadow-sm transition-colors ${
+              selectedKey === schemaName ? "border-primary-300 ring-1 ring-primary-200" : "border-border"
+            }`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base font-semibold text-gray-900">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
                   {schemaName}
                 </h3>
                 {schema.description && (
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-foreground-secondary">
                     {schema.description}
                   </p>
                 )}
               </div>
-              <span className="shrink-0 inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
-                {schema.type ?? "unknown type"}
+              <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
+                {schema.type ?? "unknown"}
               </span>
             </div>
             {(schema.format || propertyCount > 0) && (
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-foreground-secondary">
                 {schema.format && (
-                  <span className="rounded-full bg-gray-100 px-3 py-1">
+                  <span className="rounded-full bg-neutral-100 px-3 py-1">
                     Format: {schema.format}
                   </span>
                 )}
                 {propertyCount > 0 && (
-                  <span className="rounded-full bg-gray-100 px-3 py-1">
+                  <span className="rounded-full bg-neutral-100 px-3 py-1">
                     {propertyCount} properties
                   </span>
                 )}
@@ -60,7 +62,7 @@ export default function Schemas({ schemas }: SchemasProps) {
       })}
     </div>
   ) : (
-    <div className="mt-10 rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-500">
+    <div className="mt-10 rounded-xl border border-dashed border-neutral-300 bg-surface p-8 text-center text-sm text-foreground-muted">
       No schemas defined in this AsyncAPI document.
     </div>
   );

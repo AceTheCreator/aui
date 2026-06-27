@@ -17,16 +17,99 @@ a {
   text-decoration: none;
 }
 
-
   :root {
-    --color-primary: #64748B;
-    --color-primary-light: #E2E8F0;
+
+  --color-background: 248 250 252;
+  --color-surface: 255 255 255;
+  --color-border: 226 232 240;
+
+  --color-text-primary: 30 41 59;
+  --color-text-secondary: 71 85 105;
+  --color-text-muted: 100 116 139;
+
+    /* --color-primary: #64748B;
+    --color-primary-light: #E2E8F0; */
+
+    /* Primary theme scale — orange by default */
+    --color-primary-50:  255 247 237;
+    --color-primary-100: 255 237 213;
+    --color-primary-200: 254 215 170;
+    --color-primary-300: 253 186 116;
+    --color-primary-500: 249 115 22;
+    --color-primary-600: 234 88 12;
+    --color-primary-700: 194 65 12;
+
+    /* Secondary theme scale — indigo */
+    --color-secondary-50:  238 242 255;
+    --color-secondary-100: 224 231 255;
+    --color-secondary-200: 199 210 254;
+    --color-secondary-300: 165 180 252;
+    --color-secondary-500: 99 102 241;
+    --color-secondary-600: 79 70 229;
+    --color-secondary-700: 67 56 202;
+
+  /* Neutral theme scale */
+   
+   --color-neutral-0:   255 255 255; /* white */
+   
+   --color-neutral-50:  248 250 252;
+   --color-neutral-100: 241 245 249;
+   --color-neutral-200: 226 232 240;
+   --color-neutral-300: 203 213 225;
+   --color-neutral-400: 148 163 184;
+   --color-neutral-500: 100 116 139;
+   --color-neutral-600: 71 85 105;
+   --color-neutral-700: 51 65 85;
+   --color-neutral-800: 30 41 59;
+   --color-neutral-900: 15 23 42;
   }
+  
   
   .primary-gradient-color-stop {
     stop-color: var(--color-primary);
   }
   
   .secondary-gradient-color-stop {
-    stop-color: var(--color-primary-light);
+    stop-color: var(--color-secondary-light);
   }
+
+.panel-toggle-btn {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #64748b;
+  z-index: 51;
+  pointer-events: auto;
+  transition: background 0.2s ease, color 0.2s ease, left 0.3s ease-in-out;
+}
+
+.panel-toggle-btn:hover {
+  color: #334155;
+}
+
+
+.panel-icon-rect {
+  width: 5px;
+  transition: width 0.15s ease-in-out;
+}
+
+.panel-icon-rect-collapsed {
+  width: 10px;
+}
+
+/* closed: hover grows rect to signal expand */
+.panel-toggle-btn:hover .panel-icon-rect:not(.panel-icon-rect-collapsed) {
+  width: 10px;
+}
+
+/* open: hover shrinks rect to signal collapse */
+.panel-toggle-btn:hover .panel-icon-rect-collapsed {
+  width: 1px;
+}
