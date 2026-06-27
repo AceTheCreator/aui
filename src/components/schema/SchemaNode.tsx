@@ -335,11 +335,11 @@ export default function SchemaNode({
         key={selectedCase}
         schema={selectedRaw}
         path={path}
-        depth={caseDepth}
+        depth={caseDepth - 1}
         refStack={refStack}
         deref={deref}
         suppressRow
-        branchLineVariant={nestedBranchLineVariant}
+        branchLineVariant="none"
       />
     );
 
