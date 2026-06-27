@@ -1,6 +1,8 @@
 import { asSchemaNode, isSchemaRecord, SchemaNodeData } from "../../types/schema";
 import { buildTypeDisplay } from "./schemaDisplayUtils";
 
+const EMPTY_REF_STACK: ReadonlySet<string> = new Set();
+
 /** Extracts the schema name from a JSON Pointer, e.g. "#/components/schemas/sentAt" → "sentAt". */
 export const refNameFromPath = (ref: string) =>
   ref.replace(/^#\//, "").split("/").pop() ?? ref;
@@ -571,15 +573,6 @@ export const hasConstraints = (
   return false;
 };
 
-/** Builds the human-readable type string shown on the right side of each row. */
-export const getTypeLabel = (schema: SchemaNodeData, refLabel?: string): string => {
-  const { text, format, refHint } = buildTypeDisplay(schema, refLabel);
-  let label = text;
-  if (format) label += `, ${format}`;
-  if (refHint) label += `, (${refHint})`;
-  return label;
-};
-
 /** Whether a schema node has children worth showing behind an expand toggle. */
 export const hasExpandableContent = (
   schema: SchemaNodeData,
@@ -598,8 +591,8 @@ export const hasExpandableContent = (
     const itemSchema = getItemSchema(schema);
     if (!itemSchema) return false;
     if (itemSchema.$ref && deref) {
-      const { schema: resolved } = normalizeSchema(itemSchema, deref, new Set());
-      const flattened = flattenAllOf(resolved, deref, new Set());
+      const { schema: resolved } = normalizeSchema(itemSchema, deref, EMPTY_REF_STACK);
+      const flattened = flattenAllOf(resolved, deref, EMPTY_REF_STACK);
       return !isLeafItemSchema(flattened);
     }
     return !isLeafItemSchema(itemSchema);

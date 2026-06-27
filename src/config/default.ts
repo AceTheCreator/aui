@@ -8,7 +8,7 @@ export const defaultConfig: ConfigInterface = {
     operations: true,
     messages: true,
     messageExamples: false,
-    schemas: false,
+    schemas: true,
     // errors: true,
   },
   theme: {

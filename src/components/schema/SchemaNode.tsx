@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { isSchemaRecord, SchemaNodeData } from "../../types/schema";
-import ExpandToggle from "./ExpandToggle";
 import SchemaCaseDetail from "./SchemaCaseDetail";
 import SchemaNotBranch, { BooleanNotPill } from "./SchemaNotBranch";
 import SchemaUnionBranch from "./SchemaUnionBranch";
@@ -55,6 +54,56 @@ export interface SchemaNodeProps {
 const childBranchLineVariant = (
   variant: SchemaTreeBranchLineVariant
 ): SchemaTreeBranchLineVariant => (variant === "none" ? "depth" : variant);
+
+/** Full-row expand/collapse toggle used only at depth 0 when the root row is suppressed. */
+function RootExpandToggle({
+  expanded,
+  onToggle,
+  hideLabel,
+  showLabel,
+  branchLineVariant,
+  children,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+  hideLabel: string;
+  showLabel: string;
+  branchLineVariant: SchemaTreeBranchLineVariant;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
+      >
+        <span
+          aria-hidden="true"
+          className="shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold border-gray-300 text-gray-400"
+        >
+          {expanded ? "−" : "+"}
+        </span>
+        <span>{expanded ? hideLabel : showLabel}</span>
+      </div>
+      <div className="pl-1">
+        {expanded && (
+          <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
+            {children}
+          </SchemaTreeBranch>
+        )}
+      </div>
+    </>
+  );
+}
 
 /** Recursively renders one schema node and its descendants. */
 export default function SchemaNode({
@@ -198,7 +247,6 @@ export default function SchemaNode({
     );
   };
 
-  const renderIfThenElseSection = () => renderSingleIfThenElse(schema);
 
   const renderAllOfConditionals = () => {
     const conditionals = getAllOfConditionals(schema);
@@ -231,7 +279,7 @@ export default function SchemaNode({
     const metaContent = (
       <>
         {hasNotSchema(schema) && renderNotSection()}
-        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
         {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
@@ -311,7 +359,7 @@ export default function SchemaNode({
       <>
         {unionBranch}
         {hasNotSchema(schema) && renderNotSection()}
-        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
         {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
@@ -434,7 +482,7 @@ export default function SchemaNode({
             </SchemaMapBranch>
           )}
         {hasNotSchema(schema) && renderNotSection()}
-        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
         {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
@@ -447,26 +495,15 @@ export default function SchemaNode({
     if (suppressRow) {
       if (depth === 0) {
         return (
-          <>
-            <div
-              className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
-              onClick={() => setExpanded((v) => !v)}
-            >
-              <ExpandToggle
-                depth={0}
-                expanded={expanded}
-                onToggle={() => setExpanded((v) => !v)}
-              />
-              <span>{expanded ? "Hide properties" : "Show properties"}</span>
-            </div>
-            <div className="pl-1">
-              {expanded && (
-                <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
-                  {renderObjectChildren(1)}
-                </SchemaTreeBranch>
-              )}
-            </div>
-          </>
+          <RootExpandToggle
+            expanded={expanded}
+            onToggle={() => setExpanded((v) => !v)}
+            hideLabel="Hide properties"
+            showLabel="Show properties"
+            branchLineVariant={branchLineVariant}
+          >
+            {renderObjectChildren(1)}
+          </RootExpandToggle>
         );
       }
       return (
@@ -607,7 +644,7 @@ export default function SchemaNode({
           </SchemaMapBranch>
         )}
         {hasNotSchema(schema) && renderNotSection()}
-        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
         {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );
@@ -653,7 +690,7 @@ export default function SchemaNode({
           {expanded && (
             <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
               {hasNotSchema(schema) && renderNotSection()}
-              {hasIfThenElse(schema) && renderIfThenElseSection()}
+              {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
               {hasAllOfConditionals(schema) && renderAllOfConditionals()}
             </SchemaTreeBranch>
           )}
@@ -666,26 +703,15 @@ export default function SchemaNode({
       if (!hasArrayContent) return null;
       if (depth === 0) {
         return (
-          <>
-            <div
-              className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
-              onClick={() => setExpanded((v) => !v)}
-            >
-              <ExpandToggle
-                depth={0}
-                expanded={expanded}
-                onToggle={() => setExpanded((v) => !v)}
-              />
-              <span>{expanded ? "Hide items" : "Show items"}</span>
-            </div>
-            <div className="pl-1">
-              {expanded && (
-                <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
-                  {renderArrayExpansion(1)}
-                </SchemaTreeBranch>
-              )}
-            </div>
-          </>
+          <RootExpandToggle
+            expanded={expanded}
+            onToggle={() => setExpanded((v) => !v)}
+            hideLabel="Hide items"
+            showLabel="Show items"
+            branchLineVariant={branchLineVariant}
+          >
+            {renderArrayExpansion(1)}
+          </RootExpandToggle>
         );
       }
       return (
@@ -729,7 +755,7 @@ export default function SchemaNode({
     const metaOnlyContent = (
       <>
         {hasNotSchema(schema) && renderNotSection()}
-        {hasIfThenElse(schema) && renderIfThenElseSection()}
+        {hasIfThenElse(schema) && renderSingleIfThenElse(schema)}
         {hasAllOfConditionals(schema) && renderAllOfConditionals()}
       </>
     );

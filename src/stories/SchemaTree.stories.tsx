@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, within } from "@storybook/test";
 import SchemaTree from "../components/schema/SchemaTree";
 import { AsyncAPIDocumentContext } from "../contexts";
-import example1 from "../configs/examples/example1.json";
-import example2 from "../configs/examples/example2.json";
+import example1 from "../config/examples/example1.json";
+import example2 from "../config/examples/example2.json";
 
 const mockDocument = {
   ...example1,

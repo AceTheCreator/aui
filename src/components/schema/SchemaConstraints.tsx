@@ -146,7 +146,7 @@ function ValueRange({
   );
 }
 
-function CopyablePill({ value }: { value: unknown }) {
+function CopyablePill({ value, displayValue }: { value: unknown; displayValue?: string }) {
   const handleCopy = () => {
     const selection = window.getSelection()?.toString();
     if (selection) return;
@@ -169,9 +169,45 @@ function CopyablePill({ value }: { value: unknown }) {
       onClick={handleCopy}
       onKeyDown={handleKeyDown}
     >
-      {constraintValueDisplay(value)}
+      {displayValue ?? constraintValueDisplay(value)}
     </span>
   );
+}
+
+function AdditionalPropertiesConstraint({ schema }: { schema: SchemaNodeData }) {
+  const additionalProperties = getAdditionalPropertiesSchema(schema);
+  if (typeof additionalProperties !== "boolean") return null;
+  return (
+    <Label>
+      {additionalProperties
+        ? "additional properties allowed"
+        : "additional properties not allowed"}
+    </Label>
+  );
+}
+
+function PropertyNamesConstraint({ schema }: { schema: SchemaNodeData }) {
+  const propertyNames = getPropertyNamesSchema(schema);
+  if (typeof propertyNames === "boolean") {
+    return (
+      <Pill>{propertyNames ? "any property name" : "no property names"}</Pill>
+    );
+  }
+  if (
+    propertyNames !== null &&
+    isSchemaRecord(propertyNames) &&
+    isLeafItemSchema(propertyNames) &&
+    typeof propertyNames.pattern === "string" &&
+    propertyNames.pattern.length > 0
+  ) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Label>property name pattern:</Label>
+        <CopyablePill value={propertyNames.pattern} displayValue={propertyNames.pattern} />
+      </span>
+    );
+  }
+  return null;
 }
 
 function ConstraintFields({
@@ -234,9 +270,7 @@ function ConstraintFields({
       {typeof schema.pattern === "string" && schema.pattern.length > 0 && (
         <span className="inline-flex items-center gap-1">
           <Label>regex pattern:</Label>
-          <Pill mono title={schema.pattern}>
-            {schema.pattern}
-          </Pill>
+          <CopyablePill value={schema.pattern} displayValue={schema.pattern} />
         </span>
       )}
       {enumValues && (
@@ -254,46 +288,8 @@ function ConstraintFields({
         </span>
       )}
       {schema.uniqueItems === true && <Label>unique</Label>}
-      {(() => {
-        const additionalProperties = getAdditionalPropertiesSchema(schema);
-        if (typeof additionalProperties === "boolean") {
-          return (
-            <Label>
-              {additionalProperties
-                ? "additional properties allowed"
-                : "additional properties not allowed"}
-            </Label>
-          );
-        }
-        return null;
-      })()}
-      {(() => {
-        const propertyNames = getPropertyNamesSchema(schema);
-        if (typeof propertyNames === "boolean") {
-          return (
-            <Pill>
-              {propertyNames ? "any property name" : "no property names"}
-            </Pill>
-          );
-        }
-        if (
-          propertyNames !== null &&
-          isSchemaRecord(propertyNames) &&
-          isLeafItemSchema(propertyNames) &&
-          typeof propertyNames.pattern === "string" &&
-          propertyNames.pattern.length > 0
-        ) {
-          return (
-            <span className="inline-flex items-center gap-1">
-              <Label>property name pattern:</Label>
-              <Pill mono title={propertyNames.pattern}>
-                {propertyNames.pattern}
-              </Pill>
-            </span>
-          );
-        }
-        return null;
-      })()}
+      <AdditionalPropertiesConstraint schema={schema} />
+      <PropertyNamesConstraint schema={schema} />
     </>
   );
 }
