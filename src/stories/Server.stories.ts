@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Servers from "../containers/Server/Servers";
-import example from "../configs/examples/example1.json";
+import example from "../config/examples/example1.json";
 
 const meta = {
   title: "Components/Servers",

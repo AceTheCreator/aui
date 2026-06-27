@@ -16,14 +16,10 @@ import Messages from "./Messages/Messages";
 import Servers from "./Server/Servers";
 import Operations from "./Operation/Operations";
 import Schemas from "./Schema/Schemas";
+import { SchemaNodeData } from "../types/schema";
 
 
-interface AsyncAPISchemaDefinition extends Record<string, unknown> {
-  type?: string;
-  format?: string;
-  description?: string;
-  properties?: Record<string, unknown>;
-}
+interface AsyncAPISchemaDefinition extends SchemaNodeData {}
 
 interface AsyncAPIDocumentData extends Record<string, unknown> {
   info: Info;
@@ -46,6 +42,7 @@ type AsyncAPITabKey = "operations" | "messages" | "schemas";
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+/** Type guard: ensures a tab id from ContentTab is one of the supported AsyncAPI sections. */
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
@@ -66,13 +63,18 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
 
+  // Invalidate cached $ref results when a different document is loaded.
   useEffect(() => {
     derefCache.clear();
   }, [asyncapi, derefCache]);
 
+  /**
+   * Dereference a JSON Pointer ($ref) against the current document.
+   */
   const deref = useCallback((refPath: string) => {
     if (derefCache.has(refPath)) return derefCache.get(refPath);
 
+    // Strip leading "#/" and split into path segments.
     const parts = refPath.replace(/^#\//, "").split("/");
     let current: unknown = asyncapi;
 
@@ -82,6 +84,7 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
         break;
       }
 
+      // JSON Pointer escape sequences: ~1 → /, ~0 → ~
       const decoded = part.replace(/~1/g, "/").replace(/~0/g, "~");
       current = current[decoded];
 
@@ -95,7 +98,7 @@ const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
     return current;
   }, [asyncapi, derefCache]);
 
-const value = useMemo(() => ({
+  const value = useMemo(() => ({
     document: asyncapi,
     deref,
     portalHost,
@@ -103,6 +106,7 @@ const value = useMemo(() => ({
   [asyncapi, deref, portalHost],
 );
 
+  // Render the section that matches the currently selected tab.
   const activeContent =
     activeTab === "operations" ? (
       <Operations

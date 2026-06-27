@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import example from "../config/examples/example1.json";
-
 import AsyncAPI from "../containers/AsyncAPI";
+import torture from "../config/examples/torture.json";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -23,6 +22,6 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Base: Story = {
   args: {
-    asyncapi: example,
+    asyncapi: torture,
   },
 };
