@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SchemaViewer } from "../../containers/Schema/SchemaViewer";
 import SchemaTree from "./SchemaTree";
+import TabToggle from "../TabToggle";
 
 function SchemaTabs({
   schema,
@@ -26,20 +27,15 @@ function SchemaTabs({
             </p>
           )}
         </div>
-        <div className="flex rounded overflow-hidden border border-gray-200 text-xs">
-          <button
-            onClick={() => setTab("schema")}
-            className={`px-2 py-0.5 ${tab === "schema" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-          >
-            Schema
-          </button>
-          <button
-            onClick={() => setTab("json")}
-            className={`px-2 py-0.5 border-l border-gray-200 ${tab === "json" ? "bg-gray-800 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-          >
-            JSON
-          </button>
-        </div>
+        <TabToggle
+          tabs={[
+            { id: "schema", label: "Schema" },
+            { id: "json", label: "JSON" },
+          ]}
+          selected={tab}
+          onChange={(id) => setTab(id as "schema" | "json")}
+          ariaLabel="Schema view toggle"
+        />
       </div>
 
       {tab === "json" ? (

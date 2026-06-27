@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import TabToggle from "../TabToggle";
 
 interface SchemaUnionBranchProps {
   variant?: "oneOf" | "anyOf";
@@ -41,40 +42,14 @@ export default function SchemaUnionBranch({
         />
       </div>
 
-      <div
-        className="inline-flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-md border border-gray-200"
-        role="tablist"
-        aria-label={ariaLabel}
-      >
-        {labels.map((label, index) => {
-          const isActive = index === selectedCase;
-          return (
-            <button
-              key={index}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`${keyword}-case-panel-${index}`}
-              id={`${keyword}-case-tab-${index}`}
-              onClick={() => onSelectCase(index)}
-              className={
-                isActive
-                  ? "px-3 py-1 text-xs font-semibold text-gray-900 bg-white rounded-md shadow-sm border border-gray-200"
-                  : "px-3 py-1 text-xs font-medium text-gray-400 hover:text-gray-600 rounded-md"
-              }
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <TabToggle
+        tabs={labels.map((label, index) => ({ id: String(index), label }))}
+        selected={String(selectedCase)}
+        onChange={(id) => onSelectCase(Number(id))}
+        ariaLabel={ariaLabel}
+      />
 
-      <div
-        id={`${keyword}-case-panel-${selectedCase}`}
-        role="tabpanel"
-        aria-labelledby={`${keyword}-case-tab-${selectedCase}`}
-        className="mt-2"
-      >
+      <div role="tabpanel" className="mt-2">
         {children}
       </div>
     </div>
