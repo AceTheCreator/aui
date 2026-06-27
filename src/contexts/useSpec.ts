@@ -4,6 +4,7 @@ type AsyncAPIDocument = Record<string, unknown>;
 
 interface AsyncAPIContextValue {
   document: AsyncAPIDocument;
+  /** Resolves a JSON Pointer $ref string to the object it references in the document. */
   deref: (ref: string) => unknown;
   portalHost: HTMLElement | null;
 }

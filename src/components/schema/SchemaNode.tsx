@@ -129,7 +129,10 @@ export default function SchemaNode({
     };
   }, [rawSchema, deref, refStack]);
 
+  // Strip logical operators before shape detection so they don't mask the true structure.
   const structuralSchema = omitNot(omitIfThenElse(schema));
+  // True when the schema carries only logical operators with no displayable structural shape
+  // (no type, properties, items, oneOf, anyOf). These render as just a row + meta children.
   const isMetaOnly =
     !hasStructuralShape(structuralSchema) &&
     (hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema));
@@ -751,6 +754,8 @@ export default function SchemaNode({
     );
   }
 
+  // Scalar (or otherwise typed) schemas that also carry logical operators but weren't
+  // caught by the object/array/union branches above — e.g. { type: "string", if: … }.
   if (hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema)) {
     const metaOnlyContent = (
       <>

@@ -105,6 +105,10 @@ export const mergeDescriptions = (
   return `${arrayDescription}\n\n${itemDescription}`;
 };
 
+// Keys excluded from the generic scalar-copy loop in mergeSchemaObjects:
+// structural keys are handled by dedicated merge logic above the loop;
+// composition/conditional keys are either pre-flattened (allOf) or collected
+// separately (_allOfConditionals, if/then/else) and must not be blindly overwritten.
 const MERGE_SKIP_KEYS = new Set([
   "allOf",
   "oneOf",
