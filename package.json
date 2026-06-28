@@ -1,11 +1,25 @@
 {
   "name": "aui",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/aui.cjs.js",
+  "module": "./dist/aui.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/aui.es.js",
+      "require": "./dist/aui.cjs.js"
+    },
+    "./style.css": "./dist/aui.css"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "typecheck": "tsc -b",
     "lint": "eslint .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
@@ -23,11 +37,13 @@
     "json-schema-resolver": "^3.0.0",
     "marked": "^15.0.11",
     "marked-highlight": "^2.2.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "react-markdown": "^9.0.3",
     "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.1"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "devDependencies": {
     "@asyncapi/modelina": "^5.10.1",
@@ -58,7 +74,8 @@
     "tsx": "^4.21.0",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^5.0.3"
   },
   "eslintConfig": {
     "extends": [
