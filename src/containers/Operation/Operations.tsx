@@ -27,6 +27,7 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
   const selectedOp = selectedKey ? operations[selectedKey] : null;
 
   const operationList: React.ReactNode[] = Object.keys(operations).map((key) => {
+    console.log(operations[key])
     const op = operations[key];
     resolveRefs(op, deref);
     const channel = op.channel as unknown as Channel;

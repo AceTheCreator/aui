@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import AsyncAPI from "../containers/AsyncAPI";
+import AsyncAPI from "../containers/AsyncAPI/AsyncAPI";
 import torture from "../config/examples/example1.json";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export

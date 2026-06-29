@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { AsyncAPIRenderer } from "../containers/AsyncAPIRenderer";
+import { AsyncAPIRenderer } from "../containers/AsyncAPI/AsyncAPIRenderer";
 import example1 from "../config/examples/streetlight.json";
 
 const raw = JSON.stringify(example1);

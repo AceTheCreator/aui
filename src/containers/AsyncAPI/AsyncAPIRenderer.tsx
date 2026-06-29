@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { parseAndRender } from "../helpers/parser";
-import type { ConfigInterface } from "../config/config";
+import AsyncAPI from "./AsyncAPI";
+import type { ConfigInterface } from "../../config/config";
+import { parseDocument } from "../../helpers/parser";
 
 interface AsyncAPIRendererProps {
   raw: string;
@@ -13,10 +14,10 @@ export function AsyncAPIRenderer({ raw, config, onDiagnostics }: AsyncAPIRendere
 
   useEffect(() => {
     let render = true;
-    parseAndRender(raw, config).then((response) => {
+    parseDocument(raw).then(({ document, diagnostics }) => {
       if (!render) return;
-      setView(response.view);
-      onDiagnostics?.(response.diagnostics);
+      setView(document ? <AsyncAPI kind="resolved" doc={document} config={config} /> : null);
+      onDiagnostics?.(diagnostics);
     });
     return () => {
       render = false;

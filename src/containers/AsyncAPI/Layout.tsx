@@ -1,38 +1,34 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AsyncAPIDocumentContext } from "../contexts/index";
-import ContentTab, { ContentTabItem } from "../components/ContentTab";
-import Navigation from "../components/Navigation";
-import { MessageObject } from "../types/asyncapi/MessageObject";
-import { ConfigInterface, defaultConfig } from "../config";
-import { buildThemeVars } from "../utils/theme";
-import IconMessage from "../icons/Message";
-import IconOperation from "../icons/Operation";
-import IconSchema from "../icons/Schema";
-import Information from "./Information/Information";
-import Messages from "./Messages/Messages";
-import Servers from "./Server/Servers";
-import Operations from "./Operation/Operations";
-import Schemas from "./Schema/Schemas";
-import { AsyncAPIDocumentData } from "../types/schema";
+import { AsyncAPIDocumentContext } from "../../contexts/index";
+import ContentTab, { ContentTabItem } from "../../components/ContentTab";
+import Navigation from "../../components/Navigation";
+import { MessageObject } from "../../types/asyncapi/MessageObject";
+import { ConfigInterface } from "../../config";
+import { buildThemeVars } from "../../utils/theme";
+import IconMessage from "../../icons/Message";
+import IconOperation from "../../icons/Operation";
+import IconSchema from "../../icons/Schema";
+import Information from "../Information/Information";
+import Messages from "../Messages/Messages";
+import Servers from "../Server/Servers";
+import Operations from "../Operation/Operations";
+import Schemas from "../Schema/Schemas";
+import { AsyncAPIDocumentData } from "../../types/schema";
 
-
-export type IAsyncAPIProps =
-  | { asyncapi: AsyncAPIDocumentData; config?: ConfigInterface }
-  | { kind: "resolved"; doc: AsyncAPIDocumentData; config?: ConfigInterface };
-
-
+export interface LayoutProps {
+  asyncapi: AsyncAPIDocumentData;
+  config: ConfigInterface;
+}
 
 type AsyncAPITabKey = "operations" | "messages" | "schemas";
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-/** Type guard: ensures a tab id from ContentTab is one of the supported AsyncAPI sections. */
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
-const AsyncAPI = (props: IAsyncAPIProps) => {
-  const asyncapi = "doc" in props ? props.doc : props.asyncapi;
-  const config = props.config ?? defaultConfig;
+export default function Layout({ asyncapi, config }: LayoutProps) {
   const show = config.show ?? {};
 
   const tabs: ContentTabItem[] = [
@@ -49,18 +45,14 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
 
-  // Invalidate cached $ref results when a different document is loaded.
   useEffect(() => {
     derefCache.clear();
   }, [asyncapi, derefCache]);
 
-  /**
-   * Dereference a JSON Pointer ($ref) against the current document.
-   */
+  //TODO: Refactor the dereferencing logic
   const deref = useCallback((refPath: string) => {
     if (derefCache.has(refPath)) return derefCache.get(refPath);
 
-    // Strip leading "#/" and split into path segments.
     const parts = refPath.replace(/^#\//, "").split("/");
     let current: unknown = asyncapi;
 
@@ -69,11 +61,8 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
         current = undefined;
         break;
       }
-
-      // JSON Pointer escape sequences: ~1 → /, ~0 → ~
       const decoded = part.replace(/~1/g, "/").replace(/~0/g, "~");
       current = current[decoded];
-
       if (current == null) break;
     }
 
@@ -84,15 +73,11 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
     return current;
   }, [asyncapi, derefCache]);
 
-  const value = useMemo(() => ({
-    document: asyncapi,
-    deref,
-    portalHost,
-  }),
-  [asyncapi, deref, portalHost],
-);
+  const value = useMemo(
+    () => ({ document: asyncapi, deref, portalHost }),
+    [asyncapi, deref, portalHost],
+  );
 
-  // Render the section that matches the currently selected tab.
   const activeContent =
     activeTab === "operations" ? (
       <Operations
@@ -124,15 +109,10 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
         {show.sidebar !== false && (
           <Navigation
             info={asyncapi.info}
-            operations={
-              show.operations !== false ? asyncapi.operations : undefined
-            }
+            operations={show.operations !== false ? asyncapi.operations : undefined}
             messages={
               show.messages !== false
-                ? (asyncapi.components?.messages as Record<
-                    string,
-                    MessageObject
-                  >)
+                ? (asyncapi.components?.messages as Record<string, MessageObject>)
                 : undefined
             }
             schemas={
@@ -164,9 +144,7 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
           tabs={tabs}
           current={activeTab}
           onChange={(id) => {
-            if (isAsyncAPITabKey(id)) {
-              setActiveTab(id);
-            }
+            if (isAsyncAPITabKey(id)) setActiveTab(id);
           }}
         />
         <div
@@ -179,6 +157,4 @@ const AsyncAPI = (props: IAsyncAPIProps) => {
       </div>
     </AsyncAPIDocumentContext.Provider>
   );
-};
-
-export default AsyncAPI;
+}
