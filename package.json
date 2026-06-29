@@ -29,6 +29,14 @@
     "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.1"
   },
+  "peerDependencies": {
+    "@asyncapi/parser": "^3.6.0"
+  },
+  "peerDependenciesMeta": {
+    "@asyncapi/parser": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@asyncapi/modelina": "^5.10.1",
     "@chromatic-com/storybook": "^3.2.3",

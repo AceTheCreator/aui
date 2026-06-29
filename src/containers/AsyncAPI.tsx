@@ -2,10 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AsyncAPIDocumentContext } from "../contexts/index";
 import ContentTab, { ContentTabItem } from "../components/ContentTab";
 import Navigation from "../components/Navigation";
-import { Info } from "../types/asyncapi/Info";
 import { MessageObject } from "../types/asyncapi/MessageObject";
-import { Server } from "../types/asyncapi/Server";
-import { Operation } from "../types/asyncapi/Operation";
 import { ConfigInterface, defaultConfig } from "../config";
 import { buildThemeVars } from "../utils/theme";
 import IconMessage from "../icons/Message";
@@ -16,25 +13,12 @@ import Messages from "./Messages/Messages";
 import Servers from "./Server/Servers";
 import Operations from "./Operation/Operations";
 import Schemas from "./Schema/Schemas";
-import { SchemaNodeData } from "../types/schema";
+import { AsyncAPIDocumentData } from "../types/schema";
 
 
-interface AsyncAPISchemaDefinition extends SchemaNodeData {}
-
-interface AsyncAPIDocumentData extends Record<string, unknown> {
-  info: Info;
-  servers?: Record<string, Server>;
-  operations?: Record<string, Operation>;
-  components?: {
-    messages?: Record<string, MessageObject>;
-    schemas?: Record<string, AsyncAPISchemaDefinition>;
-  };
-}
-
-export interface IAsyncAPIProps {
-  asyncapi: AsyncAPIDocumentData;
-  config?: ConfigInterface;
-}
+export type IAsyncAPIProps =
+  | { asyncapi: AsyncAPIDocumentData; config?: ConfigInterface }
+  | { kind: "resolved"; doc: AsyncAPIDocumentData; config?: ConfigInterface };
 
 
 
@@ -46,7 +30,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
-const AsyncAPI = ({ asyncapi, config = defaultConfig }: IAsyncAPIProps) => {
+const AsyncAPI = (props: IAsyncAPIProps) => {
+  const asyncapi = "doc" in props ? props.doc : props.asyncapi;
+  const config = props.config ?? defaultConfig;
   const show = config.show ?? {};
 
   const tabs: ContentTabItem[] = [
