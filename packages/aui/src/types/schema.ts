@@ -1,3 +1,9 @@
+import { Info } from "./asyncapi/Info";
+import { MessageObject } from "./asyncapi/MessageObject";
+import { Operation } from "./asyncapi/Operation";
+import { Server } from "./asyncapi/Server";
+
+
 export interface SchemaNodeData {
   type?: string | string[];
   format?: string;
@@ -18,8 +24,20 @@ export interface SchemaNodeData {
   [key: string]: unknown;
 }
 
+type AsyncAPISchemaDefinition = SchemaNodeData;
+
+export interface AsyncAPIDocumentData extends Record<string, unknown> {
+  info: Info;
+  servers?: Record<string, Server>;
+  operations?: Record<string, Operation>;
+  components?: {
+    messages?: Record<string, MessageObject>;
+    schemas?: Record<string, AsyncAPISchemaDefinition>;
+  };
+}
+
 export const isSchemaRecord = (
-  value: unknown
+  value: unknown,
 ): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 

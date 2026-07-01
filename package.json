@@ -8,6 +8,14 @@
     "playground": "concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
     "storybook": "npm run storybook --workspace=packages/aui"
   },
+  "peerDependencies": {
+    "@asyncapi/parser": "^3.6.0"
+  },
+  "peerDependenciesMeta": {
+    "@asyncapi/parser": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "concurrently": "^9.0.0"
   }

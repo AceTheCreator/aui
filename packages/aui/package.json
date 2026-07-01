@@ -48,8 +48,14 @@
     "remark-gfm": "^4.0.1"
   },
   "peerDependencies": {
+    "@asyncapi/parser": "^3.6.0",
     "react": ">=18",
     "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@asyncapi/parser": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@asyncapi/modelina": "^5.10.1",
