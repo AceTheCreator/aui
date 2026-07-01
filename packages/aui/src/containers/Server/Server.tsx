@@ -33,13 +33,13 @@ export default function Server({
         Array.from(variables.keys()).map((variable, i) => {
           const variableProps = variables.get(variable) as ServerVariable;
           return (
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+            <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4">
               <dt className="text-sm font-medium text-foreground-muted">
                 <code
                   className={`${chunkColors[i % chunkColors.length]} font-bold`}
                 >{`{${variable}}`}</code>
               </dt>
-              <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2 prose">
+              <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2 prose">
                 {variableProps.description}{" "}
                 {variableProps.enum &&
                   formatEnumDescription(variableProps.enum)}
@@ -101,7 +101,7 @@ export default function Server({
             URL Variables
           </h3>
           <div className="mt-5 border-t border-border">
-            <dl className="sm:divide-y sm:divide-border">{variableElems}</dl>
+            <dl className="@sm:divide-y @sm:divide-border">{variableElems}</dl>
           </div>
         </>
       )}

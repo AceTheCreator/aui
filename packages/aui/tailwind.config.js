@@ -18,6 +18,16 @@ export default {
       },
     },
     extend: {
+      // Matches Tailwind's default screen breakpoints (sm/md/lg/xl), so @sm/@md/@lg/@xl
+      // container queries switch at the same widths the old sm:/md:/lg: viewport
+      // breakpoints used, just measured against the widget's own container instead
+      // of the browser viewport.
+      containers: {
+        sm: '40rem',
+        md: '48rem',
+        lg: '64rem',
+        xl: '80rem',
+      },
       colors: {
         rose: colors.rose[500],
         gray: colors.slate,
@@ -86,6 +96,7 @@ export default {
   },
   plugins: [
     require('@tailwindcss/typography'),
-    require('@tailwindcss/forms'), 
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries'),
   ],
 }

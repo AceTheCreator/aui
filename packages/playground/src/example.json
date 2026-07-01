@@ -1,1028 +1,636 @@
 {
-  "asyncapi": "3.1.0",
+  "asyncapi": "3.0.0",
   "info": {
-    "title": "TradeStation Streaming API",
-    "version": "3.0",
-    "description": "The TradeStation Streaming API provides real-time HTTP streaming endpoints for market data and brokerage events. Streams use HTTP chunked transfer encoding with newline-delimited JSON objects. Each stream maintains a persistent HTTP connection that delivers updates as they occur, significantly reducing network latency compared to polling. Streams consist of a series of chunks containing individual JSON objects parsed separately using the newline character delimiter. TradeStation streams can terminate under certain conditions, unlike canonical HTTP/1.1 streams. The streaming content type is application/vnd.tradestation.streams.v3+json.",
+    "title": "Streetlights Kafka API",
+    "version": "1.0.0",
+    "summary": "Event-driven API for monitoring and controlling smart city streetlights over Kafka.",
+    "description": "## Smartylighting Streetlights API\n\nThe Smartylighting Streetlights API allows operators, monitoring systems, and automation platforms to remotely manage and observe city streetlights.\n\n## Features\n\n- Turn a specific streetlight on/off 🌃\n- Dim a specific streetlight 😎\n- Receive real-time lighting measurements 📈\n- Monitor operational status changes 🚦\n- Receive maintenance alerts 🔧\n\n## Example Event\n\n```json\n{\n  \"lumens\": 450,\n  \"sentAt\": \"2026-06-25T12:00:00Z\"\n}\n```\n\n## Example Consumer (Node.js)\n\n```javascript\nawait consumer.subscribe({\n  topic: 'smartylighting.streetlights.1.0.event.123.lighting.measured'\n});\n\nawait consumer.run({\n  eachMessage: async ({ message }) => {\n    console.log(message.value.toString());\n  }\n});\n```\n\n## Channel Overview\n\n| Channel | Purpose |\n|----------|----------|\n| lightingMeasured | Telemetry and sensor readings |\n| lightTurnOn | Turn on streetlights |\n| lightTurnOff | Turn off streetlights |\n| lightsDim | Adjust brightness levels |\n\nFor additional implementation guidance, see the external documentation links provided throughout this specification.",
+    "termsOfService": "https://smartylighting.example.com/terms",
     "contact": {
-      "name": "TradeStation API Support",
-      "url": "https://api.tradestation.com/docs/"
+      "name": "Smartylighting API Support",
+      "url": "https://smartylighting.example.com/support",
+      "email": "support@smartylighting.example.com"
     },
     "license": {
-      "name": "Proprietary",
-      "url": "https://www.tradestation.com/important-information/"
-    }
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    "tags": [
+      {
+        "name": "streetlights",
+        "description": "# Streetlights\n\nCore functionality for streetlight management."
+      },
+      {
+        "name": "telemetry",
+        "description": "Real-time environmental measurements and status updates."
+      },
+      {
+        "name": "commands",
+        "description": "Commands sent to streetlight controllers."
+      },
+      {
+        "name": "maintenance",
+        "description": "Maintenance workflows and alerts."
+      },
+      {
+        "name": "kafka",
+        "description": "Kafka implementation details and bindings."
+      }
+    ],
+    "x-logo": "https://cdn.prod.website-files.com/60e49b51af3305d435c286ab/60e78065113f2f12904a43b1_aklivity-logo.svg"
   },
+  "defaultContentType": "application/json",
   "servers": {
-    "production": {
-      "host": "api.tradestation.com",
-      "protocol": "https",
-      "description": "TradeStation production streaming server. Uses HTTP chunked transfer encoding for real-time data delivery.",
+    "scram-connections": {
+      "host": "test.mykafkacluster.org:18092",
+      "protocol": "kafka",
+      "description": "Test broker secured with scramSha256",
       "security": [
         {
-          "$ref": "#/components/securitySchemes/oauth2AuthCode"
+          "$ref": "#/components/securitySchemes/saslScram"
+        },
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "tags": [
+        {
+          "name": "env:test-scram",
+          "description": "This environment is meant for running internal tests through scramSha256"
+        },
+        {
+          "name": "kind:remote",
+          "description": "This server is a remote server. Not exposed by the application"
+        },
+        {
+          "name": "visibility:private",
+          "description": "This resource is private and only available to certain users"
         }
       ],
       "bindings": {
-        "https": {
-          "bindingVersion": "0.3.0"
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
         }
       }
     },
-    "simulator": {
-      "host": "sim-api.tradestation.com",
-      "protocol": "https",
-      "description": "TradeStation simulator streaming server for paper trading and development testing.",
+    "mtls-connections": {
+      "host": "test.mykafkacluster.org:28092",
+      "protocol": "kafka-secure",
+      "description": "Test broker secured with X509",
       "security": [
         {
-          "$ref": "#/components/securitySchemes/oauth2AuthCode"
+          "$ref": "#/components/securitySchemes/certs"
+        },
+        {
+          "type": "oauth2",
+          "description": "OAuth 2.0 authentication for development environment",
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
+              "tokenUrl": "https://auth.dev-messaging.example.com/oauth/token",
+              "refreshUrl": "https://auth.dev-messaging.example.com/oauth/refresh",
+              "availableScopes": [
+                "publish",
+                "subscribe",
+                "manage"
+              ]
+            }
+          }
+        }
+      ],
+      "tags": [
+        {
+          "name": "env:test-mtls",
+          "description": "This environment is meant for running internal tests through mtls"
+        },
+        {
+          "name": "kind:remote",
+          "description": "This server is a remote server. Not exposed by the application"
+        },
+        {
+          "name": "visibility:private",
+          "description": "This resource is private and only available to certain users"
         }
       ],
       "bindings": {
-        "http": {
-          "bindingVersion": "0.3.0"
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
         }
       }
     }
   },
   "channels": {
-    "/v3/marketdata/stream/quotes/{symbols}": {
-      "address": "/v3/marketdata/stream/quotes/{symbols}",
+    "lightingMeasured": {
+      "address": "smartylighting.streetlights.1.0.event.{streetlightId}.lighting.measured",
       "messages": {
-        "streamQuotes.message": {
-          "$ref": "#/components/messages/QuoteUpdate"
-        }
-      },
-      "description": "Streams real-time quote changes for one or more symbols. Delivers updated bid, ask, last price, volume, and other quote fields as they change. Only changed fields are sent in subsequent updates after the initial snapshot.",
-      "parameters": {
-        "symbols": {
-          "description": "One or more symbol identifiers, comma-separated."
-        }
-      }
-    },
-    "/v3/marketdata/stream/barcharts/{symbol}": {
-      "address": "/v3/marketdata/stream/barcharts/{symbol}",
-      "messages": {
-        "streamBars.message": {
-          "$ref": "#/components/messages/BarUpdate"
-        }
-      },
-      "description": "Streams real-time bar chart data (OHLC) for a given symbol. Delivers bar updates as they form including open, high, low, close, volume, and tick count information. Supports minute, daily, weekly, and monthly intervals.",
-      "parameters": {
-        "symbol": {
-          "description": "The symbol to stream bar chart data for."
-        }
-      }
-    },
-    "/v3/marketdata/stream/options/chains/{underlying}": {
-      "address": "/v3/marketdata/stream/options/chains/{underlying}",
-      "messages": {
-        "streamOptionChain.message": {
-          "$ref": "#/components/messages/OptionChainUpdate"
-        }
-      },
-      "description": "Streams real-time option chain data for a given underlying symbol. Delivers updates to option quotes across multiple expirations and strikes as they change.",
-      "parameters": {
-        "underlying": {
-          "description": "The underlying symbol for the option chain."
-        }
-      }
-    },
-    "/v3/marketdata/stream/options/quotes": {
-      "address": "/v3/marketdata/stream/options/quotes",
-      "messages": {
-        "streamOptionQuotes.message": {
-          "$ref": "#/components/messages/OptionQuoteUpdate"
-        }
-      },
-      "description": "Streams real-time quote data for specific option contracts. Delivers bid, ask, last price, greeks, and other option-specific data as it changes."
-    },
-    "/v3/marketdata/stream/marketdepth/aggregates/{symbol}": {
-      "address": "/v3/marketdata/stream/marketdepth/aggregates/{symbol}",
-      "messages": {
-        "streamMarketDepthAggregates.message": {
-          "$ref": "#/components/messages/MarketDepthUpdate"
-        }
-      },
-      "description": "Streams real-time aggregated market depth data for a symbol. Delivers updates to the order book showing aggregated bid and ask quantities at each price level.",
-      "parameters": {
-        "symbol": {
-          "description": "The symbol to stream market depth data for."
-        }
-      }
-    },
-    "/v3/brokerage/stream/accounts/{accountIds}/orders": {
-      "address": "/v3/brokerage/stream/accounts/{accountIds}/orders",
-      "messages": {
-        "streamOrders.message": {
-          "$ref": "#/components/messages/OrderUpdate"
-        }
-      },
-      "description": "Streams real-time order status updates for one or more brokerage accounts. Delivers order state changes including fills, partial fills, cancellations, and rejections as they occur.",
-      "parameters": {
-        "accountIds": {
-          "description": "One or more account identifiers, comma-separated."
-        }
-      }
-    },
-    "/v3/brokerage/stream/accounts/{accountIds}/orders/{orderIds}": {
-      "address": "/v3/brokerage/stream/accounts/{accountIds}/orders/{orderIds}",
-      "messages": {
-        "streamOrdersByIds.message": {
-          "$ref": "#/components/messages/OrderUpdate"
-        }
-      },
-      "description": "Streams real-time status updates for specific orders by order identifier. Delivers state changes for the specified orders only.",
-      "parameters": {
-        "accountIds": {
-          "description": "One or more account identifiers, comma-separated."
+        "lightMeasured": {
+          "$ref": "#/components/messages/lightMeasured"
         },
-        "orderIds": {
-          "description": "One or more order identifiers, comma-separated."
-        }
-      }
-    },
-    "/v3/brokerage/stream/accounts/{accountIds}/positions": {
-      "address": "/v3/brokerage/stream/accounts/{accountIds}/positions",
-      "messages": {
-        "streamPositions.message": {
-          "$ref": "#/components/messages/PositionUpdate"
-        }
-      },
-      "description": "Streams real-time position updates for one or more brokerage accounts. Delivers changes to position quantities, market values, and profit/loss as they occur throughout the trading session.",
-      "parameters": {
-        "accountIds": {
-          "description": "One or more account identifiers, comma-separated."
-        }
-      }
-    },
-    "/v3/brokerage/stream/accounts/{accountId}/wallets": {
-      "address": "/v3/brokerage/stream/accounts/{accountId}/wallets",
-      "messages": {
-        "streamWallets.message": {
-          "$ref": "#/components/messages/WalletUpdate"
-        }
-      },
-      "description": "Streams real-time cryptocurrency wallet updates for a specific brokerage account. Delivers changes to wallet balances and available amounts.",
-      "parameters": {
-        "accountId": {
-          "description": "The account identifier for wallet streaming."
-        }
-      }
-    },
-    "/v3/stream/diagnostics/{symbol}": {
-      "address": "/v3/stream/diagnostics/{symbol}",
-      "messages": {
-        "diagnostics.heartbeat": {
-          "$ref": "#/components/messages/HeartbeatMessage"
+        "statusUpdate": {
+          "$ref": "#/components/messages/statusUpdate"
         },
-        "diagnostics.error": {
-          "$ref": "#/components/messages/ErrorMessage"
+        "maintenanceAlert": {
+          "$ref": "#/components/messages/maintenanceAlert"
         }
       },
-      "description": "A diagnostic stream for a symbol delivering heartbeat and error events. Use this channel to monitor stream health and handle error conditions.",
+      "description": "The topic on which measured values may be produced and consumed.",
       "parameters": {
-        "symbol": {
-          "description": "The symbol to monitor for diagnostic events."
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightTurnOn": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.turn.on",
+      "messages": {
+        "turnOn": {
+          "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightTurnOff": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.turn.off",
+      "messages": {
+        "turnOff": {
+          "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightsDim": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.dim",
+      "messages": {
+        "dimLight": {
+          "$ref": "#/components/messages/dimLight"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
         }
       }
     }
   },
   "operations": {
-    "streamQuotes": {
+    "receiveLightMeasurement": {
       "action": "receive",
       "channel": {
-        "$ref": "#/channels/~1v3~1marketdata~1stream~1quotes~1{symbols}"
+        "$ref": "#/channels/lightingMeasured"
       },
-      "summary": "Stream quote changes",
-      "messages": [
+      "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "description": "Consumers of this operation receive a stream of lighting measurement events, status updates, and maintenance alerts from streetlights in the field.",
+      "traits": [
         {
-          "$ref": "#/channels/~1v3~1marketdata~1stream~1quotes~1{symbols}/messages/streamQuotes.message"
+          "$ref": "#/components/operationTraits/kafka"
         }
-      ]
-    },
-    "streamBars": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1marketdata~1stream~1barcharts~1{symbol}"
-      },
-      "summary": "Stream bar chart data",
-      "messages": [
+      ],
+      "security": [
         {
-          "$ref": "#/channels/~1v3~1marketdata~1stream~1barcharts~1{symbol}/messages/streamBars.message"
-        }
-      ]
-    },
-    "streamOptionChain": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1chains~1{underlying}"
-      },
-      "summary": "Stream option chain",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1chains~1{underlying}/messages/streamOptionChain.message"
-        }
-      ]
-    },
-    "streamOptionQuotes": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1quotes"
-      },
-      "summary": "Stream option quotes",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1quotes/messages/streamOptionQuotes.message"
-        }
-      ]
-    },
-    "streamMarketDepthAggregates": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1marketdata~1stream~1marketdepth~1aggregates~1{symbol}"
-      },
-      "summary": "Stream market depth aggregates",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1marketdata~1stream~1marketdepth~1aggregates~1{symbol}/messages/streamMarketDepthAggregates.message"
-        }
-      ]
-    },
-    "streamOrders": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders"
-      },
-      "summary": "Stream order updates",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders/messages/streamOrders.message"
-        }
-      ]
-    },
-    "streamOrdersByIds": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders~1{orderIds}"
-      },
-      "summary": "Stream specific order updates",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders~1{orderIds}/messages/streamOrdersByIds.message"
-        }
-      ]
-    },
-    "streamPositions": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1positions"
-      },
-      "summary": "Stream position updates",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1positions/messages/streamPositions.message"
-        }
-      ]
-    },
-    "streamWallets": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountId}~1wallets"
-      },
-      "summary": "Stream wallet updates",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountId}~1wallets/messages/streamWallets.message"
-        }
-      ]
-    },
-    "streamDiagnostics": {
-      "action": "receive",
-      "channel": {
-        "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}"
-      },
-      "summary": "Stream diagnostic events",
-      "description": "Receive heartbeat and error events to monitor stream health for a given symbol.",
-      "messages": [
-        {
-          "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}/messages/diagnostics.heartbeat"
+          "$ref": "#/components/securitySchemes/saslScram"
         },
         {
-          "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}/messages/diagnostics.error"
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Smartylighting event stream integration guide",
+        "url": "https://docs.smartylighting.example.com/events/lighting-measured"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/statusUpdate"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/maintenanceAlert"
+        }
+      ]
+    },
+    "turnOn": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightTurnOn"
+      },
+      "summary": "Turn on a streetlight.",
+      "description": "Sends a turn-on command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-on"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightTurnOn/messages/turnOn"
+        },
+        {
+          "$ref": "#/channels/lightTurnOn/messages/commandAck"
+        }
+      ],
+      "reply": {
+        "channel": {
+          "$ref": "#/channels/lightingMeasured"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
+    },
+    "turnOff": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightTurnOff"
+      },
+      "summary": "Turn off a streetlight.",
+      "description": "Sends a turn-off command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-off"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightTurnOff/messages/turnOff"
+        },
+        {
+          "$ref": "#/channels/lightTurnOff/messages/commandAck"
+        }
+      ],
+      "reply": {
+        "address": {
+          "location": "$message.header#/replyTo",
+          "description": "Reply address is taken from the replyTo header of the incoming message."
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
+    },
+    "dimLight": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightsDim"
+      },
+      "summary": "Dim a streetlight.",
+      "description": "Sends a dim command with a target brightness percentage to a specific streetlight. Useful for energy-saving schedules or adaptive lighting based on environmental conditions.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        }
+      ],
+      "externalDocs": {
+        "description": "Adaptive lighting and dimming guide",
+        "url": "https://docs.smartylighting.example.com/commands/dim"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightsDim/messages/dimLight"
+        },
+        {
+          "$ref": "#/channels/lightsDim/messages/commandAck"
         }
       ]
     }
   },
   "components": {
-    "securitySchemes": {
-      "oauth2AuthCode": {
-        "type": "oauth2",
-        "description": "OAuth 2.0 authorization code flow for accessing TradeStation streaming resources.",
-        "flows": {
-          "authorizationCode": {
-            "authorizationUrl": "https://signin.tradestation.com/authorize",
-            "tokenUrl": "https://signin.tradestation.com/oauth/token",
-            "availableScopes": {
-              "marketdata": "Access to market data streams",
-              "readaccount": "Read access to account streams",
-              "trade": "Access to order and position streams"
-            }
-          }
-        }
-      }
-    },
     "messages": {
-      "QuoteUpdate": {
-        "name": "QuoteUpdate",
-        "title": "Quote Update",
-        "summary": "A real-time quote update for a symbol with changed fields.",
-        "description": "Delivers a partial or full snapshot of quote fields that have changed since the last message. Only fields that changed are included after the initial snapshot. Heartbeat messages are sent periodically when no quote changes occur.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "headers": {
-          "type": "object",
-          "properties": {
-            "X-Stream-Request-Id": {
-              "type": "string",
-              "description": "Unique identifier for the streaming request."
-            },
-            "X-RateLimit-Remaining": {
-              "type": "integer",
-              "description": "Number of remaining streaming requests in the current window."
-            }
-          }
-        },
-        "tags": [
-          { "name": "market-data" },
-          { "name": "quotes" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/QuoteStreamData"
-        }
-      },
-      "BarUpdate": {
-        "name": "BarUpdate",
-        "title": "Bar Chart Update",
-        "summary": "A real-time bar chart update with OHLC data.",
-        "description": "Delivers bar data as intervals form. Each message may represent an open (in-progress) bar or a closed (final) bar. The Status field indicates the bar state.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "headers": {
-          "type": "object",
-          "properties": {
-            "X-Stream-Request-Id": {
-              "type": "string",
-              "description": "Unique identifier for the streaming request."
-            }
-          }
-        },
-        "tags": [
-          { "name": "market-data" },
-          { "name": "bars" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/BarStreamData"
-        }
-      },
-      "OptionChainUpdate": {
-        "name": "OptionChainUpdate",
-        "title": "Option Chain Update",
-        "summary": "A real-time option chain update for an underlying symbol.",
-        "description": "Delivers updates to option contract data across the full chain. Greeks and implied volatility are recalculated on each update.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "tags": [
-          { "name": "market-data" },
-          { "name": "options" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/OptionChainStreamData"
-        }
-      },
-      "OptionQuoteUpdate": {
-        "name": "OptionQuoteUpdate",
-        "title": "Option Quote Update",
-        "summary": "A real-time quote update for specific option contracts.",
-        "description": "Delivers live bid, ask, and last price updates along with recalculated greeks for the specified option contracts.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "tags": [
-          { "name": "market-data" },
-          { "name": "options" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/OptionQuoteStreamData"
-        }
-      },
-      "MarketDepthUpdate": {
-        "name": "MarketDepthUpdate",
-        "title": "Market Depth Update",
-        "summary": "A real-time aggregated market depth update showing order book bid and ask levels.",
-        "description": "Provides a snapshot of aggregated bid and ask quantities at each price level. Updates are delivered whenever the order book changes.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "tags": [
-          { "name": "market-data" },
-          { "name": "depth" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/MarketDepthStreamData"
-        }
-      },
-      "OrderUpdate": {
-        "name": "OrderUpdate",
-        "title": "Order Update",
-        "summary": "A real-time order status update for a brokerage account.",
-        "description": "Delivers state changes for orders including new orders, fills, partial fills, cancellations, and rejections. Each message contains the full order state at the time of the event.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "headers": {
-          "type": "object",
-          "properties": {
-            "X-Account-Id": {
-              "type": "string",
-              "description": "The account identifier associated with the order update."
-            },
-            "X-Stream-Request-Id": {
-              "type": "string",
-              "description": "Unique identifier for the streaming request."
-            }
-          }
-        },
-        "tags": [
-          { "name": "brokerage" },
-          { "name": "orders" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/OrderStreamData"
-        }
-      },
-      "PositionUpdate": {
-        "name": "PositionUpdate",
-        "title": "Position Update",
-        "summary": "A real-time position update for a brokerage account.",
-        "description": "Delivers changes to position size, market value, and unrealized profit/loss as market conditions change throughout the session.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "tags": [
-          { "name": "brokerage" },
-          { "name": "positions" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/PositionStreamData"
-        }
-      },
-      "WalletUpdate": {
-        "name": "WalletUpdate",
-        "title": "Wallet Update",
-        "summary": "A real-time cryptocurrency wallet update.",
-        "description": "Delivers balance changes for cryptocurrency wallets. This message type is deprecated — use the CryptoPositionUpdate stream instead.",
-        "contentType": "application/vnd.tradestation.streams.v3+json",
-        "deprecated": true,
-        "tags": [
-          { "name": "brokerage" },
-          { "name": "crypto" },
-          { "name": "deprecated" }
-        ],
-        "payload": {
-          "$ref": "#/components/schemas/WalletStreamData"
-        }
-      },
-      "HeartbeatMessage": {
-        "name": "HeartbeatMessage",
-        "title": "Heartbeat",
-        "summary": "A periodic heartbeat to keep the stream connection alive.",
-        "description": "Sent every 5 seconds when no data events have occurred. Clients should treat a missing heartbeat as a signal to reconnect.",
+      "lightMeasured": {
+        "name": "lightMeasured",
+        "title": "Light measured",
+        "summary": "Inform about environmental lighting conditions of a particular streetlight.",
         "contentType": "application/json",
-        "headers": {
-          "type": "object",
-          "properties": {
-            "X-Heartbeat-Interval": {
-              "type": "integer",
-              "description": "The configured heartbeat interval in seconds."
-            }
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
           }
-        },
-        "tags": [
-          { "name": "system" }
         ],
         "payload": {
-          "type": "object",
-          "description": "Heartbeat payload",
-          "properties": {
-            "Heartbeat": {
-              "type": "integer",
-              "description": "Monotonically increasing heartbeat counter."
-            }
-          },
-          "required": ["Heartbeat"]
+          "$ref": "#/components/schemas/lightMeasuredPayload"
         }
       },
-      "ErrorMessage": {
-        "name": "ErrorMessage",
-        "title": "Stream Error",
-        "summary": "An error message sent when the stream encounters a problem.",
-        "description": "Delivered when the server encounters an error such as an invalid symbol, rate limit exceeded, or authentication failure. The stream may terminate after certain error types.",
+      "turnOnOff": {
+        "name": "turnOnOff",
+        "title": "Turn on/off",
+        "summary": "Command a particular streetlight to turn the lights on or off.",
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
+          }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/turnOnOffPayload"
+        }
+      },
+      "dimLight": {
+        "name": "dimLight",
+        "title": "Dim light",
+        "summary": "Command a particular streetlight to dim the lights.",
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
+          }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/dimLightPayload"
+        }
+      },
+      "statusUpdate": {
+        "name": "statusUpdate",
+        "title": "Streetlight Status Update",
+        "summary": "Reports the current operational state of a streetlight.",
+        "description": "Emitted whenever a streetlight transitions between operational states such as coming online, going offline, or entering an error condition.",
         "contentType": "application/json",
         "tags": [
-          { "name": "system" },
-          { "name": "errors" }
+          {
+            "name": "status"
+          },
+          {
+            "name": "telemetry"
+          }
         ],
         "payload": {
           "type": "object",
-          "description": "Error payload",
           "properties": {
-            "Error": {
+            "streetlightId": {
               "type": "string",
-              "description": "The error code.",
-              "enum": ["InvalidSymbol", "RateLimitExceeded", "Unauthorized", "ServiceUnavailable"]
+              "description": "The identifier of the streetlight reporting its status."
             },
-            "Message": {
+            "state": {
               "type": "string",
-              "description": "A human-readable description of the error."
+              "enum": [
+                "online",
+                "offline",
+                "error",
+                "maintenance"
+              ],
+              "description": "The current operational state of the streetlight."
+            },
+            "message": {
+              "type": "string",
+              "description": "Optional human-readable detail about the state change."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
             }
           },
-          "required": ["Error", "Message"]
+          "required": [
+            "streetlightId",
+            "state",
+            "sentAt"
+          ]
+        }
+      },
+      "maintenanceAlert": {
+        "name": "maintenanceAlert",
+        "title": "Maintenance Alert",
+        "summary": "Signals that a streetlight requires maintenance.",
+        "description": "Published when a streetlight detects a hardware fault, connectivity issue, or scheduled maintenance window. Consumers should dispatch a maintenance crew accordingly.",
+        "contentType": "application/json",
+        "tags": [
+          {
+            "name": "maintenance"
+          },
+          {
+            "name": "alerts"
+          }
+        ],
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Alert-Priority": {
+              "type": "string",
+              "description": "Priority level for routing and paging."
+            }
+          }
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight requiring maintenance."
+            },
+            "issue": {
+              "type": "string",
+              "description": "Description of the maintenance issue detected."
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ],
+              "description": "Severity level of the maintenance issue."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": [
+            "streetlightId",
+            "issue",
+            "severity",
+            "sentAt"
+          ]
+        }
+      },
+      "commandAck": {
+        "name": "commandAck",
+        "title": "Command Acknowledgement",
+        "summary": "Acknowledgement that a control command was received and processed.",
+        "description": "Sent by the streetlight controller after processing a turn on, turn off, or dim command. Indicates whether the command was accepted and executed.",
+        "contentType": "application/json",
+        "tags": [
+          {
+            "name": "commands"
+          },
+          {
+            "name": "acknowledgement"
+          }
+        ],
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight that processed the command."
+            },
+            "command": {
+              "type": "string",
+              "enum": [
+                "turnOn",
+                "turnOff",
+                "dim"
+              ],
+              "description": "The command that was acknowledged."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "rejected",
+                "pending"
+              ],
+              "description": "Whether the command was accepted and executed."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Reason for rejection if status is rejected."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": [
+            "streetlightId",
+            "command",
+            "status",
+            "sentAt"
+          ]
         }
       }
     },
     "schemas": {
-      "QuoteStreamData": {
+      "lightMeasuredPayload": {
         "type": "object",
-        "description": "Streaming quote data with fields that have changed since the last update.",
         "properties": {
-          "Symbol": {
-            "type": "string",
-            "description": "The symbol identifier."
-          },
-          "Last": {
-            "type": "number",
-            "format": "double",
-            "description": "The last traded price."
-          },
-          "Bid": {
-            "type": "number",
-            "format": "double",
-            "description": "The current bid price."
-          },
-          "Ask": {
-            "type": "number",
-            "format": "double",
-            "description": "The current ask price."
-          },
-          "BidSize": {
+          "lumens": {
             "type": "integer",
-            "description": "The size of the bid."
+            "minimum": 0,
+            "description": "Light intensity measured in lumens."
           },
-          "AskSize": {
-            "type": "integer",
-            "description": "The size of the ask."
-          },
-          "Volume": {
-            "type": "integer",
-            "description": "The total volume traded today."
-          },
-          "Open": {
-            "type": "number",
-            "format": "double",
-            "description": "The opening price."
-          },
-          "High": {
-            "type": "number",
-            "format": "double",
-            "description": "The session high price."
-          },
-          "Low": {
-            "type": "number",
-            "format": "double",
-            "description": "The session low price."
-          },
-          "Close": {
-            "type": "number",
-            "format": "double",
-            "description": "The previous close price."
-          },
-          "NetChange": {
-            "type": "number",
-            "format": "double",
-            "description": "Net change from previous close."
-          },
-          "NetChangePct": {
-            "type": "number",
-            "format": "double",
-            "description": "Net change as a percentage."
-          },
-          "TradeTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp of the last trade."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter sent periodically to keep the stream alive."
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
           }
         }
       },
-      "BarStreamData": {
+      "turnOnOffPayload": {
         "type": "object",
-        "description": "Streaming bar chart data with OHLC values.",
         "properties": {
-          "High": {
-            "type": "number",
-            "format": "double",
-            "description": "The highest price during the bar interval."
-          },
-          "Low": {
-            "type": "number",
-            "format": "double",
-            "description": "The lowest price during the bar interval."
-          },
-          "Open": {
-            "type": "number",
-            "format": "double",
-            "description": "The opening price of the bar interval."
-          },
-          "Close": {
-            "type": "number",
-            "format": "double",
-            "description": "The closing price of the bar interval."
-          },
-          "Volume": {
-            "type": "integer",
-            "description": "The total volume during the bar interval."
-          },
-          "TimeStamp": {
+          "command": {
             "type": "string",
-            "format": "date-time",
-            "description": "The timestamp for the bar interval."
+            "enum": [
+              "on",
+              "off"
+            ],
+            "description": "Whether to turn on or off the light."
           },
-          "TotalTicks": {
-            "type": "integer",
-            "description": "The total number of ticks during the bar interval."
-          },
-          "UpTicks": {
-            "type": "integer",
-            "description": "The number of up ticks."
-          },
-          "DownTicks": {
-            "type": "integer",
-            "description": "The number of down ticks."
-          },
-          "Status": {
-            "type": "string",
-            "description": "The status of the bar such as Open, Closed, or New."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
           }
         }
       },
-      "OptionChainStreamData": {
+      "dimLightPayload": {
         "type": "object",
-        "description": "Streaming option chain data for an underlying symbol.",
         "properties": {
-          "Symbol": {
-            "type": "string",
-            "description": "The option symbol."
-          },
-          "Underlying": {
-            "type": "string",
-            "description": "The underlying symbol."
-          },
-          "StrikePrice": {
-            "type": "number",
-            "format": "double",
-            "description": "The strike price."
-          },
-          "ExpirationDate": {
-            "type": "string",
-            "format": "date",
-            "description": "The expiration date."
-          },
-          "OptionType": {
-            "type": "string",
-            "description": "The option type.",
-            "enum": ["Call", "Put"]
-          },
-          "Bid": {
-            "type": "number",
-            "format": "double",
-            "description": "The current bid price."
-          },
-          "Ask": {
-            "type": "number",
-            "format": "double",
-            "description": "The current ask price."
-          },
-          "Last": {
-            "type": "number",
-            "format": "double",
-            "description": "The last traded price."
-          },
-          "Volume": {
+          "percentage": {
             "type": "integer",
-            "description": "The volume traded today."
+            "description": "Percentage to which the light should be dimmed to.",
+            "minimum": 0,
+            "maximum": 100
           },
-          "OpenInterest": {
-            "type": "integer",
-            "description": "The current open interest."
-          },
-          "Delta": {
-            "type": "number",
-            "format": "double",
-            "description": "The option delta greek."
-          },
-          "Gamma": {
-            "type": "number",
-            "format": "double",
-            "description": "The option gamma greek."
-          },
-          "Theta": {
-            "type": "number",
-            "format": "double",
-            "description": "The option theta greek."
-          },
-          "Vega": {
-            "type": "number",
-            "format": "double",
-            "description": "The option vega greek."
-          },
-          "ImpliedVolatility": {
-            "type": "number",
-            "format": "double",
-            "description": "The implied volatility."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
           }
         }
       },
-      "OptionQuoteStreamData": {
-        "type": "object",
-        "description": "Streaming quote data for a specific option contract.",
-        "properties": {
-          "Symbol": {
-            "type": "string",
-            "description": "The option symbol."
-          },
-          "Bid": {
-            "type": "number",
-            "format": "double",
-            "description": "The current bid price."
-          },
-          "Ask": {
-            "type": "number",
-            "format": "double",
-            "description": "The current ask price."
-          },
-          "Last": {
-            "type": "number",
-            "format": "double",
-            "description": "The last traded price."
-          },
-          "Volume": {
-            "type": "integer",
-            "description": "The volume traded today."
-          },
-          "Delta": {
-            "type": "number",
-            "format": "double",
-            "description": "The option delta."
-          },
-          "Gamma": {
-            "type": "number",
-            "format": "double",
-            "description": "The option gamma."
-          },
-          "Theta": {
-            "type": "number",
-            "format": "double",
-            "description": "The option theta."
-          },
-          "Vega": {
-            "type": "number",
-            "format": "double",
-            "description": "The option vega."
-          },
-          "ImpliedVolatility": {
-            "type": "number",
-            "format": "double",
-            "description": "The implied volatility."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
-          }
-        }
+      "sentAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Date and time when the message was sent."
+      }
+    },
+    "securitySchemes": {
+      "saslScram": {
+        "type": "scramSha256",
+        "description": "Provide your username and password for SASL/SCRAM authentication"
       },
-      "MarketDepthStreamData": {
-        "type": "object",
-        "description": "Streaming aggregated market depth data showing bid and ask levels in the order book.",
-        "properties": {
-          "Symbol": {
-            "type": "string",
-            "description": "The symbol identifier."
-          },
-          "Bids": {
-            "type": "array",
-            "description": "Aggregated bid levels.",
-            "items": {
-              "$ref": "#/components/schemas/DepthLevel"
+      "certs": {
+        "type": "X509",
+        "description": "Download the certificate files from service provider"
+      }
+    },
+    "parameters": {
+      "streetlightId": {
+        "description": "The ID of the streetlight."
+      }
+    },
+    "messageTraits": {
+      "commonHeaders": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "my-app-header": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
             }
-          },
-          "Asks": {
-            "type": "array",
-            "description": "Aggregated ask levels.",
-            "items": {
-              "$ref": "#/components/schemas/DepthLevel"
+          }
+        }
+      }
+    },
+    "operationTraits": {
+      "kafka": {
+        "bindings": {
+          "kafka": {
+            "clientId": {
+              "type": "string",
+              "enum": [
+                "my-app-id"
+              ]
             }
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
-          }
-        }
-      },
-      "DepthLevel": {
-        "type": "object",
-        "description": "A single price level in the market depth order book.",
-        "properties": {
-          "Price": {
-            "type": "number",
-            "format": "double",
-            "description": "The price level."
-          },
-          "Size": {
-            "type": "integer",
-            "description": "The aggregate size at this price level."
-          },
-          "OrderCount": {
-            "type": "integer",
-            "description": "The number of orders at this price level."
-          }
-        }
-      },
-      "OrderStreamData": {
-        "type": "object",
-        "description": "Streaming order status update data.",
-        "properties": {
-          "OrderID": {
-            "type": "string",
-            "description": "The unique order identifier."
-          },
-          "AccountID": {
-            "type": "string",
-            "description": "The account identifier."
-          },
-          "Symbol": {
-            "type": "string",
-            "description": "The symbol being traded."
-          },
-          "Quantity": {
-            "type": "number",
-            "format": "double",
-            "description": "The order quantity."
-          },
-          "FilledQuantity": {
-            "type": "number",
-            "format": "double",
-            "description": "The quantity filled so far."
-          },
-          "OrderType": {
-            "type": "string",
-            "description": "The order type.",
-            "enum": [
-              "Market",
-              "Limit",
-              "StopMarket",
-              "StopLimit",
-              "TrailingStop",
-              "TrailingStopLimit"
-            ]
-          },
-          "Status": {
-            "type": "string",
-            "description": "The current order status.",
-            "enum": [
-              "Open",
-              "Filled",
-              "PartiallyFilled",
-              "Cancelled",
-              "Rejected",
-              "Expired",
-              "Queued",
-              "Received"
-            ]
-          },
-          "Side": {
-            "type": "string",
-            "description": "The order side.",
-            "enum": [
-              "Buy",
-              "Sell",
-              "BuyToOpen",
-              "BuyToClose",
-              "SellToOpen",
-              "SellToClose",
-              "SellShort",
-              "BuyToCover"
-            ]
-          },
-          "LimitPrice": {
-            "type": "number",
-            "format": "double",
-            "description": "The limit price."
-          },
-          "StopPrice": {
-            "type": "number",
-            "format": "double",
-            "description": "The stop price."
-          },
-          "FilledPrice": {
-            "type": "number",
-            "format": "double",
-            "description": "The average fill price."
-          },
-          "TimeInForce": {
-            "type": "string",
-            "description": "Time-in-force setting."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
-          }
-        }
-      },
-      "PositionStreamData": {
-        "type": "object",
-        "description": "Streaming position update data.",
-        "properties": {
-          "AccountID": {
-            "type": "string",
-            "description": "The account identifier."
-          },
-          "Symbol": {
-            "type": "string",
-            "description": "The position symbol."
-          },
-          "Quantity": {
-            "type": "number",
-            "format": "double",
-            "description": "The current position quantity."
-          },
-          "AveragePrice": {
-            "type": "number",
-            "format": "double",
-            "description": "The average entry price."
-          },
-          "Last": {
-            "type": "number",
-            "format": "double",
-            "description": "The last traded price."
-          },
-          "MarketValue": {
-            "type": "number",
-            "format": "double",
-            "description": "The current market value."
-          },
-          "UnrealizedProfitLoss": {
-            "type": "number",
-            "format": "double",
-            "description": "The unrealized profit or loss."
-          },
-          "AssetType": {
-            "type": "string",
-            "description": "The asset type.",
-            "enum": ["Stock", "Option", "Future", "Crypto"]
-          },
-          "LongShort": {
-            "type": "string",
-            "description": "Whether the position is long or short.",
-            "enum": ["Long", "Short"]
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
-          }
-        }
-      },
-      "WalletStreamData": {
-        "type": "object",
-        "description": "Streaming cryptocurrency wallet update data.",
-        "properties": {
-          "Currency": {
-            "type": "string",
-            "description": "The cryptocurrency currency code."
-          },
-          "Balance": {
-            "type": "number",
-            "format": "double",
-            "description": "The wallet balance."
-          },
-          "Available": {
-            "type": "number",
-            "format": "double",
-            "description": "The available balance for trading."
-          },
-          "Heartbeat": {
-            "type": "integer",
-            "description": "Heartbeat counter for keeping the stream alive."
           }
         }
       }
