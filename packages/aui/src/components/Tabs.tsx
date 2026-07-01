@@ -33,7 +33,7 @@ export default function Tabs({
 
   return (
     <div>
-      <div className="sm:hidden">
+      <div className="@sm:hidden">
         <label htmlFor={selectId} className="sr-only">
           {selectLabel}
         </label>
@@ -55,7 +55,7 @@ export default function Tabs({
         </select>
       </div>
 
-      <div className={classNames("hidden sm:block", hasIcons ? "" : "mt-6")}>
+      <div className={classNames("hidden @sm:block", hasIcons ? "" : "mt-6")}>
         {hasIcons ? (
           <div
             className="border-b border-border"

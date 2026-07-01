@@ -74,7 +74,7 @@ a {
   }
 
 .panel-toggle-btn {
-  position: fixed;
+  position: absolute;
   top: 10px;
   left: 12px;
   width: 40px;

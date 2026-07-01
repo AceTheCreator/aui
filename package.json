@@ -1,33 +1,12 @@
 {
-  "name": "aui",
+  "name": "aui-monorepo",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "generate:models": "tsx src/scripts/generateAsyncAPIModel.ts"
-  },
-  "dependencies": {
-    "@asyncapi/specs": "^6.8.1",
-    "@json-schema-tools/reference-resolver": "^1.2.6",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.16",
-    "highlight.js": "^11.11.1",
-    "isomorphic-dompurify": "^2.24.0",
-    "json-schema-faker": "^0.6.2",
-    "json-schema-resolver": "^3.0.0",
-    "marked": "^15.0.11",
-    "marked-highlight": "^2.2.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-markdown": "^9.0.3",
-    "react-syntax-highlighter": "^15.6.1",
-    "remark-gfm": "^4.0.1"
+    "build:lib": "npm run build --workspace=packages/aui",
+    "dev:lib": "npm run dev --workspace=packages/aui",
+    "playground": "concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
+    "storybook": "npm run storybook --workspace=packages/aui"
   },
   "peerDependencies": {
     "@asyncapi/parser": "^3.6.0"
@@ -38,39 +17,6 @@
     }
   },
   "devDependencies": {
-    "@asyncapi/modelina": "^5.10.1",
-    "@chromatic-com/storybook": "^3.2.3",
-    "@eslint/js": "^9.17.0",
-    "@storybook/addon-a11y": "^8.6.18",
-    "@storybook/addon-essentials": "^8.6.18",
-    "@storybook/addon-interactions": "^8.6.18",
-    "@storybook/addon-onboarding": "^8.6.18",
-    "@storybook/blocks": "^8.6.18",
-    "@storybook/react": "^8.6.18",
-    "@storybook/react-vite": "^8.6.18",
-    "@storybook/test": "^8.6.18",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@types/react-syntax-highlighter": "^15.5.13",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.17.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
-    "eslint-plugin-storybook": "^0.11.2",
-    "globals": "^15.14.0",
-    "marked-linkify-it": "^3.1.12",
-    "postcss": "^8.4.49",
-    "storybook": "^8.6.18",
-    "tailwindcss": "^3.4.17",
-    "tsx": "^4.21.0",
-    "typescript": "~5.6.2",
-    "typescript-eslint": "^8.18.2",
-    "vite": "^6.0.5"
-  },
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
+    "concurrently": "^9.0.0"
   }
 }

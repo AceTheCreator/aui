@@ -161,9 +161,9 @@ export const OpenID = ({ security }: { security: OpenIdConnect }) => {
         .
       </p>
       {security?.scopes && (
-        <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 items-center sm:gap-4">
+        <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 items-center @sm:gap-4">
           <dt className="text-sm font-medium text-foreground-muted">Scopes</dt>
-          <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+          <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
             <code>{formatArrayToCodeString(security.scopes)}</code>
           </dd>
         </div>
@@ -209,33 +209,33 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
                 </p>
               </div>
               <div className="mt-5 border-t border-border">
-                <dl className="sm:divide-y sm:divide-border">
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                <dl className="@sm:divide-y @sm:divide-border">
+                  <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
                     <dt className="text-sm font-medium text-foreground-muted">
                       Authorization URL
                     </dt>
-                    <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
                       <a href={``} className="text-foreground">
                         {flowData.authorizationUrl}
                       </a>
                     </dd>
                   </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                  <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
                     <dt className="text-sm font-medium text-foreground-muted">
                       Token URL
                     </dt>
-                    <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
                       <a href={``} className="text-foreground">
                         {flowData.tokenUrl}
                       </a>
                     </dd>
                   </div>
                   {flowData.refreshUrl && (
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                    <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
                       <dt className="text-sm font-medium text-foreground-muted">
                         Refresh URL
                       </dt>
-                      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                      <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
                         <a href={``} className="text-foreground">
                           {flowData.refreshUrl}
                         </a>
@@ -243,11 +243,11 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
                     </div>
                   )}
                   {flowData.availableScopes && (
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
+                    <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
                       <dt className="text-sm font-medium text-foreground-muted">
                         Scopes
                       </dt>
-                      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2">
+                      <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
                         <div className="flex flex-wrap gap-1.5">
                           {(Array.isArray(flowData.availableScopes)
                             ? flowData.availableScopes
