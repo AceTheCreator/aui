@@ -5,7 +5,7 @@
   "scripts": {
     "build:lib": "npm run build --workspace=packages/aui",
     "dev:lib": "npm run dev --workspace=packages/aui",
-    "playground": "concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
+    "playground": "npm run build --workspace=packages/aui && concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
     "storybook": "npm run storybook --workspace=packages/aui"
   },
   "peerDependencies": {
