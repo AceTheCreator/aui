@@ -1,0 +1,1031 @@
+{
+  "asyncapi": "3.1.0",
+  "info": {
+    "title": "TradeStation Streaming API",
+    "version": "3.0",
+    "description": "The TradeStation Streaming API provides real-time HTTP streaming endpoints for market data and brokerage events. Streams use HTTP chunked transfer encoding with newline-delimited JSON objects. Each stream maintains a persistent HTTP connection that delivers updates as they occur, significantly reducing network latency compared to polling. Streams consist of a series of chunks containing individual JSON objects parsed separately using the newline character delimiter. TradeStation streams can terminate under certain conditions, unlike canonical HTTP/1.1 streams. The streaming content type is application/vnd.tradestation.streams.v3+json.",
+    "contact": {
+      "name": "TradeStation API Support",
+      "url": "https://api.tradestation.com/docs/"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://www.tradestation.com/important-information/"
+    }
+  },
+  "servers": {
+    "production": {
+      "host": "api.tradestation.com",
+      "protocol": "https",
+      "description": "TradeStation production streaming server. Uses HTTP chunked transfer encoding for real-time data delivery.",
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/oauth2AuthCode"
+        }
+      ],
+      "bindings": {
+        "https": {
+          "bindingVersion": "0.3.0"
+        }
+      }
+    },
+    "simulator": {
+      "host": "sim-api.tradestation.com",
+      "protocol": "https",
+      "description": "TradeStation simulator streaming server for paper trading and development testing.",
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/oauth2AuthCode"
+        }
+      ],
+      "bindings": {
+        "http": {
+          "bindingVersion": "0.3.0"
+        }
+      }
+    }
+  },
+  "channels": {
+    "/v3/marketdata/stream/quotes/{symbols}": {
+      "address": "/v3/marketdata/stream/quotes/{symbols}",
+      "messages": {
+        "streamQuotes.message": {
+          "$ref": "#/components/messages/QuoteUpdate"
+        }
+      },
+      "description": "Streams real-time quote changes for one or more symbols. Delivers updated bid, ask, last price, volume, and other quote fields as they change. Only changed fields are sent in subsequent updates after the initial snapshot.",
+      "parameters": {
+        "symbols": {
+          "description": "One or more symbol identifiers, comma-separated."
+        }
+      }
+    },
+    "/v3/marketdata/stream/barcharts/{symbol}": {
+      "address": "/v3/marketdata/stream/barcharts/{symbol}",
+      "messages": {
+        "streamBars.message": {
+          "$ref": "#/components/messages/BarUpdate"
+        }
+      },
+      "description": "Streams real-time bar chart data (OHLC) for a given symbol. Delivers bar updates as they form including open, high, low, close, volume, and tick count information. Supports minute, daily, weekly, and monthly intervals.",
+      "parameters": {
+        "symbol": {
+          "description": "The symbol to stream bar chart data for."
+        }
+      }
+    },
+    "/v3/marketdata/stream/options/chains/{underlying}": {
+      "address": "/v3/marketdata/stream/options/chains/{underlying}",
+      "messages": {
+        "streamOptionChain.message": {
+          "$ref": "#/components/messages/OptionChainUpdate"
+        }
+      },
+      "description": "Streams real-time option chain data for a given underlying symbol. Delivers updates to option quotes across multiple expirations and strikes as they change.",
+      "parameters": {
+        "underlying": {
+          "description": "The underlying symbol for the option chain."
+        }
+      }
+    },
+    "/v3/marketdata/stream/options/quotes": {
+      "address": "/v3/marketdata/stream/options/quotes",
+      "messages": {
+        "streamOptionQuotes.message": {
+          "$ref": "#/components/messages/OptionQuoteUpdate"
+        }
+      },
+      "description": "Streams real-time quote data for specific option contracts. Delivers bid, ask, last price, greeks, and other option-specific data as it changes."
+    },
+    "/v3/marketdata/stream/marketdepth/aggregates/{symbol}": {
+      "address": "/v3/marketdata/stream/marketdepth/aggregates/{symbol}",
+      "messages": {
+        "streamMarketDepthAggregates.message": {
+          "$ref": "#/components/messages/MarketDepthUpdate"
+        }
+      },
+      "description": "Streams real-time aggregated market depth data for a symbol. Delivers updates to the order book showing aggregated bid and ask quantities at each price level.",
+      "parameters": {
+        "symbol": {
+          "description": "The symbol to stream market depth data for."
+        }
+      }
+    },
+    "/v3/brokerage/stream/accounts/{accountIds}/orders": {
+      "address": "/v3/brokerage/stream/accounts/{accountIds}/orders",
+      "messages": {
+        "streamOrders.message": {
+          "$ref": "#/components/messages/OrderUpdate"
+        }
+      },
+      "description": "Streams real-time order status updates for one or more brokerage accounts. Delivers order state changes including fills, partial fills, cancellations, and rejections as they occur.",
+      "parameters": {
+        "accountIds": {
+          "description": "One or more account identifiers, comma-separated."
+        }
+      }
+    },
+    "/v3/brokerage/stream/accounts/{accountIds}/orders/{orderIds}": {
+      "address": "/v3/brokerage/stream/accounts/{accountIds}/orders/{orderIds}",
+      "messages": {
+        "streamOrdersByIds.message": {
+          "$ref": "#/components/messages/OrderUpdate"
+        }
+      },
+      "description": "Streams real-time status updates for specific orders by order identifier. Delivers state changes for the specified orders only.",
+      "parameters": {
+        "accountIds": {
+          "description": "One or more account identifiers, comma-separated."
+        },
+        "orderIds": {
+          "description": "One or more order identifiers, comma-separated."
+        }
+      }
+    },
+    "/v3/brokerage/stream/accounts/{accountIds}/positions": {
+      "address": "/v3/brokerage/stream/accounts/{accountIds}/positions",
+      "messages": {
+        "streamPositions.message": {
+          "$ref": "#/components/messages/PositionUpdate"
+        }
+      },
+      "description": "Streams real-time position updates for one or more brokerage accounts. Delivers changes to position quantities, market values, and profit/loss as they occur throughout the trading session.",
+      "parameters": {
+        "accountIds": {
+          "description": "One or more account identifiers, comma-separated."
+        }
+      }
+    },
+    "/v3/brokerage/stream/accounts/{accountId}/wallets": {
+      "address": "/v3/brokerage/stream/accounts/{accountId}/wallets",
+      "messages": {
+        "streamWallets.message": {
+          "$ref": "#/components/messages/WalletUpdate"
+        }
+      },
+      "description": "Streams real-time cryptocurrency wallet updates for a specific brokerage account. Delivers changes to wallet balances and available amounts.",
+      "parameters": {
+        "accountId": {
+          "description": "The account identifier for wallet streaming."
+        }
+      }
+    },
+    "/v3/stream/diagnostics/{symbol}": {
+      "address": "/v3/stream/diagnostics/{symbol}",
+      "messages": {
+        "diagnostics.heartbeat": {
+          "$ref": "#/components/messages/HeartbeatMessage"
+        },
+        "diagnostics.error": {
+          "$ref": "#/components/messages/ErrorMessage"
+        }
+      },
+      "description": "A diagnostic stream for a symbol delivering heartbeat and error events. Use this channel to monitor stream health and handle error conditions.",
+      "parameters": {
+        "symbol": {
+          "description": "The symbol to monitor for diagnostic events."
+        }
+      }
+    }
+  },
+  "operations": {
+    "streamQuotes": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1marketdata~1stream~1quotes~1{symbols}"
+      },
+      "summary": "Stream quote changes",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1marketdata~1stream~1quotes~1{symbols}/messages/streamQuotes.message"
+        }
+      ]
+    },
+    "streamBars": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1marketdata~1stream~1barcharts~1{symbol}"
+      },
+      "summary": "Stream bar chart data",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1marketdata~1stream~1barcharts~1{symbol}/messages/streamBars.message"
+        }
+      ]
+    },
+    "streamOptionChain": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1chains~1{underlying}"
+      },
+      "summary": "Stream option chain",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1chains~1{underlying}/messages/streamOptionChain.message"
+        }
+      ]
+    },
+    "streamOptionQuotes": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1quotes"
+      },
+      "summary": "Stream option quotes",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1marketdata~1stream~1options~1quotes/messages/streamOptionQuotes.message"
+        }
+      ]
+    },
+    "streamMarketDepthAggregates": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1marketdata~1stream~1marketdepth~1aggregates~1{symbol}"
+      },
+      "summary": "Stream market depth aggregates",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1marketdata~1stream~1marketdepth~1aggregates~1{symbol}/messages/streamMarketDepthAggregates.message"
+        }
+      ]
+    },
+    "streamOrders": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders"
+      },
+      "summary": "Stream order updates",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders/messages/streamOrders.message"
+        }
+      ]
+    },
+    "streamOrdersByIds": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders~1{orderIds}"
+      },
+      "summary": "Stream specific order updates",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1orders~1{orderIds}/messages/streamOrdersByIds.message"
+        }
+      ]
+    },
+    "streamPositions": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1positions"
+      },
+      "summary": "Stream position updates",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountIds}~1positions/messages/streamPositions.message"
+        }
+      ]
+    },
+    "streamWallets": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountId}~1wallets"
+      },
+      "summary": "Stream wallet updates",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1brokerage~1stream~1accounts~1{accountId}~1wallets/messages/streamWallets.message"
+        }
+      ]
+    },
+    "streamDiagnostics": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}"
+      },
+      "summary": "Stream diagnostic events",
+      "description": "Receive heartbeat and error events to monitor stream health for a given symbol.",
+      "messages": [
+        {
+          "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}/messages/diagnostics.heartbeat"
+        },
+        {
+          "$ref": "#/channels/~1v3~1stream~1diagnostics~1{symbol}/messages/diagnostics.error"
+        }
+      ]
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "oauth2AuthCode": {
+        "type": "oauth2",
+        "description": "OAuth 2.0 authorization code flow for accessing TradeStation streaming resources.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://signin.tradestation.com/authorize",
+            "tokenUrl": "https://signin.tradestation.com/oauth/token",
+            "availableScopes": {
+              "marketdata": "Access to market data streams",
+              "readaccount": "Read access to account streams",
+              "trade": "Access to order and position streams"
+            }
+          }
+        }
+      }
+    },
+    "messages": {
+      "QuoteUpdate": {
+        "name": "QuoteUpdate",
+        "title": "Quote Update",
+        "summary": "A real-time quote update for a symbol with changed fields.",
+        "description": "Delivers a partial or full snapshot of quote fields that have changed since the last message. Only fields that changed are included after the initial snapshot. Heartbeat messages are sent periodically when no quote changes occur.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Stream-Request-Id": {
+              "type": "string",
+              "description": "Unique identifier for the streaming request."
+            },
+            "X-RateLimit-Remaining": {
+              "type": "integer",
+              "description": "Number of remaining streaming requests in the current window."
+            }
+          }
+        },
+        "tags": [
+          { "name": "market-data" },
+          { "name": "quotes" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/QuoteStreamData"
+        }
+      },
+      "BarUpdate": {
+        "name": "BarUpdate",
+        "title": "Bar Chart Update",
+        "summary": "A real-time bar chart update with OHLC data.",
+        "description": "Delivers bar data as intervals form. Each message may represent an open (in-progress) bar or a closed (final) bar. The Status field indicates the bar state.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Stream-Request-Id": {
+              "type": "string",
+              "description": "Unique identifier for the streaming request."
+            }
+          }
+        },
+        "tags": [
+          { "name": "market-data" },
+          { "name": "bars" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/BarStreamData"
+        }
+      },
+      "OptionChainUpdate": {
+        "name": "OptionChainUpdate",
+        "title": "Option Chain Update",
+        "summary": "A real-time option chain update for an underlying symbol.",
+        "description": "Delivers updates to option contract data across the full chain. Greeks and implied volatility are recalculated on each update.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "tags": [
+          { "name": "market-data" },
+          { "name": "options" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/OptionChainStreamData"
+        }
+      },
+      "OptionQuoteUpdate": {
+        "name": "OptionQuoteUpdate",
+        "title": "Option Quote Update",
+        "summary": "A real-time quote update for specific option contracts.",
+        "description": "Delivers live bid, ask, and last price updates along with recalculated greeks for the specified option contracts.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "tags": [
+          { "name": "market-data" },
+          { "name": "options" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/OptionQuoteStreamData"
+        }
+      },
+      "MarketDepthUpdate": {
+        "name": "MarketDepthUpdate",
+        "title": "Market Depth Update",
+        "summary": "A real-time aggregated market depth update showing order book bid and ask levels.",
+        "description": "Provides a snapshot of aggregated bid and ask quantities at each price level. Updates are delivered whenever the order book changes.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "tags": [
+          { "name": "market-data" },
+          { "name": "depth" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/MarketDepthStreamData"
+        }
+      },
+      "OrderUpdate": {
+        "name": "OrderUpdate",
+        "title": "Order Update",
+        "summary": "A real-time order status update for a brokerage account.",
+        "description": "Delivers state changes for orders including new orders, fills, partial fills, cancellations, and rejections. Each message contains the full order state at the time of the event.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Account-Id": {
+              "type": "string",
+              "description": "The account identifier associated with the order update."
+            },
+            "X-Stream-Request-Id": {
+              "type": "string",
+              "description": "Unique identifier for the streaming request."
+            }
+          }
+        },
+        "tags": [
+          { "name": "brokerage" },
+          { "name": "orders" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/OrderStreamData"
+        }
+      },
+      "PositionUpdate": {
+        "name": "PositionUpdate",
+        "title": "Position Update",
+        "summary": "A real-time position update for a brokerage account.",
+        "description": "Delivers changes to position size, market value, and unrealized profit/loss as market conditions change throughout the session.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "tags": [
+          { "name": "brokerage" },
+          { "name": "positions" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/PositionStreamData"
+        }
+      },
+      "WalletUpdate": {
+        "name": "WalletUpdate",
+        "title": "Wallet Update",
+        "summary": "A real-time cryptocurrency wallet update.",
+        "description": "Delivers balance changes for cryptocurrency wallets. This message type is deprecated — use the CryptoPositionUpdate stream instead.",
+        "contentType": "application/vnd.tradestation.streams.v3+json",
+        "deprecated": true,
+        "tags": [
+          { "name": "brokerage" },
+          { "name": "crypto" },
+          { "name": "deprecated" }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/WalletStreamData"
+        }
+      },
+      "HeartbeatMessage": {
+        "name": "HeartbeatMessage",
+        "title": "Heartbeat",
+        "summary": "A periodic heartbeat to keep the stream connection alive.",
+        "description": "Sent every 5 seconds when no data events have occurred. Clients should treat a missing heartbeat as a signal to reconnect.",
+        "contentType": "application/json",
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Heartbeat-Interval": {
+              "type": "integer",
+              "description": "The configured heartbeat interval in seconds."
+            }
+          }
+        },
+        "tags": [
+          { "name": "system" }
+        ],
+        "payload": {
+          "type": "object",
+          "description": "Heartbeat payload",
+          "properties": {
+            "Heartbeat": {
+              "type": "integer",
+              "description": "Monotonically increasing heartbeat counter."
+            }
+          },
+          "required": ["Heartbeat"]
+        }
+      },
+      "ErrorMessage": {
+        "name": "ErrorMessage",
+        "title": "Stream Error",
+        "summary": "An error message sent when the stream encounters a problem.",
+        "description": "Delivered when the server encounters an error such as an invalid symbol, rate limit exceeded, or authentication failure. The stream may terminate after certain error types.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "system" },
+          { "name": "errors" }
+        ],
+        "payload": {
+          "type": "object",
+          "description": "Error payload",
+          "properties": {
+            "Error": {
+              "type": "string",
+              "description": "The error code.",
+              "enum": ["InvalidSymbol", "RateLimitExceeded", "Unauthorized", "ServiceUnavailable"]
+            },
+            "Message": {
+              "type": "string",
+              "description": "A human-readable description of the error."
+            }
+          },
+          "required": ["Error", "Message"]
+        }
+      }
+    },
+    "schemas": {
+      "QuoteStreamData": {
+        "type": "object",
+        "description": "Streaming quote data with fields that have changed since the last update.",
+        "properties": {
+          "Symbol": {
+            "type": "string",
+            "description": "The symbol identifier."
+          },
+          "Last": {
+            "type": "number",
+            "format": "double",
+            "description": "The last traded price."
+          },
+          "Bid": {
+            "type": "number",
+            "format": "double",
+            "description": "The current bid price."
+          },
+          "Ask": {
+            "type": "number",
+            "format": "double",
+            "description": "The current ask price."
+          },
+          "BidSize": {
+            "type": "integer",
+            "description": "The size of the bid."
+          },
+          "AskSize": {
+            "type": "integer",
+            "description": "The size of the ask."
+          },
+          "Volume": {
+            "type": "integer",
+            "description": "The total volume traded today."
+          },
+          "Open": {
+            "type": "number",
+            "format": "double",
+            "description": "The opening price."
+          },
+          "High": {
+            "type": "number",
+            "format": "double",
+            "description": "The session high price."
+          },
+          "Low": {
+            "type": "number",
+            "format": "double",
+            "description": "The session low price."
+          },
+          "Close": {
+            "type": "number",
+            "format": "double",
+            "description": "The previous close price."
+          },
+          "NetChange": {
+            "type": "number",
+            "format": "double",
+            "description": "Net change from previous close."
+          },
+          "NetChangePct": {
+            "type": "number",
+            "format": "double",
+            "description": "Net change as a percentage."
+          },
+          "TradeTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp of the last trade."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter sent periodically to keep the stream alive."
+          }
+        }
+      },
+      "BarStreamData": {
+        "type": "object",
+        "description": "Streaming bar chart data with OHLC values.",
+        "properties": {
+          "High": {
+            "type": "number",
+            "format": "double",
+            "description": "The highest price during the bar interval."
+          },
+          "Low": {
+            "type": "number",
+            "format": "double",
+            "description": "The lowest price during the bar interval."
+          },
+          "Open": {
+            "type": "number",
+            "format": "double",
+            "description": "The opening price of the bar interval."
+          },
+          "Close": {
+            "type": "number",
+            "format": "double",
+            "description": "The closing price of the bar interval."
+          },
+          "Volume": {
+            "type": "integer",
+            "description": "The total volume during the bar interval."
+          },
+          "TimeStamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for the bar interval."
+          },
+          "TotalTicks": {
+            "type": "integer",
+            "description": "The total number of ticks during the bar interval."
+          },
+          "UpTicks": {
+            "type": "integer",
+            "description": "The number of up ticks."
+          },
+          "DownTicks": {
+            "type": "integer",
+            "description": "The number of down ticks."
+          },
+          "Status": {
+            "type": "string",
+            "description": "The status of the bar such as Open, Closed, or New."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "OptionChainStreamData": {
+        "type": "object",
+        "description": "Streaming option chain data for an underlying symbol.",
+        "properties": {
+          "Symbol": {
+            "type": "string",
+            "description": "The option symbol."
+          },
+          "Underlying": {
+            "type": "string",
+            "description": "The underlying symbol."
+          },
+          "StrikePrice": {
+            "type": "number",
+            "format": "double",
+            "description": "The strike price."
+          },
+          "ExpirationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The expiration date."
+          },
+          "OptionType": {
+            "type": "string",
+            "description": "The option type.",
+            "enum": ["Call", "Put"]
+          },
+          "Bid": {
+            "type": "number",
+            "format": "double",
+            "description": "The current bid price."
+          },
+          "Ask": {
+            "type": "number",
+            "format": "double",
+            "description": "The current ask price."
+          },
+          "Last": {
+            "type": "number",
+            "format": "double",
+            "description": "The last traded price."
+          },
+          "Volume": {
+            "type": "integer",
+            "description": "The volume traded today."
+          },
+          "OpenInterest": {
+            "type": "integer",
+            "description": "The current open interest."
+          },
+          "Delta": {
+            "type": "number",
+            "format": "double",
+            "description": "The option delta greek."
+          },
+          "Gamma": {
+            "type": "number",
+            "format": "double",
+            "description": "The option gamma greek."
+          },
+          "Theta": {
+            "type": "number",
+            "format": "double",
+            "description": "The option theta greek."
+          },
+          "Vega": {
+            "type": "number",
+            "format": "double",
+            "description": "The option vega greek."
+          },
+          "ImpliedVolatility": {
+            "type": "number",
+            "format": "double",
+            "description": "The implied volatility."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "OptionQuoteStreamData": {
+        "type": "object",
+        "description": "Streaming quote data for a specific option contract.",
+        "properties": {
+          "Symbol": {
+            "type": "string",
+            "description": "The option symbol."
+          },
+          "Bid": {
+            "type": "number",
+            "format": "double",
+            "description": "The current bid price."
+          },
+          "Ask": {
+            "type": "number",
+            "format": "double",
+            "description": "The current ask price."
+          },
+          "Last": {
+            "type": "number",
+            "format": "double",
+            "description": "The last traded price."
+          },
+          "Volume": {
+            "type": "integer",
+            "description": "The volume traded today."
+          },
+          "Delta": {
+            "type": "number",
+            "format": "double",
+            "description": "The option delta."
+          },
+          "Gamma": {
+            "type": "number",
+            "format": "double",
+            "description": "The option gamma."
+          },
+          "Theta": {
+            "type": "number",
+            "format": "double",
+            "description": "The option theta."
+          },
+          "Vega": {
+            "type": "number",
+            "format": "double",
+            "description": "The option vega."
+          },
+          "ImpliedVolatility": {
+            "type": "number",
+            "format": "double",
+            "description": "The implied volatility."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "MarketDepthStreamData": {
+        "type": "object",
+        "description": "Streaming aggregated market depth data showing bid and ask levels in the order book.",
+        "properties": {
+          "Symbol": {
+            "type": "string",
+            "description": "The symbol identifier."
+          },
+          "Bids": {
+            "type": "array",
+            "description": "Aggregated bid levels.",
+            "items": {
+              "$ref": "#/components/schemas/DepthLevel"
+            }
+          },
+          "Asks": {
+            "type": "array",
+            "description": "Aggregated ask levels.",
+            "items": {
+              "$ref": "#/components/schemas/DepthLevel"
+            }
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "DepthLevel": {
+        "type": "object",
+        "description": "A single price level in the market depth order book.",
+        "properties": {
+          "Price": {
+            "type": "number",
+            "format": "double",
+            "description": "The price level."
+          },
+          "Size": {
+            "type": "integer",
+            "description": "The aggregate size at this price level."
+          },
+          "OrderCount": {
+            "type": "integer",
+            "description": "The number of orders at this price level."
+          }
+        }
+      },
+      "OrderStreamData": {
+        "type": "object",
+        "description": "Streaming order status update data.",
+        "properties": {
+          "OrderID": {
+            "type": "string",
+            "description": "The unique order identifier."
+          },
+          "AccountID": {
+            "type": "string",
+            "description": "The account identifier."
+          },
+          "Symbol": {
+            "type": "string",
+            "description": "The symbol being traded."
+          },
+          "Quantity": {
+            "type": "number",
+            "format": "double",
+            "description": "The order quantity."
+          },
+          "FilledQuantity": {
+            "type": "number",
+            "format": "double",
+            "description": "The quantity filled so far."
+          },
+          "OrderType": {
+            "type": "string",
+            "description": "The order type.",
+            "enum": [
+              "Market",
+              "Limit",
+              "StopMarket",
+              "StopLimit",
+              "TrailingStop",
+              "TrailingStopLimit"
+            ]
+          },
+          "Status": {
+            "type": "string",
+            "description": "The current order status.",
+            "enum": [
+              "Open",
+              "Filled",
+              "PartiallyFilled",
+              "Cancelled",
+              "Rejected",
+              "Expired",
+              "Queued",
+              "Received"
+            ]
+          },
+          "Side": {
+            "type": "string",
+            "description": "The order side.",
+            "enum": [
+              "Buy",
+              "Sell",
+              "BuyToOpen",
+              "BuyToClose",
+              "SellToOpen",
+              "SellToClose",
+              "SellShort",
+              "BuyToCover"
+            ]
+          },
+          "LimitPrice": {
+            "type": "number",
+            "format": "double",
+            "description": "The limit price."
+          },
+          "StopPrice": {
+            "type": "number",
+            "format": "double",
+            "description": "The stop price."
+          },
+          "FilledPrice": {
+            "type": "number",
+            "format": "double",
+            "description": "The average fill price."
+          },
+          "TimeInForce": {
+            "type": "string",
+            "description": "Time-in-force setting."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "PositionStreamData": {
+        "type": "object",
+        "description": "Streaming position update data.",
+        "properties": {
+          "AccountID": {
+            "type": "string",
+            "description": "The account identifier."
+          },
+          "Symbol": {
+            "type": "string",
+            "description": "The position symbol."
+          },
+          "Quantity": {
+            "type": "number",
+            "format": "double",
+            "description": "The current position quantity."
+          },
+          "AveragePrice": {
+            "type": "number",
+            "format": "double",
+            "description": "The average entry price."
+          },
+          "Last": {
+            "type": "number",
+            "format": "double",
+            "description": "The last traded price."
+          },
+          "MarketValue": {
+            "type": "number",
+            "format": "double",
+            "description": "The current market value."
+          },
+          "UnrealizedProfitLoss": {
+            "type": "number",
+            "format": "double",
+            "description": "The unrealized profit or loss."
+          },
+          "AssetType": {
+            "type": "string",
+            "description": "The asset type.",
+            "enum": ["Stock", "Option", "Future", "Crypto"]
+          },
+          "LongShort": {
+            "type": "string",
+            "description": "Whether the position is long or short.",
+            "enum": ["Long", "Short"]
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      },
+      "WalletStreamData": {
+        "type": "object",
+        "description": "Streaming cryptocurrency wallet update data.",
+        "properties": {
+          "Currency": {
+            "type": "string",
+            "description": "The cryptocurrency currency code."
+          },
+          "Balance": {
+            "type": "number",
+            "format": "double",
+            "description": "The wallet balance."
+          },
+          "Available": {
+            "type": "number",
+            "format": "double",
+            "description": "The available balance for trading."
+          },
+          "Heartbeat": {
+            "type": "integer",
+            "description": "Heartbeat counter for keeping the stream alive."
+          }
+        }
+      }
+    }
+  }
+}

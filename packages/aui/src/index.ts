@@ -1,3 +1,5 @@
+import './index.css';
+
 export { default as AsyncAPI } from './containers/AsyncAPI';
 export type { IAsyncAPIProps } from './containers/AsyncAPI';
 
