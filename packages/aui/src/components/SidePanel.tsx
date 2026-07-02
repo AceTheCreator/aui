@@ -30,7 +30,7 @@ export const SidePanel = forwardRef<HTMLDivElement, ISidePanelProps>(function Si
   if (!portalHost) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50" style={{ pointerEvents: isOpen ? "auto" : "none" }}>
+    <div className="absolute inset-0 z-50" style={{ pointerEvents: isOpen ? "auto" : "none" }}>
       <div
         onClick={onClose}
         className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${
