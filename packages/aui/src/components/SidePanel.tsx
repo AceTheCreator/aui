@@ -41,7 +41,7 @@ export const SidePanel = forwardRef<HTMLDivElement, ISidePanelProps>(function Si
 
       <div
         ref={ref}
-        className={`absolute top-0 ${panelPosition} h-full ${width} bg-surface shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 ${panelPosition} h-full ${width} max-w-[100cqw] bg-surface shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : translateClosed
         }`}
       >
