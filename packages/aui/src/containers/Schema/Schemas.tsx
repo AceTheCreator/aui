@@ -11,7 +11,7 @@ export default function Schemas({ schemas, selectedKey }: SchemasProps) {
   const schemaEntries = Object.entries(schemas);
 
   const content = schemaEntries.length ? (
-    <div className="mt-10 grid gap-6">
+    <div className="grid gap-6 w-full">
       {schemaEntries.map(([schemaName, schema]) => {
         // Top-level property count only.
         // IMP: Nested properties are not expanded here .
@@ -68,7 +68,7 @@ export default function Schemas({ schemas, selectedKey }: SchemasProps) {
   );
 
   return (
-    <div className="container">
+    <div className="flex justify-center w-full">
       <Section content={content} stickySideContent={false} />
     </div>
   );

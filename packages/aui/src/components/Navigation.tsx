@@ -92,7 +92,7 @@ export default function Navigation({
         <SidebarIcon isCollapsed={open} />
       </button>
 
-      <SidePanel ref={setpanelElement} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] auto">
+      <SidePanel ref={setpanelElement} isOpen={open} side="left" onClose={() => setOpen(false)} width="min-w-[450px] w-auto">
         <nav className="space-y-1">
           {/* API info header */}
           <div className="flex items-center gap-2 pb-4 mb-2 border-b border-border">

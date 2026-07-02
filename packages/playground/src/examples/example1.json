@@ -1,0 +1,586 @@
+{
+  "asyncapi": "3.0.0",
+"info": {
+  "title": "Streetlights Kafka API",
+  "version": "1.0.0",
+  "summary": "Event-driven API for monitoring and controlling smart city streetlights over Kafka.",
+  "description": "## Smartylighting Streetlights API\n\nThe Smartylighting Streetlights API allows operators, monitoring systems, and automation platforms to remotely manage and observe city streetlights.\n\n## Features\n\n- Turn a specific streetlight on/off 🌃\n- Dim a specific streetlight 😎\n- Receive real-time lighting measurements 📈\n- Monitor operational status changes 🚦\n- Receive maintenance alerts 🔧\n\n## Example Event\n\n```json\n{\n  \"lumens\": 450,\n  \"sentAt\": \"2026-06-25T12:00:00Z\"\n}\n```\n\n## Example Consumer (Node.js)\n\n```javascript\nawait consumer.subscribe({\n  topic: 'smartylighting.streetlights.1.0.event.123.lighting.measured'\n});\n\nawait consumer.run({\n  eachMessage: async ({ message }) => {\n    console.log(message.value.toString());\n  }\n});\n```\n\n## Channel Overview\n\n| Channel | Purpose |\n|----------|----------|\n| lightingMeasured | Telemetry and sensor readings |\n| lightTurnOn | Turn on streetlights |\n| lightTurnOff | Turn off streetlights |\n| lightsDim | Adjust brightness levels |\n\nFor additional implementation guidance, see the external documentation links provided throughout this specification.",
+  "termsOfService": "https://smartylighting.example.com/terms",
+  "contact": {
+    "name": "Smartylighting API Support",
+    "url": "https://smartylighting.example.com/support",
+    "email": "support@smartylighting.example.com"
+  },
+  "license": {
+    "name": "Apache 2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "tags": [
+  {
+    "name": "streetlights",
+    "description": "# Streetlights\n\nCore functionality for streetlight management."
+  },
+  {
+    "name": "telemetry",
+    "description": "Real-time environmental measurements and status updates."
+  },
+  {
+    "name": "commands",
+    "description": "Commands sent to streetlight controllers."
+  },
+  {
+    "name": "maintenance",
+    "description": "Maintenance workflows and alerts."
+  },
+  {
+    "name": "kafka",
+    "description": "Kafka implementation details and bindings."
+  }
+],
+  "x-logo": "https://cdn.prod.website-files.com/60e49b51af3305d435c286ab/60e78065113f2f12904a43b1_aklivity-logo.svg"
+},
+  "defaultContentType": "application/json",
+  "servers": {
+    "scram-connections": {
+      "host": "test.mykafkacluster.org:18092",
+      "protocol": "kafka",
+      "description": "Test broker secured with scramSha256",
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        },
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "tags": [
+        {
+          "name": "env:test-scram",
+          "description": "This environment is meant for running internal tests through scramSha256"
+        },
+        {
+          "name": "kind:remote",
+          "description": "This server is a remote server. Not exposed by the application"
+        },
+        {
+          "name": "visibility:private",
+          "description": "This resource is private and only available to certain users"
+        }
+      ],
+      "bindings": {
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
+        }
+      }
+    },
+    "mtls-connections": {
+      "host": "test.mykafkacluster.org:28092",
+      "protocol": "kafka-secure",
+      "description": "Test broker secured with X509",
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        },
+        {
+          "type": "oauth2",
+          "description": "OAuth 2.0 authentication for development environment",
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
+              "tokenUrl": "https://auth.dev-messaging.example.com/oauth/token",
+              "refreshUrl": "https://auth.dev-messaging.example.com/oauth/refresh",
+              "availableScopes": ["publish", "subscribe", "manage"]
+            }
+          }
+        }
+      ],
+      "tags": [
+        {
+          "name": "env:test-mtls",
+          "description": "This environment is meant for running internal tests through mtls"
+        },
+        {
+          "name": "kind:remote",
+          "description": "This server is a remote server. Not exposed by the application"
+        },
+        {
+          "name": "visibility:private",
+          "description": "This resource is private and only available to certain users"
+        }
+      ],
+      "bindings": {
+        "kafka": {
+          "bindingVersion": "0.5.0",
+          "schemaRegistryUrl": "https://schema-registry.mykafkacluster.org",
+          "schemaRegistryVendor": "confluent"
+        }
+      }
+    }
+  },
+  "channels": {
+    "lightingMeasured": {
+      "address": "smartylighting.streetlights.1.0.event.{streetlightId}.lighting.measured",
+      "messages": {
+        "lightMeasured": {
+          "$ref": "#/components/messages/lightMeasured"
+        },
+        "statusUpdate": {
+          "$ref": "#/components/messages/statusUpdate"
+        },
+        "maintenanceAlert": {
+          "$ref": "#/components/messages/maintenanceAlert"
+        }
+      },
+      "description": "The topic on which measured values may be produced and consumed.",
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightTurnOn": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.turn.on",
+      "messages": {
+        "turnOn": {
+          "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightTurnOff": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.turn.off",
+      "messages": {
+        "turnOff": {
+          "$ref": "#/components/messages/turnOnOff"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    },
+    "lightsDim": {
+      "address": "smartylighting.streetlights.1.0.action.{streetlightId}.dim",
+      "messages": {
+        "dimLight": {
+          "$ref": "#/components/messages/dimLight"
+        },
+        "commandAck": {
+          "$ref": "#/components/messages/commandAck"
+        }
+      },
+      "parameters": {
+        "streetlightId": {
+          "$ref": "#/components/parameters/streetlightId"
+        }
+      }
+    }
+  },
+  "operations": {
+    "receiveLightMeasurement": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/lightingMeasured"
+      },
+      "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "description": "Consumers of this operation receive a stream of lighting measurement events, status updates, and maintenance alerts from streetlights in the field.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        },
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Smartylighting event stream integration guide",
+        "url": "https://docs.smartylighting.example.com/events/lighting-measured"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/statusUpdate"
+        },
+        {
+          "$ref": "#/channels/lightingMeasured/messages/maintenanceAlert"
+        }
+      ]
+    },
+    "turnOn": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightTurnOn"
+      },
+      "summary": "Turn on a streetlight.",
+      "description": "Sends a turn-on command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-on"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightTurnOn/messages/turnOn"
+        },
+        {
+          "$ref": "#/channels/lightTurnOn/messages/commandAck"
+        }
+      ],
+      "reply": {
+        "channel": {
+          "$ref": "#/channels/lightingMeasured"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
+    },
+    "turnOff": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightTurnOff"
+      },
+      "summary": "Turn off a streetlight.",
+      "description": "Sends a turn-off command to a specific streetlight. The streetlight controller will acknowledge receipt via a commandAck message.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/certs"
+        }
+      ],
+      "externalDocs": {
+        "description": "Streetlight control command reference",
+        "url": "https://docs.smartylighting.example.com/commands/turn-off"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightTurnOff/messages/turnOff"
+        },
+        {
+          "$ref": "#/channels/lightTurnOff/messages/commandAck"
+        }
+      ],
+      "reply": {
+        "address": {
+          "location": "$message.header#/replyTo",
+          "description": "Reply address is taken from the replyTo header of the incoming message."
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+          }
+        ]
+      }
+    },
+    "dimLight": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/lightsDim"
+      },
+      "summary": "Dim a streetlight.",
+      "description": "Sends a dim command with a target brightness percentage to a specific streetlight. Useful for energy-saving schedules or adaptive lighting based on environmental conditions.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "security": [
+        {
+          "$ref": "#/components/securitySchemes/saslScram"
+        }
+      ],
+      "externalDocs": {
+        "description": "Adaptive lighting and dimming guide",
+        "url": "https://docs.smartylighting.example.com/commands/dim"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/lightsDim/messages/dimLight"
+        },
+        {
+          "$ref": "#/channels/lightsDim/messages/commandAck"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "lightMeasured": {
+        "name": "lightMeasured",
+        "title": "Light measured",
+        "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+        "contentType": "application/json",
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
+          }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/lightMeasuredPayload"
+        }
+      },
+      "turnOnOff": {
+        "name": "turnOnOff",
+        "title": "Turn on/off",
+        "summary": "Command a particular streetlight to turn the lights on or off.",
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
+          }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/turnOnOffPayload"
+        }
+      },
+      "dimLight": {
+        "name": "dimLight",
+        "title": "Dim light",
+        "summary": "Command a particular streetlight to dim the lights.",
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeaders"
+          }
+        ],
+        "payload": {
+          "$ref": "#/components/schemas/dimLightPayload"
+        }
+      },
+      "statusUpdate": {
+        "name": "statusUpdate",
+        "title": "Streetlight Status Update",
+        "summary": "Reports the current operational state of a streetlight.",
+        "description": "Emitted whenever a streetlight transitions between operational states such as coming online, going offline, or entering an error condition.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "status" },
+          { "name": "telemetry" }
+        ],
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight reporting its status."
+            },
+            "state": {
+              "type": "string",
+              "enum": ["online", "offline", "error", "maintenance"],
+              "description": "The current operational state of the streetlight."
+            },
+            "message": {
+              "type": "string",
+              "description": "Optional human-readable detail about the state change."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "state", "sentAt"]
+        }
+      },
+      "maintenanceAlert": {
+        "name": "maintenanceAlert",
+        "title": "Maintenance Alert",
+        "summary": "Signals that a streetlight requires maintenance.",
+        "description": "Published when a streetlight detects a hardware fault, connectivity issue, or scheduled maintenance window. Consumers should dispatch a maintenance crew accordingly.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "maintenance" },
+          { "name": "alerts" }
+        ],
+        "headers": {
+          "type": "object",
+          "properties": {
+            "X-Alert-Priority": {
+              "type": "string",
+              "description": "Priority level for routing and paging."
+            }
+          }
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight requiring maintenance."
+            },
+            "issue": {
+              "type": "string",
+              "description": "Description of the maintenance issue detected."
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"],
+              "description": "Severity level of the maintenance issue."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "issue", "severity", "sentAt"]
+        }
+      },
+      "commandAck": {
+        "name": "commandAck",
+        "title": "Command Acknowledgement",
+        "summary": "Acknowledgement that a control command was received and processed.",
+        "description": "Sent by the streetlight controller after processing a turn on, turn off, or dim command. Indicates whether the command was accepted and executed.",
+        "contentType": "application/json",
+        "tags": [
+          { "name": "commands" },
+          { "name": "acknowledgement" }
+        ],
+        "payload": {
+          "type": "object",
+          "properties": {
+            "streetlightId": {
+              "type": "string",
+              "description": "The identifier of the streetlight that processed the command."
+            },
+            "command": {
+              "type": "string",
+              "enum": ["turnOn", "turnOff", "dim"],
+              "description": "The command that was acknowledged."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["accepted", "rejected", "pending"],
+              "description": "Whether the command was accepted and executed."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Reason for rejection if status is rejected."
+            },
+            "sentAt": {
+              "$ref": "#/components/schemas/sentAt"
+            }
+          },
+          "required": ["streetlightId", "command", "status", "sentAt"]
+        }
+      }
+    },
+    "schemas": {
+      "lightMeasuredPayload": {
+        "type": "object",
+        "properties": {
+          "lumens": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Light intensity measured in lumens."
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
+          }
+        }
+      },
+      "turnOnOffPayload": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "enum": ["on", "off"],
+            "description": "Whether to turn on or off the light."
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
+          }
+        }
+      },
+      "dimLightPayload": {
+        "type": "object",
+        "properties": {
+          "percentage": {
+            "type": "integer",
+            "description": "Percentage to which the light should be dimmed to.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/sentAt"
+          }
+        }
+      },
+      "sentAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Date and time when the message was sent."
+      }
+    },
+    "securitySchemes": {
+      "saslScram": {
+        "type": "scramSha256",
+        "description": "Provide your username and password for SASL/SCRAM authentication"
+      },
+      "certs": {
+        "type": "X509",
+        "description": "Download the certificate files from service provider"
+      }
+    },
+    "parameters": {
+      "streetlightId": {
+        "description": "The ID of the streetlight."
+      }
+    },
+    "messageTraits": {
+      "commonHeaders": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "my-app-header": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    },
+    "operationTraits": {
+      "kafka": {
+        "bindings": {
+          "kafka": {
+            "clientId": {
+              "type": "string",
+              "enum": ["my-app-id"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

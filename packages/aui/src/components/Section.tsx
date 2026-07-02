@@ -16,10 +16,10 @@ export default function Section({
   reverseLayoutOnMobile = false,
 }: SectionProps) {
   return (
-    <div className="w-full @sm:w-auto">
+    <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto">
       {title && <h2 className="text-2xl font-bold">{title}</h2>}
       <section
-        className={`border-border text-lg mb-10 flex @lg:justify-between ${
+        className={`border-border text-lg mb-10 flex ${
           sideContent && reverseLayoutOnMobile
             ? "flex-col-reverse @lg:flex-row"
             : "flex-col @lg:flex-row"

@@ -1,6 +1,7 @@
 import { forwardRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAsyncAPIDocument } from "../contexts";
+import { getScrollLockTarget, lockScroll } from "../utils/scrollLock";
 
 export type SidePanelSide = "left" | "right";
 
@@ -27,10 +28,15 @@ export const SidePanel = forwardRef<HTMLDivElement, ISidePanelProps>(function Si
 
   const { portalHost } = useAsyncAPIDocument();
 
+  useEffect(() => {
+    if (!isOpen || !portalHost) return;
+    return lockScroll(getScrollLockTarget(portalHost));
+  }, [isOpen, portalHost]);
+
   if (!portalHost) return null;
 
   return createPortal(
-    <div className="absolute inset-0 z-50" style={{ pointerEvents: isOpen ? "auto" : "none" }}>
+    <div className="fixed inset-0 z-50 overflow-hidden" style={{ pointerEvents: isOpen ? "auto" : "none" }}>
       <div
         onClick={onClose}
         className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${
