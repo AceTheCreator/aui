@@ -21,6 +21,7 @@ interface ConfigInterface {
   };
   expand?: {
     messageExamples?: boolean;
+    schemas?: boolean;
   };
   sidebar?: {
     useChannelAddressAsIdentifier?: boolean;
@@ -67,7 +68,7 @@ interface ConfigInterface {
 
 - **expand?: Partial\<ExpandConfig\>**
 
-  Controls default expanded/collapsed state of collapsible sections. `messageExamples` defaults to `false`.
+  Controls default expanded/collapsed state of collapsible sections. `messageExamples` defaults to `false`. `schemas` controls whether schema tree nodes (object properties, array items, etc.) start expanded, and defaults to `false`.
 
 - **theme?: Partial\<ThemeConfig\>**
 
@@ -188,7 +189,9 @@ After merging with the default configuration, the resulting config looks as foll
   sidebar: {
     useChannelAddressAsIdentifier: true,  // overridden from false
   },
-  expand: {},
+  expand: {
+    schemas: false,
+  },
   theme: {
     mode: "dark",
     colors: {

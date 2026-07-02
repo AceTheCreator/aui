@@ -25,7 +25,7 @@ export default function SchemaTree({
   rootName,
   className = "",
 }: SchemaTreeProps) {
-  const { deref } = useAsyncAPIDocument();
+  const { deref, defaultSchemaExpanded = false } = useAsyncAPIDocument();
   const refStack = useMemo(() => new Set<string>(), []);
   const node = asSchemaNode(schema);
   const flattenedNode = useMemo(
@@ -60,6 +60,7 @@ export default function SchemaTree({
               depth={0}
               refStack={refStack}
               deref={deref}
+              defaultExpanded={defaultSchemaExpanded}
             />
           </div>
         );
@@ -110,6 +111,7 @@ export default function SchemaTree({
         refStack={refStack}
         deref={deref}
         suppressRow={suppressRootRow}
+        defaultExpanded={defaultSchemaExpanded}
       />
     </div>
   );

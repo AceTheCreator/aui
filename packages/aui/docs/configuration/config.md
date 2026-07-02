@@ -21,6 +21,7 @@ interface ConfigInterface {
   };
   expand?: {
     messageExamples?: boolean;
+    schemas?: boolean;
   };
   sidebar?: {
     useChannelAddressAsIdentifier?: boolean;
@@ -70,6 +71,7 @@ interface ConfigInterface {
 
   This field contains configuration responsible for collapsing and expanding component sections.
   `messageExamples` field is set to `false` by default.
+  `schemas` controls whether schema tree nodes (object properties, array items, etc.) start expanded or collapsed, and is set to `false` by default.
 
 - **theme?: Partial\<ThemeConfig\>**
 
@@ -194,7 +196,9 @@ In the above examples, after merging with the default configuration, the resulti
   sidebar: {
     useChannelAddressAsIdentifier: true,
   },
-  expand: {},
+  expand: {
+    schemas: false,
+  },
   theme: {
     mode: "dark",
     primary: {

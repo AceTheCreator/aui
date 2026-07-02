@@ -48,6 +48,8 @@ export interface SchemaNodeProps {
   suppressRow?: boolean;
   /** Left border style for nested branches; muted uses a grey dotted line. */
   branchLineVariant?: SchemaTreeBranchLineVariant;
+  /** Whether this node (and its descendants) start expanded. Defaults to false. */
+  defaultExpanded?: boolean;
 }
 
 /** Nested nodes inside a branch-line-less wrapper regain depth-colored lines. */
@@ -115,9 +117,10 @@ export default function SchemaNode({
   deref,
   suppressRow = false,
   branchLineVariant = "depth",
+  defaultExpanded = false,
 }: SchemaNodeProps) {
   const nestedBranchLineVariant = childBranchLineVariant(branchLineVariant);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [selectedCase, setSelectedCase] = useState(0);
 
   const { schema, refLabel, circular } = useMemo(() => {
@@ -182,6 +185,7 @@ export default function SchemaNode({
             deref={deref}
             suppressRow
             branchLineVariant={nestedBranchLineVariant}
+            defaultExpanded={defaultExpanded}
           />
         )}
       </SchemaNotBranch>
@@ -226,6 +230,7 @@ export default function SchemaNode({
         deref={deref}
         suppressRow
         branchLineVariant="none"
+        defaultExpanded={defaultExpanded}
       />
     );
   };
@@ -343,6 +348,7 @@ export default function SchemaNode({
         deref={deref}
         suppressRow
         branchLineVariant="none"
+        defaultExpanded={defaultExpanded}
       />
     );
 
@@ -424,6 +430,7 @@ export default function SchemaNode({
         refStack={refStack}
         deref={deref}
         branchLineVariant={nestedBranchLineVariant}
+        defaultExpanded={defaultExpanded}
       />
     );
   };
@@ -450,6 +457,7 @@ export default function SchemaNode({
               refStack={refStack}
               deref={deref}
               branchLineVariant={nestedBranchLineVariant}
+              defaultExpanded={defaultExpanded}
             />
           );
         })}
@@ -471,8 +479,9 @@ export default function SchemaNode({
             depth={childDepth}
             refStack={refStack}
             deref={deref}
-              branchLineVariant={nestedBranchLineVariant}
-            />
+            branchLineVariant={nestedBranchLineVariant}
+            defaultExpanded={defaultExpanded}
+          />
           ))}
         {additionalPropertiesSchema !== null &&
           isSchemaRecord(additionalPropertiesSchema) && (
@@ -590,6 +599,7 @@ export default function SchemaNode({
                 refStack={refStack}
                 deref={deref}
                 branchLineVariant={nestedBranchLineVariant}
+                defaultExpanded={defaultExpanded}
               />
             ))}
             {additionalItemsSchema !== null &&
@@ -621,6 +631,7 @@ export default function SchemaNode({
                   refStack={refStack}
                   deref={deref}
                   branchLineVariant={nestedBranchLineVariant}
+                  defaultExpanded={defaultExpanded}
                 />
               ))
             : (
@@ -631,6 +642,7 @@ export default function SchemaNode({
                   refStack={refStack}
                   deref={deref}
                   branchLineVariant={nestedBranchLineVariant}
+                  defaultExpanded={defaultExpanded}
                 />
               ))
         )}

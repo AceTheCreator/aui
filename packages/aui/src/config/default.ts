@@ -23,7 +23,7 @@ export const defaultConfig: ConfigInterface = {
     },
   },
   expand: {
-    //:TODO: add more expand options in the future especially for schemas
+    schemas: false,
   },
   sidebar: {
     useChannelAddressAsIdentifier: false,

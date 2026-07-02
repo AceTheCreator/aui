@@ -22,6 +22,8 @@ export interface ShowConfig {
 
 export interface ExpandConfig {
   messageExamples?: boolean;
+  /** Whether schema tree nodes (object properties, array items, etc.) start expanded. Defaults to false. */
+  schemas?: boolean;
 }
 
 export interface SideBarConfig {

@@ -7,6 +7,8 @@ interface AsyncAPIContextValue {
   /** Resolves a JSON Pointer $ref string to the object it references in the document. */
   deref: (ref: string) => unknown;
   portalHost: HTMLElement | null;
+  /** Whether schema tree nodes start expanded by default. Defaults to false. */
+  defaultSchemaExpanded?: boolean;
 }
 
 export const AsyncAPIDocumentContext =

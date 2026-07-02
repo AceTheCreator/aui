@@ -73,9 +73,11 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
     return current;
   }, [asyncapi, derefCache]);
 
+  const defaultSchemaExpanded = config.expand?.schemas === true;
+
   const value = useMemo(
-    () => ({ document: asyncapi, deref, portalHost }),
-    [asyncapi, deref, portalHost],
+    () => ({ document: asyncapi, deref, portalHost, defaultSchemaExpanded }),
+    [asyncapi, deref, portalHost, defaultSchemaExpanded],
   );
 
   const activeContent =
