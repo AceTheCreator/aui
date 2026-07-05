@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { isSchemaRecord, SchemaNodeData } from "../../types/schema";
 import SchemaCaseDetail from "./SchemaCaseDetail";
 import SchemaNotBranch, { BooleanNotPill } from "./SchemaNotBranch";
@@ -44,7 +44,7 @@ export interface SchemaNodeProps {
   required?: boolean;
   refStack: Set<string>;
   deref: (ref: string) => unknown;
-  /** When true, skip this node's row and render only a root toggle + children. */
+  /** When true, skip this node's row and render only its children. */
   suppressRow?: boolean;
   /** Left border style for nested branches; muted uses a grey dotted line. */
   branchLineVariant?: SchemaTreeBranchLineVariant;
@@ -56,56 +56,6 @@ export interface SchemaNodeProps {
 const childBranchLineVariant = (
   variant: SchemaTreeBranchLineVariant
 ): SchemaTreeBranchLineVariant => (variant === "none" ? "depth" : variant);
-
-/** Full-row expand/collapse toggle used only at depth 0 when the root row is suppressed. */
-function RootExpandToggle({
-  expanded,
-  onToggle,
-  hideLabel,
-  showLabel,
-  branchLineVariant,
-  children,
-}: {
-  expanded: boolean;
-  onToggle: () => void;
-  hideLabel: string;
-  showLabel: string;
-  branchLineVariant: SchemaTreeBranchLineVariant;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <div
-        role="button"
-        tabIndex={0}
-        aria-expanded={expanded}
-        onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-        className="flex items-center gap-1.5 py-2 px-1 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors cursor-pointer text-xs text-gray-400 hover:text-gray-600"
-      >
-        <span
-          aria-hidden="true"
-          className="shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold border-gray-300 text-gray-400"
-        >
-          {expanded ? "−" : "+"}
-        </span>
-        <span>{expanded ? hideLabel : showLabel}</span>
-      </div>
-      <div className="pl-1">
-        {expanded && (
-          <SchemaTreeBranch depth={0} lineVariant={branchLineVariant}>
-            {children}
-          </SchemaTreeBranch>
-        )}
-      </div>
-    </>
-  );
-}
 
 /** Recursively renders one schema node and its descendants. */
 export default function SchemaNode({
@@ -505,24 +455,7 @@ export default function SchemaNode({
 
   if (hasObjectChildren) {
     if (suppressRow) {
-      if (depth === 0) {
-        return (
-          <RootExpandToggle
-            expanded={expanded}
-            onToggle={() => setExpanded((v) => !v)}
-            hideLabel="Hide properties"
-            showLabel="Show properties"
-            branchLineVariant={branchLineVariant}
-          >
-            {renderObjectChildren(1)}
-          </RootExpandToggle>
-        );
-      }
-      return (
-        <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
-          {renderObjectChildren(depth + 1)}
-        </SchemaTreeBranch>
-      );
+      return renderObjectChildren(depth + 1);
     }
 
     return (
@@ -716,24 +649,7 @@ export default function SchemaNode({
     if (suppressRow) {
       // Render nothing for bare { type:'array' } with no items/contains/conditionals.
       if (!hasArrayContent) return null;
-      if (depth === 0) {
-        return (
-          <RootExpandToggle
-            expanded={expanded}
-            onToggle={() => setExpanded((v) => !v)}
-            hideLabel="Hide items"
-            showLabel="Show items"
-            branchLineVariant={branchLineVariant}
-          >
-            {renderArrayExpansion(1)}
-          </RootExpandToggle>
-        );
-      }
-      return (
-        <SchemaTreeBranch depth={depth} lineVariant={branchLineVariant}>
-          {renderArrayExpansion(depth + 1)}
-        </SchemaTreeBranch>
-      );
+      return renderArrayExpansion(depth + 1);
     }
 
     return (

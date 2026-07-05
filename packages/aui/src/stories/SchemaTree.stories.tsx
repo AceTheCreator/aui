@@ -112,7 +112,7 @@ export const OneOfComposite: Story = {
     await expect(canvas.getByRole("tab", { name: "case 2" })).toBeInTheDocument();
     await expect(canvas.queryByText(/oneOf \(\d+\)/i)).not.toBeInTheDocument();
     await expect(canvas.queryByText(/\.oneOf\[/)).not.toBeInTheDocument();
-    await expect(canvas.getByText(/Hide properties|Show properties/)).toBeInTheDocument();
+    await expect(canvas.queryByText(/Hide properties|Show properties/)).not.toBeInTheDocument();
     await expect(
       canvas.getByText(/subscriptionStatus\.errorMessage/)
     ).toBeInTheDocument();

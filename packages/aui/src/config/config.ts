@@ -22,7 +22,10 @@ export interface ShowConfig {
 
 export interface ExpandConfig {
   messageExamples?: boolean;
-  /** Whether schema tree nodes (object properties, array items, etc.) start expanded. Defaults to false. */
+  /**
+   * Whether nested schema tree nodes (object properties, array items, etc.) start expanded.
+   * The top-most level of each schema is always visible. Defaults to false.
+   */
   schemas?: boolean;
 }
 

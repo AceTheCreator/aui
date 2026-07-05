@@ -68,7 +68,7 @@ interface ConfigInterface {
 
 - **expand?: Partial\<ExpandConfig\>**
 
-  Controls default expanded/collapsed state of collapsible sections. `messageExamples` defaults to `false`. `schemas` controls whether schema tree nodes (object properties, array items, etc.) start expanded, and defaults to `false`.
+  Controls default expanded/collapsed state of collapsible sections. `messageExamples` defaults to `false`. `schemas` controls whether nested schema tree nodes (object properties, array items, etc.) start expanded, and defaults to `false`. The top-most level of each schema is always visible regardless of this setting.
 
 - **theme?: Partial\<ThemeConfig\>**
 
