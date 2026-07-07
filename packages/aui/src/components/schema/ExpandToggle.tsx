@@ -6,7 +6,7 @@ interface ExpandToggleProps {
   onToggle: () => void;
 }
 
-/** Circular +/- button used alone at root or beside each expandable row. */
+/** Circular +/- toggle with optional "Show details" label when collapsed. */
 export default function ExpandToggle({ depth, expanded, onToggle }: ExpandToggleProps) {
   const colors = getDepthColors(depth);
   return (
@@ -14,10 +14,18 @@ export default function ExpandToggle({ depth, expanded, onToggle }: ExpandToggle
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      aria-label={expanded ? "Collapse" : "Expand"}
-      className={`shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold ${colors.line} ${colors.text} hover:bg-gray-50`}
+      aria-label={expanded ? "Hide details" : undefined}
+      className="cursor-pointer mt-1 flex items-center gap-1.5 shrink-0 text-left hover:opacity-80"
     >
-      {expanded ? "−" : "+"}
+      <span
+        aria-hidden="true"
+        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold ${colors.line} ${colors.text} hover:bg-gray-50`}
+      >
+        {expanded ? "−" : "+"}
+      </span>
+      {!expanded && (
+        <span className="text-xs text-gray-500">Show details</span>
+      )}
     </button>
   );
 }

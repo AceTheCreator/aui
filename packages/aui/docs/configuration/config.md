@@ -71,7 +71,7 @@ interface ConfigInterface {
 
   This field contains configuration responsible for collapsing and expanding component sections.
   `messageExamples` field is set to `false` by default.
-  `schemas` controls whether schema tree nodes (object properties, array items, etc.) start expanded or collapsed, and is set to `false` by default.
+  `schemas` controls whether nested schema tree nodes (object properties, array items, etc.) start expanded or collapsed, and is set to `false` by default. The top-most level of each schema is always visible regardless of this setting.
 
 - **theme?: Partial\<ThemeConfig\>**
 

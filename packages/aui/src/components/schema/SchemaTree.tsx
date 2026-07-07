@@ -14,7 +14,7 @@ import {
 
 export interface SchemaTreeProps {
   schema: unknown;
-  /** When set, the name is assumed shown by the parent — only a root toggle is rendered. */
+  /** When set, the name is assumed shown by the parent — the root row is skipped and children render directly. */
   rootName?: string;
   className?: string;
 }

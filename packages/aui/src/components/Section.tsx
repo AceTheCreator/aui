@@ -19,7 +19,7 @@ export default function Section({
     <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto">
       {title && <h2 className="text-2xl font-bold">{title}</h2>}
       <section
-        className={`border-border text-lg mb-10 flex ${
+        className={`border-border text-lg @lg:mb-10 flex ${
           sideContent && reverseLayoutOnMobile
             ? "flex-col-reverse @lg:flex-row"
             : "flex-col @lg:flex-row"
