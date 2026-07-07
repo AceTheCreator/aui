@@ -162,7 +162,7 @@ export default function Navigation({
                             }}
                             className={`w-full text-left flex items-center gap-2 text-xs py-1.5 px-2 rounded-md transition-colors ${
                               isItemSelected
-                                ? "bg-primary-50 text-primary-200 font-medium"
+                                ? "bg-primary-50 text-primary-500 font-medium"
                                 : isActive
                                 ? "text-foreground-secondary hover:text-foreground hover:bg-primary-50"
                                 : "text-foreground-muted hover:text-foreground-secondary hover:bg-neutral-50"

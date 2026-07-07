@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { AsyncAPI, defaultConfig } from 'aui'
 import type { ConfigInterface } from 'aui'
 import 'aui/style.css'
-import exampleDoc from './examples/streetlight.json'
+import exampleDoc from './examples/example1.json'
 // import exampleDoc from './torture.json'
 
 const DEFAULT_DOC_TEXT = JSON.stringify(exampleDoc, null, 2)

@@ -17,7 +17,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   // console.log(extensions);
   const content = (
     <>
-      <h1 className="inline-block text-3xl font-extrabold text-foreground tracking-tight">
+      <h1 className="@sm:mt-10 inline-block mt-0 text-3xl font-extrabold text-foreground tracking-tight">
         {title}
       </h1>
       <div className="prose mt-4">
@@ -41,6 +41,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
         content={content}
         sideContent={sideContent}
         stickySideContent={true}
+        reverseLayoutOnMobile={true}
       />
     </div>
   );
