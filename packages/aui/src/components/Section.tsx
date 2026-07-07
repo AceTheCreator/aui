@@ -5,6 +5,7 @@ interface SectionProps {
   content?: ReactNode;
   sideContent?: ReactNode | null;
   stickySideContent: boolean;
+  info?: boolean;
   reverseLayoutOnMobile?: boolean;
 }
 
@@ -13,20 +14,27 @@ export default function Section({
   content,
   sideContent,
   stickySideContent = false,
+  info = false,
   reverseLayoutOnMobile = false,
 }: SectionProps) {
   return (
     <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto">
-      {title && <h2 className="text-2xl font-bold">{title}</h2>}
+      {title && (
+        <h1
+          className={`${info ? "text-4xl inline-block text-3xl font-extrabold text-foreground tracking-tight" : "text-2xl"} mt-12 @lg:mt-0 mb-4 @lg:mb-0 font-bold`}
+        >
+          {title}
+        </h1>
+      )}
       <section
-        className={`border-border text-lg @lg:mb-10 flex ${
+        className={`border-border text-lg @lg:mb-10 flex gap-6 @lg:gap-0 ${
           sideContent && reverseLayoutOnMobile
             ? "flex-col-reverse @lg:flex-row"
             : "flex-col @lg:flex-row"
         }`}
       >
         <div className="@lg:w-prose min-w-0">{content}</div>
-        <div className="pt-6 @lg:pt-0 @lg:pl-12 @lg:w-[400px] shrink-0">
+        <div className="@lg:pl-12 @lg:w-[400px] shrink-0">
           <div className={`${stickySideContent && "@lg:sticky @lg:top-4"}`}>
             {sideContent}
           </div>
