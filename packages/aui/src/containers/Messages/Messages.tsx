@@ -6,6 +6,7 @@ import IconArrowDown from "../../icons/ArrowDown";
 import Tabs from "../../components/Tabs";
 import SchemaTabs from "../../components/schema/SchemaTab";
 import TagComponent from "../../components/Tag";
+import { CorrelationId } from "../../types/asyncapi/CorrelationId";
 
 interface MessagesProps {
   messages: Record<string, MessageObject>;
@@ -53,16 +54,37 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
         </td>
         <td className="px-6 py-4">
           <div className="flex flex-col items-start gap-1.5">
-            {message.contentType && (
-              <span className="text-xs font-mono bg-neutral-100 text-foreground-muted px-1.5 py-0.5 rounded">
-                {message.contentType ?? "—"}
-              </span>
-            )}
+            <div className="flex justify-between w-full">
+              <div></div>
+              <div>
+                {message.contentType && (
+                  <span className="text-xs font-mono bg-neutral-100 text-foreground-muted px-1.5 py-0.5 rounded">
+                    {message.contentType ?? "—"}
+                  </span>
+                )}
+              </div>
+            </div>
             {message.deprecated && (
               <span className="text-xs bg-red-50 text-red-500 px-1.5 py-0.5 rounded border border-red-200">
                 deprecated
               </span>
             )}
+            <div className="flex justify-between w-full">
+              <div></div>
+              <div>
+                {message.correlationId && (
+                  <span
+                    className="text-xs bg-secondary-50 text-secondary-500 px-1.5 py-0.5 rounded border border-secondary-200"
+                    title={
+                      (message.correlationId as CorrelationId).description ??
+                      (message.correlationId as CorrelationId).location
+                    }
+                  >
+                    {(message.correlationId as CorrelationId).location}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </td>
       </tr>
