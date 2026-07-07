@@ -350,6 +350,9 @@
             "$ref": "#/components/messageTraits/commonHeaders"
           }
         ],
+        "correlationId": {
+          "$ref": "#/components/correlationIds/default"
+        },
         "payload": {
           "$ref": "#/components/schemas/lightMeasuredPayload"
         }
@@ -363,6 +366,9 @@
             "$ref": "#/components/messageTraits/commonHeaders"
           }
         ],
+        "correlationId": {
+          "$ref": "#/components/correlationIds/default"
+        },
         "payload": {
           "$ref": "#/components/schemas/turnOnOffPayload"
         }
@@ -491,6 +497,9 @@
             }
           },
           "required": ["streetlightId", "command", "status", "sentAt"]
+        },
+        "correlationId": {
+          "$ref": "#/components/correlationIds/default"
         }
       }
     },
@@ -565,9 +574,19 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 100
+            },
+            "correlationId": {
+              "type": "string",
+              "description": "Identifier used to correlate a command with its acknowledgement or reply."
             }
           }
         }
+      }
+    },
+    "correlationIds": {
+      "default": {
+        "description": "Default correlation ID used to trace a command through to its acknowledgement or reply.",
+        "location": "$message.header#/correlationId"
       }
     },
     "operationTraits": {

@@ -4,6 +4,7 @@ import TagComponent from "../../components/Tag";
 import Tabs from "../../components/Tabs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Tag } from "../../types/asyncapi/Tag";
+import { CorrelationId } from "../../types/asyncapi/CorrelationId";
 import SchemaTabs from "../../components/schema/SchemaTab";
 
 interface MessageProps {
@@ -22,6 +23,8 @@ export function Message({ message, messageId, i }: MessageProps) {
     message.headers ||
     message.deprecated ||
     (message.tags && (message.tags as Tag[]).length > 0);
+
+    console.log(message.correlationId)
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
@@ -48,6 +51,17 @@ export function Message({ message, messageId, i }: MessageProps) {
               {message.contentType}
             </span>
           )}
+          {message.correlationId && (
+            <span
+              className="text-xs bg-secondary-50 text-secondary-500 px-1.5 py-0.5 rounded border border-secondary-200"
+              title={
+                (message.correlationId as CorrelationId).description ??
+                (message.correlationId as CorrelationId).location
+              }
+            >
+              {(message.correlationId as CorrelationId).location}
+            </span>
+          )}
           {message.deprecated && (
             <span className="text-xs bg-red-50 text-red-500 px-1.5 py-0.5 rounded border border-red-200">
               deprecated
@@ -57,50 +71,52 @@ export function Message({ message, messageId, i }: MessageProps) {
       </div>
 
       {/* Expanded section */}
-      <div className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+      <div
+        className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+      >
         <div className="overflow-hidden">
-        <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
-          {message.description && (
-            <p className="text-sm text-foreground-secondary leading-relaxed">
-              {message.description}
-            </p>
-          )}
-          {(message.payload || message.headers) && (
-            <div>
-              {message.payload && message.headers ? (
-                <Tabs
-                  tabs={[
-                    { id: "headers", name: "Headers" },
-                    { id: "payload", name: "Payload" },
-                  ]}
-                  current={schemaTab}
-                  onChange={(id) => setSchemaTab(id as "payload" | "headers")}
-                />
-              ) : null}
-              <div className="mt-4">
-                {(schemaTab === "headers" || !message.payload) &&
-                  message.headers && (
-                    <SchemaTabs schema={message.headers} label="Headers" />
-                  )}
-                {(schemaTab === "payload" || !message.headers) &&
-                  message.payload && (
-                    <SchemaTabs
-                      schema={message.payload}
-                      label="Payload"
-                      description={message.payload?.description}
-                    />
-                  )}
+          <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
+            {message.description && (
+              <p className="text-sm text-foreground-secondary leading-relaxed">
+                {message.description}
+              </p>
+            )}
+            {(message.payload || message.headers) && (
+              <div>
+                {message.payload && message.headers ? (
+                  <Tabs
+                    tabs={[
+                      { id: "headers", name: "Headers" },
+                      { id: "payload", name: "Payload" },
+                    ]}
+                    current={schemaTab}
+                    onChange={(id) => setSchemaTab(id as "payload" | "headers")}
+                  />
+                ) : null}
+                <div className="mt-4">
+                  {(schemaTab === "headers" || !message.payload) &&
+                    message.headers && (
+                      <SchemaTabs schema={message.headers} label="Headers" />
+                    )}
+                  {(schemaTab === "payload" || !message.headers) &&
+                    message.payload && (
+                      <SchemaTabs
+                        schema={message.payload}
+                        label="Payload"
+                        description={message.payload?.description}
+                      />
+                    )}
+                </div>
               </div>
-            </div>
-          )}
-          {message.tags && (message.tags as Tag[]).length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {(message.tags as Tag[]).map((tag, j) => (
-                <TagComponent key={j} name={`#${tag.name}`} />
-              ))}
-            </div>
-          )}
-        </div>
+            )}
+            {message.tags && (message.tags as Tag[]).length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {(message.tags as Tag[]).map((tag, j) => (
+                  <TagComponent key={j} name={`#${tag.name}`} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

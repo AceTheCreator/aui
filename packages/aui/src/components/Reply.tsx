@@ -34,7 +34,7 @@ export function Reply({ requestMessages, reply, isSend, operationId }: IReplyPro
           replies to{" "}
           {replyAddress ? (
             <>
-              to a channel in{" "}
+                a channel in{" "}
               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-surface border border-border text-foreground-secondary">
                 {replyAddress.location}
               </span>
