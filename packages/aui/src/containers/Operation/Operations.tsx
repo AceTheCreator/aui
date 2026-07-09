@@ -48,8 +48,8 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         onClick={() => setSelectedKey(key)}
         className={`group cursor-pointer ${isSelected ? "bg-neutral-50" : ""}`}
       >
-        <td className="px-6 py-4 group-hover:bg-neutral-50">
-          {address && <ChannelAddress address={address} parameters={parameters} />}
+        <td className="px-6 py-4 max-w-0 w-full group-hover:bg-neutral-50">
+          {address && <ChannelAddress address={address} parameters={parameters} truncate />}
         </td>
         <td className="px-6 py-4 w-32 group-hover:bg-neutral-50">
           <div

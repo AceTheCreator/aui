@@ -33,41 +33,38 @@ export interface SideBarConfig {
   useChannelAddressAsIdentifier?: boolean;
 }
 
+export interface ThemeColorScale {
+  50?: string;
+  100?: string;
+  200?: string;
+  300?: string;
+  500?: string;
+  600?: string;
+  700?: string;
+}
+
+/** Brand color scales — shared across light and dark, since they don't usually change per-mode. */
+export interface ThemeColors {
+  primary?: ThemeColorScale;
+  secondary?: ThemeColorScale;
+  neutral?: ThemeColorScale;
+}
+
+/** Semantic surface/text colors for a single mode — these inherently differ between light and dark. */
+export interface ThemeModeColors {
+  background?: string;
+  surface?: string;
+  border?: string;
+  textPrimary?: string;
+  textSecondary?: string;
+  textMuted?: string;
+}
+
 export interface ThemeConfig {
-  mode?: string,
-  primary?: {
-    50?: string;
-    100?: string;
-    200?: string;
-    300?: string;
-    500?: string;
-    600?: string;
-    700?: string;
-  };
-  secondary?: {
-    50?: string;
-    100?: string;
-    200?: string;
-    300?: string;
-    500?: string;
-    600?: string;
-    700?: string;
-  };
-  neutral?: {
-    50?: string;
-    100?: string;
-    200?: string;
-    300?: string;
-    500?: string;
-    600?: string;
-    700?: string;
-  };
-  colors?: {
-    background?: string;
-    surface?: string;
-    border?: string;
-    textPrimary?: string;
-    textSecondary?: string;
-    textMuted?: string;
-  }
+  /** Brand color scale overrides, applied regardless of which mode is active. */
+  colors?: ThemeColors;
+  /** Applied when only a light theme is configured. */
+  light?: ThemeModeColors;
+  /** Applied when a dark theme is configured. Wins over `light` if both are set. */
+  dark?: ThemeModeColors;
 }

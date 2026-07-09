@@ -1,176 +1,136 @@
-import { useCallback, useRef, useState } from 'react'
 import { AsyncAPI, defaultConfig } from 'aui'
 import type { ConfigInterface } from 'aui'
 import 'aui/style.css'
+import { useMemo, useState } from 'react'
 import exampleDoc from './examples/example1.json'
 // import exampleDoc from './torture.json'
+import { EditorPane } from './components/EditorPane'
+import { EditorTabs } from './components/EditorTabs'
+import type { EditorTab } from './components/EditorTabs'
+import { FetchSchema } from './components/FetchSchema'
+import { ResizeHandle } from './components/ResizeHandle'
+import { ThemeToggle } from './components/ThemeToggle'
+import { ViewToggle } from './components/ViewToggle'
+import { useJsonEditor } from './hooks/useJsonEditor'
+import { useResizableSplit } from './hooks/useResizableSplit'
+import { scrollbarStyle, UI_PALETTES } from './theme'
+import type { UiMode } from './theme'
 
 const DEFAULT_DOC_TEXT = JSON.stringify(exampleDoc, null, 2)
 const DEFAULT_CONFIG_TEXT = JSON.stringify(defaultConfig, null, 2)
-const MIN_PANE_PERCENT = 20
-
-type Tab = 'doc' | 'config'
-
-function EditorPane({
-  value,
-  onChange,
-  error,
-}: {
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  error: string | null
-}) {
-  return (
-    <>
-      <textarea
-        style={{ flex: 1, padding: '1rem', fontFamily: 'monospace', fontSize: '0.875rem', resize: 'none', outline: 'none', background: '#030712', color: '#f3f4f6' }}
-        value={value}
-        onChange={onChange}
-        spellCheck={false}
-      />
-      {error && (
-        <div style={{ padding: '0.5rem 1rem', color: '#dc2626', background: '#fef2f2', borderTop: '1px solid #fecaca', fontSize: '0.875rem' }}>
-          {error}
-        </div>
-      )}
-    </>
-  )
-}
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('doc')
+  const [activeTab, setActiveTab] = useState<EditorTab>('doc')
+  const [uiMode, setUiMode] = useState<UiMode>('dark')
+  const [editorExpanded, setEditorExpanded] = useState(true)
+  const palette = UI_PALETTES[uiMode]
 
-  const [docText, setDocText] = useState(DEFAULT_DOC_TEXT)
-  const [doc, setDoc] = useState<object>(exampleDoc)
-  const [docError, setDocError] = useState<string | null>(null)
+  const doc = useJsonEditor<unknown>(DEFAULT_DOC_TEXT, exampleDoc)
+  const config = useJsonEditor<ConfigInterface>(DEFAULT_CONFIG_TEXT, defaultConfig, {
+    emptyValue: defaultConfig,
+  })
 
-  const [configText, setConfigText] = useState(DEFAULT_CONFIG_TEXT)
-  const [config, setConfig] = useState<ConfigInterface>(defaultConfig)
-  const [configError, setConfigError] = useState<string | null>(null)
+  // The toggle is authoritative over the AsyncAPI preview's light/dark mode: it only
+  // forwards the branch matching the current mode, ignoring whichever theme.light/theme.dark
+  // the user's own edited config also defines for the other mode. Brand `colors` scales
+  // aren't mode-specific, so they always pass through untouched.
+  const previewConfig = useMemo<ConfigInterface>(
+    () => ({
+      ...config.value,
+      theme: {
+        colors: config.value.theme?.colors,
+        ...(uiMode === 'dark' ? { dark: config.value.theme?.dark } : { light: config.value.theme?.light }),
+      },
+    }),
+    [config.value, uiMode],
+  )
 
-  const [leftWidth, setLeftWidth] = useState(50)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const isDraggingRef = useRef(false)
-
-  function handleDocChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setDocText(e.target.value)
-    try {
-      setDoc(JSON.parse(e.target.value))
-      setDocError(null)
-    } catch (err) {
-      setDocError((err as Error).message)
-    }
-  }
-
-  function handleConfigChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setConfigText(e.target.value)
-    if (e.target.value.trim() === '') {
-      setConfig(defaultConfig)
-      setConfigError(null)
-      return
-    }
-    try {
-      setConfig(JSON.parse(e.target.value))
-      setConfigError(null)
-    } catch (err) {
-      setConfigError((err as Error).message)
-    }
-  }
-
-  const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!isDraggingRef.current || !containerRef.current) return
-    const { left, width } = containerRef.current.getBoundingClientRect()
-    const percent = ((e.clientX - left) / width) * 100
-    const clamped = Math.min(Math.max(percent, MIN_PANE_PERCENT), 100 - MIN_PANE_PERCENT)
-    setLeftWidth(clamped)
-  }, [])
-
-  const stopDragging = useCallback(() => {
-    isDraggingRef.current = false
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
-    window.removeEventListener('pointermove', handlePointerMove)
-    window.removeEventListener('pointerup', stopDragging)
-  }, [handlePointerMove])
-
-  const startDragging = useCallback(() => {
-    isDraggingRef.current = true
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-    window.addEventListener('pointermove', handlePointerMove)
-    window.addEventListener('pointerup', stopDragging)
-  }, [handlePointerMove, stopDragging])
+  const { containerRef, splitPercent, handlePointerDown, nudge } = useResizableSplit()
 
   return (
-    <div ref={containerRef} style={{ display: "flex", height: "100vh" }}>
-      <div style={{ width: `${100 - leftWidth}%`, overflow: "auto" }}>
-        {!docError && <AsyncAPI asyncapi={doc as any} config={config} />}
-      </div>
+    <div ref={containerRef} style={{ display: 'flex', height: '100vh', position: 'relative' }}>
       <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: `${leftWidth}%`,
-        }}
+        className="playground-preview-scroll"
+        style={{ width: editorExpanded ? `${splitPercent}%` : '100%', overflow: 'auto' }}
       >
+        <style>{scrollbarStyle('.playground-preview-scroll', palette)}</style>
+        {!doc.error && <AsyncAPI asyncapi={doc.value as any} config={previewConfig} />}
+      </div>
+
+      {editorExpanded && (
+        <>
+          <ResizeHandle splitPercent={splitPercent} onPointerDown={handlePointerDown} onNudge={nudge} palette={palette} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', width: `${100 - splitPercent}%` }}>
+            <EditorTabs
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              palette={palette}
+              trailing={
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingRight: '6px' }}>
+                  <ThemeToggle mode={uiMode} palette={palette} onChange={setUiMode} />
+                  <ViewToggle expanded palette={palette} onChange={setEditorExpanded} />
+                </div>
+              }
+              tabs={[
+                { id: 'doc', label: 'AsyncAPI Document', hasError: doc.error != null },
+                { id: 'config', label: 'Config', hasError: config.error != null },
+              ]}
+            />
+            <div
+              id={`panel-${activeTab}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${activeTab}`}
+              style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+            >
+              {activeTab === 'doc' ? (
+                <>
+                  <FetchSchema palette={palette} onLoad={doc.onChange} />
+                  <EditorPane
+                    ariaLabel="AsyncAPI document JSON"
+                    value={doc.text}
+                    onChange={doc.onChange}
+                    error={doc.error}
+                    mode={uiMode}
+                    palette={palette}
+                  />
+                </>
+              ) : (
+                <EditorPane
+                  ariaLabel="Config JSON"
+                  value={config.text}
+                  onChange={config.onChange}
+                  error={config.error}
+                  mode={uiMode}
+                  palette={palette}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!editorExpanded && (
         <div
           style={{
-            display: "flex",
-            borderBottom: "1px solid #1f2937",
-            background: "#030712",
-            flexShrink: 0,
+            position: 'fixed',
+            top: '12px',
+            right: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px',
+            background: palette.chromeBg,
+            border: `1px solid ${palette.chromeBorder}`,
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            zIndex: 40,
           }}
         >
-          {(["doc", "config"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: "0.5rem 1rem",
-                fontSize: "0.8125rem",
-                fontFamily: "inherit",
-                border: "none",
-                borderBottom:
-                  activeTab === tab
-                    ? "2px solid #f3f4f6"
-                    : "2px solid transparent",
-                background: "transparent",
-                color: activeTab === tab ? "#f3f4f6" : "#6b7280",
-                cursor: "pointer",
-              }}
-            >
-              {tab === "doc" ? "AsyncAPI Document" : "Config"}
-              {(tab === "doc" ? docError : configError) && (
-                <span style={{ color: "#dc2626", marginLeft: "0.375rem" }}>
-                  ●
-                </span>
-              )}
-            </button>
-          ))}
+          <ThemeToggle mode={uiMode} palette={palette} onChange={setUiMode} />
+          <ViewToggle expanded={false} palette={palette} onChange={setEditorExpanded} />
         </div>
-        {activeTab === "doc" ? (
-          <EditorPane
-            value={docText}
-            onChange={handleDocChange}
-            error={docError}
-          />
-        ) : (
-          <EditorPane
-            value={configText}
-            onChange={handleConfigChange}
-            error={configError}
-          />
-        )}
-      </div>
-      <div
-        onPointerDown={startDragging}
-        style={{
-          width: "5px",
-          cursor: "col-resize",
-          background: "#e5e7eb",
-          flexShrink: 0,
-        }}
-      />
+      )}
     </div>
-  );
+  )
 }

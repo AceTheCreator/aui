@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { chunkColors } from "../contants";
 import { useAsyncAPIDocument } from "../contexts";
@@ -28,16 +28,33 @@ interface ChannelAddressProps {
   address: string;
   parameters?: Record<string, Parameter>;
   className?: string;
+  /** Clip to a single line with an ellipsis instead of wrapping. Useful in fixed-width contexts like table rows. */
+  truncate?: boolean;
 }
 
-export function ChannelAddress({ address, parameters, className }: ChannelAddressProps) {
+export function ChannelAddress({ address, parameters, className, truncate = false }: ChannelAddressProps) {
   const { portalHost } = useAsyncAPIDocument();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, placement: "top" as "top" | "bottom" });
+  const [isTruncated, setIsTruncated] = useState(false);
+  const contentRef = useRef<HTMLSpanElement>(null);
   const parts = parseAddress(address);
   let colorIndex = 0;
 
   const TOOLTIP_CLEARANCE = 40;
+
+  useEffect(() => {
+    if (!truncate) return;
+    const el = contentRef.current;
+    if (!el) return;
+
+    const checkOverflow = () => setIsTruncated(el.scrollWidth > el.clientWidth);
+    checkOverflow();
+
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [truncate, address]);
 
   const showTooltip = (i: number, anchor: HTMLElement) => {
     const rect = anchor.getBoundingClientRect();
@@ -50,38 +67,51 @@ export function ChannelAddress({ address, parameters, className }: ChannelAddres
     setHoveredIndex(i);
   };
 
+  const content = parts.map((part, i) => {
+    if (part.type === "text") return <span key={i}>{part.value}</span>;
+    const description = parameters?.[part.value]?.description;
+    const color = chunkColors[colorIndex++ % chunkColors.length];
+    const isHovered = hoveredIndex === i;
+    return (
+      <span
+        key={i}
+        className="inline-block"
+        onMouseEnter={(e) => showTooltip(i, e.currentTarget)}
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        <span className={`font-semibold ${color} ${description ? "cursor-help underline decoration-dotted" : ""}`}>
+          {`{${part.value}}`}
+        </span>
+        {description && isHovered && portalHost &&
+          createPortal(
+            <span
+              className={`fixed -translate-x-1/2 px-2.5 py-1.5 bg-neutral-50 text-foreground-muted text-xs rounded whitespace-nowrap pointer-events-none z-[60] shadow-lg text-center leading-snug ${
+                coords.placement === "top" ? "-translate-y-full" : ""
+              }`}
+              style={{ top: coords.top, left: coords.left }}
+            >
+              {description}
+            </span>,
+            portalHost
+          )}
+      </span>
+    );
+  });
+
+  if (!truncate) {
+    return (
+      <code className={`text-xs px-2 py-1 rounded text-foreground-secondary break-all ${className ?? ""}`}>
+        {content}
+      </code>
+    );
+  }
+
   return (
-    <code className={`text-xs px-2 py-1 rounded text-foreground-secondary break-all ${className ?? ""}`}>
-      {parts.map((part, i) => {
-        if (part.type === "text") return <span key={i}>{part.value}</span>;
-        const description = parameters?.[part.value]?.description;
-        const color = chunkColors[colorIndex++ % chunkColors.length];
-        const isHovered = hoveredIndex === i;
-        return (
-          <span
-            key={i}
-            className="inline-block"
-            onMouseEnter={(e) => showTooltip(i, e.currentTarget)}
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <span className={`font-semibold ${color} ${description ? "cursor-help underline decoration-dotted" : ""}`}>
-              {`{${part.value}}`}
-            </span>
-            {description && isHovered && portalHost &&
-              createPortal(
-                <span
-                  className={`fixed -translate-x-1/2 px-2.5 py-1.5 bg-neutral-50 text-foreground-muted text-xs rounded whitespace-nowrap pointer-events-none z-[60] shadow-lg text-center leading-snug ${
-                    coords.placement === "top" ? "-translate-y-full" : ""
-                  }`}
-                  style={{ top: coords.top, left: coords.left }}
-                >
-                  {description}
-                </span>,
-                portalHost
-              )}
-          </span>
-        );
-      })}
+    <code className={`text-xs px-2 py-1 rounded text-foreground-secondary flex items-center min-w-0 ${className ?? ""}`}>
+      <span ref={contentRef} className="overflow-hidden whitespace-nowrap min-w-0">
+        {content}
+      </span>
+      {isTruncated && <span aria-hidden className="shrink-0">...</span>}
     </code>
   );
 }

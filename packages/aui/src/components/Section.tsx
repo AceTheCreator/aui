@@ -21,7 +21,7 @@ export default function Section({
     <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto">
       {title && (
         <h1
-          className={`${info ? "text-4xl inline-block text-3xl font-extrabold text-foreground tracking-tight" : "text-2xl"} mt-12 @lg:mt-0 mb-4 @lg:mb-0 font-bold`}
+          className={`${info ? "text-4xl inline-block text-3xl font-extrabold text-foreground tracking-tight" : "text-2xl"} mt-16 @lg:mt-28 mb-4 @lg:mb-0 font-bold`}
         >
           {title}
         </h1>
@@ -35,7 +35,7 @@ export default function Section({
       >
         <div className="@lg:w-prose min-w-0">{content}</div>
         <div className="@lg:pl-12 @lg:w-[400px] shrink-0">
-          <div className={`${stickySideContent && "@lg:sticky @lg:top-4"}`}>
+          <div className={`${stickySideContent && "@lg:sticky -mt-0 @lg:-mt-10 @lg:top-4"}`}>
             {sideContent}
           </div>
         </div>

@@ -27,30 +27,38 @@ interface ConfigInterface {
     useChannelAddressAsIdentifier?: boolean;
   };
   theme?: {
-    mode?: string;
-    primary?: {
-      50?: string; 100?: string; 200?: string;
-      300?: string; 500?: string; 600?: string; 700?: string;
-    };
-    secondary?: {
-      50?: string; 100?: string; 200?: string;
-      300?: string; 500?: string; 600?: string; 700?: string;
-    };
-    neutral?: {
-      50?: string; 100?: string; 200?: string;
-      300?: string; 500?: string; 600?: string; 700?: string;
-    };
-    colors?: {
-      background?: string;
-      surface?: string;
-      border?: string;
-      textPrimary?: string;
-      textSecondary?: string;
-      textMuted?: string;
-    };
+    colors?: ThemeColors;
+    light?: ThemeModeColors;
+    dark?: ThemeModeColors;
   };
   requestLabel?: string;
   replyLabel?: string;
+}
+
+// Brand color scales — shared across light and dark.
+interface ThemeColors {
+  primary?: {
+    50?: string; 100?: string; 200?: string;
+    300?: string; 500?: string; 600?: string; 700?: string;
+  };
+  secondary?: {
+    50?: string; 100?: string; 200?: string;
+    300?: string; 500?: string; 600?: string; 700?: string;
+  };
+  neutral?: {
+    50?: string; 100?: string; 200?: string;
+    300?: string; 500?: string; 600?: string; 700?: string;
+  };
+}
+
+// Semantic surface/text colors for a single mode.
+interface ThemeModeColors {
+  background?: string;
+  surface?: string;
+  border?: string;
+  textPrimary?: string;
+  textSecondary?: string;
+  textMuted?: string;
 }
 ```
 
@@ -74,11 +82,10 @@ interface ConfigInterface {
 
   Customises the visual appearance of the component. All color values must be hex strings (e.g. `"#0EA5E9"`).
 
-  - **mode?: string** — Set to `"dark"` to activate dark mode. This inverts the neutral color scale and applies the `colors` semantic overrides. Light mode is used by default.
+  - **colors?: ThemeColors** — Brand color scales, applied regardless of which mode is active (they typically don't change between light and dark).
+    - **primary / secondary / neutral** — Color scales used for accents, interactive elements, and surface tones. Each scale accepts shades `50`, `100`, `200`, `300`, `500`, `600`, and `700`. You can override as few or as many shades as needed. When `dark` is the active mode, the neutral scale is inverted by default before your overrides are applied.
 
-  - **primary / secondary / neutral** — Color scales used for accents, interactive elements, and surface tones. Each scale accepts shades `50`, `100`, `200`, `300`, `500`, `600`, and `700`. You can override as few or as many shades as needed.
-
-  - **colors** — Semantic surface and text overrides. Only applied when `mode` is `"dark"`.
+  - **light? / dark?: ThemeModeColors** — Semantic surface and text colors for that mode. Provide `light` and/or `dark`; whichever you provide is applied, and `dark` wins if you provide both. If neither is provided, the component's built-in light defaults are used untouched.
     - `background` — Page/component background.
     - `surface` — Card and panel backgrounds.
     - `border` — Dividers and input borders.
@@ -113,17 +120,18 @@ const config: ConfigInterface = {
     useChannelAddressAsIdentifier: true,
   },
   theme: {
-    mode: "dark",
-    primary: {
-      50:  "#F0F9FF",
-      100: "#E0F2FE",
-      200: "#BAE6FD",
-      300: "#7DD3FC",
-      500: "#0EA5E9",
-      600: "#0284C7",
-      700: "#0369A1",
-    },
     colors: {
+      primary: {
+        50:  "#F0F9FF",
+        100: "#E0F2FE",
+        200: "#BAE6FD",
+        300: "#7DD3FC",
+        500: "#0EA5E9",
+        600: "#0284C7",
+        700: "#0369A1",
+      },
+    },
+    dark: {
       background:    "#0f172a",
       surface:       "#1e293b",
       border:        "#334155",
@@ -156,8 +164,7 @@ const config = {
     useChannelAddressAsIdentifier: true,
   },
   theme: {
-    mode: "dark",
-    colors: {
+    dark: {
       background:    "#0f172a",
       surface:       "#1e293b",
       border:        "#334155",
@@ -193,8 +200,7 @@ After merging with the default configuration, the resulting config looks as foll
     schemas: false,
   },
   theme: {
-    mode: "dark",
-    colors: {
+    dark: {
       background:    "#0f172a",
       surface:       "#1e293b",
       border:        "#334155",

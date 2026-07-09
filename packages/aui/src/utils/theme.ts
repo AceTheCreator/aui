@@ -1,4 +1,4 @@
-import { ThemeConfig } from "../config/config";
+import { ThemeColorScale, ThemeConfig, ThemeModeColors } from "../config/config";
 import { SHADES } from "../contants";
 
 function hexToRgbChannels(hex: string): string {
@@ -11,7 +11,7 @@ function hexToRgbChannels(hex: string): string {
 }
 
 function buildColorScaleVars(
-  scale: Record<number, string | undefined> | undefined,
+  scale: ThemeColorScale | undefined,
   prefix: string,
   vars: Record<string, string>,
 ) {
@@ -26,7 +26,7 @@ function buildColorScaleVars(
   }
 }
 
-const COLOR_VAR_MAP: Array<[keyof NonNullable<ThemeConfig["colors"]>, string]> = [
+const COLOR_VAR_MAP: Array<[keyof ThemeModeColors, string]> = [
   ["background",    "--color-background"],
   ["surface",       "--color-surface"],
   ["border",        "--color-border"],
@@ -50,23 +50,30 @@ const DARK_NEUTRAL_DEFAULTS: Record<number, string> = {
 export function buildThemeVars(theme: ThemeConfig): Record<string, string> {
   const vars: Record<string, string> = {};
 
-  if (theme.mode === "dark") {
-    // Apply inverted neutral scale as defaults — user's theme.neutral overrides these
+  // Dark wins when both a light and a dark theme are configured.
+  const mode = theme.dark ? "dark" : theme.light ? "light" : null;
+  const modeColors = mode === "dark" ? theme.dark : mode === "light" ? theme.light : undefined;
+
+  if (mode === "dark") {
+    // Apply inverted neutral scale as defaults — user's neutral overrides these below
     for (const [shade, value] of Object.entries(DARK_NEUTRAL_DEFAULTS)) {
       vars[`--color-neutral-${shade}`] = value;
     }
+  }
 
-    if (theme.colors) {
-      for (const [key, cssVar] of COLOR_VAR_MAP) {
-        const value = theme.colors[key];
-        if (value) vars[cssVar] = hexToRgbChannels(value);
-      }
+  if (modeColors) {
+    for (const [key, cssVar] of COLOR_VAR_MAP) {
+      const value = modeColors[key];
+      if (value) vars[cssVar] = hexToRgbChannels(value);
     }
   }
 
-  buildColorScaleVars(theme.primary,   "primary",   vars);
-  buildColorScaleVars(theme.secondary, "secondary", vars);
-  buildColorScaleVars(theme.neutral,   "neutral",   vars); // explicit overrides win
+  // Brand scales apply regardless of which mode is active.
+  if (theme.colors) {
+    buildColorScaleVars(theme.colors.primary,   "primary",   vars);
+    buildColorScaleVars(theme.colors.secondary, "secondary", vars);
+    buildColorScaleVars(theme.colors.neutral,   "neutral",   vars); // explicit overrides win
+  }
 
   return vars;
 }
