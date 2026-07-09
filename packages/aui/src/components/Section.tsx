@@ -18,7 +18,7 @@ export default function Section({
   reverseLayoutOnMobile = false,
 }: SectionProps) {
   return (
-    <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto">
+    <div className="w-full @lg:max-w-[calc(70ch+28rem)] @lg:mx-auto mt-6">
       {title && (
         <h1
           className={`${info ? "text-4xl inline-block text-3xl font-extrabold text-foreground tracking-tight" : "text-2xl"} mb-4 @lg:mb-0 font-bold`}
