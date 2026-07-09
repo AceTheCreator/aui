@@ -100,7 +100,10 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   return (
     <AsyncAPIDocumentContext.Provider value={value}>
-      <div style={themeVars as React.CSSProperties} className="relative @container bg-background text-foreground p-2">
+      <div
+        style={themeVars as React.CSSProperties}
+        className={`relative @container bg-background text-foreground p-2 ${show.sidebar !== false ? "pt-14" : ""}`}
+      >
         <div ref={setPortalHost} className="asyncapi-portal-root" />
         {show.info !== false && <Information {...asyncapi.info} />}
         {show.servers !== false &&
