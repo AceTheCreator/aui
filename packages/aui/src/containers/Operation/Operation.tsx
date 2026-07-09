@@ -10,6 +10,7 @@ import { OperationReply } from "../../types/asyncapi/OperationReply";
 import { Tag } from "../../types/asyncapi/Tag";
 import { Message } from "../Messages/Message";
 import { Reply } from "../../components/Reply";
+import Markdown from "../../components/Markdown";
 
 interface OperationProps {
   op: OperationInterface;
@@ -97,9 +98,7 @@ export default function Operation({ op, id }: OperationProps) {
           <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
             Description
           </p>
-          <p className="text-sm text-foreground-secondary leading-relaxed">
-            {op.description}
-          </p>
+          <Markdown>{op.description}</Markdown>
         </div>
       )}
 

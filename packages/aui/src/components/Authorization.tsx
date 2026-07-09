@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Tabs from "./Tabs";
+import Markdown from "./Markdown";
 import { UserPassword } from "../types/asyncapi/UserPassword";
 import { ApiKey as ApiKeyType } from "../types/asyncapi/ApiKey";
 import { X509 } from "../types/asyncapi/X509";
@@ -48,6 +50,8 @@ const tabs = [
   { id: "X509", name: "X.509 certificate" },
   { id: "scramSha256", name: "SASL" },
   { id: "scramSha512", name: "SASL" },
+  { id: "plain", name: "SASL" },
+  { id: "gssapi", name: "SASL" },
 ];
 
 interface Props {
@@ -80,36 +84,47 @@ export default function Authorization({ securities }: Props) {
     return securities.find((security) => security.type === type) as T;
   }
 
+  const activeDescription = authTab ? filteredType<SecurityScheme>(authTab)?.description : undefined;
+
   return (
     <div>
       <Tabs tabs={filteredTabs} current={authTab} onChange={setAuthTab} />
       <div className="py-4 prose text-foreground-muted">
         {authTab === "userPassword" && (
-          <span>
+          <AuthDescription description={activeDescription}>
             You have to{" "}
             <strong className="text-foreground-secondary">
               provide user and password
             </strong>{" "}
             to connect to this server.
-          </span>
+          </AuthDescription>
         )}
-        {authTab && ["scramSha256", "scramSha512"].includes(authTab) && (
-          <span>
+        {authTab && ["scramSha256", "scramSha512", "plain"].includes(authTab) && (
+          <AuthDescription description={activeDescription}>
             You have to{" "}
             <strong className="text-foreground-secondary">
               provide username and password
             </strong>{" "}
             to connect to this server.
-          </span>
+          </AuthDescription>
+        )}
+        {authTab === "gssapi" && (
+          <AuthDescription description={activeDescription}>
+            You have to{" "}
+            <strong className="text-foreground-secondary">
+              authenticate using Kerberos (GSSAPI)
+            </strong>{" "}
+            to connect to this server.
+          </AuthDescription>
         )}
         {authTab === "X509" && (
-          <span>
+          <AuthDescription description={activeDescription}>
             You have to{" "}
             <strong className="text-foreground-secondary">
               download the certificate file
             </strong>{" "}
             from the service provider to connect to this server.
-          </span>
+          </AuthDescription>
         )}
         {authTab === "apiKey" && (
           <ApiKey security={filteredType<ApiKeyType>("apiKey")} />
@@ -125,7 +140,20 @@ export default function Authorization({ securities }: Props) {
   );
 }
 
+// Renders the security scheme's own `description` (if the document provides one) instead
+// of the generic fallback copy — author-supplied docs should win over our boilerplate.
+const AuthDescription = ({ description, children }: { description?: string; children: ReactNode }) => {
+  if (description) return (
+    <>
+      <Markdown>{description}</Markdown> <span>{children}</span>
+    </>
+  );
+  return <span>{children}</span>;
+};
+
 export const ApiKey = ({ security }: { security: ApiKeyType }) => {
+  if (security?.description) return <Markdown>{security.description}</Markdown>;
+
   const keyLocation = security?.in;
   if (keyLocation === "password") {
     return (
@@ -152,7 +180,11 @@ export const ApiKey = ({ security }: { security: ApiKeyType }) => {
 export const OpenID = ({ security }: { security: OpenIdConnect }) => {
   return (
     <>
-      <p>You can use OpenID to connect to this server.</p>
+      {security?.description ? (
+        <Markdown>{security.description}</Markdown>
+      ) : (
+        <p>You can use OpenID to connect to this server.</p>
+      )}
       <p>
         The OpenID Connect URL is{" "}
         <a href="https://authserver.example/.well-known">
@@ -176,6 +208,7 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
   const flows = security?.flows;
   return (
     <>
+      {security?.description && <Markdown>{security.description}</Markdown>}
       {flows &&
         Object.entries(flows).map(([flow, flowData]) => {
           let title = "";

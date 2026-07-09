@@ -3,7 +3,6 @@
 "info": {
   "title": "Streetlights Kafka API",
   "version": "1.0.0",
-  "summary": "Event-driven API for monitoring and controlling smart city streetlights over Kafka.",
   "description": "## Smartylighting Streetlights API\n\nThe Smartylighting Streetlights API allows operators, monitoring systems, and automation platforms to remotely manage and observe city streetlights.\n\n## Features\n\n- Turn a specific streetlight on/off 🌃\n- Dim a specific streetlight 😎\n- Receive real-time lighting measurements 📈\n- Monitor operational status changes 🚦\n- Receive maintenance alerts 🔧\n\n## Example Event\n\n```json\n{\n  \"lumens\": 450,\n  \"sentAt\": \"2026-06-25T12:00:00Z\"\n}\n```\n\n## Example Consumer (Node.js)\n\n```javascript\nawait consumer.subscribe({\n  topic: 'smartylighting.streetlights.1.0.event.123.lighting.measured'\n});\n\nawait consumer.run({\n  eachMessage: async ({ message }) => {\n    console.log(message.value.toString());\n  }\n});\n```\n\n## Channel Overview\n\n| Channel | Purpose |\n|----------|----------|\n| lightingMeasured | Telemetry and sensor readings |\n| lightTurnOn | Turn on streetlights |\n| lightTurnOff | Turn off streetlights |\n| lightsDim | Adjust brightness levels |\n\nFor additional implementation guidance, see the external documentation links provided throughout this specification.",
   "termsOfService": "https://smartylighting.example.com/terms",
   "contact": {
@@ -84,16 +83,7 @@
           "$ref": "#/components/securitySchemes/certs"
         },
         {
-          "type": "oauth2",
-          "description": "OAuth 2.0 authentication for development environment",
-          "flows": {
-            "authorizationCode": {
-              "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
-              "tokenUrl": "https://auth.dev-messaging.example.com/oauth/token",
-              "refreshUrl": "https://auth.dev-messaging.example.com/oauth/refresh",
-              "availableScopes": ["publish", "subscribe", "manage"]
-            }
-          }
+          "$ref": "#/components/securitySchemes/oauth2Dev"
         }
       ],
       "tags": [
@@ -558,6 +548,22 @@
       "certs": {
         "type": "X509",
         "description": "Download the certificate files from service provider"
+      },
+      "oauth2Dev": {
+        "type": "oauth2",
+        "description": "OAuth 2.0 authentication for development environment",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.dev-messaging.example.com/oauth/authorize",
+            "tokenUrl": "https://auth.dev-messaging.example.com/oauth/token",
+            "refreshUrl": "https://auth.dev-messaging.example.com/oauth/refresh",
+            "availableScopes": {
+              "publish": "Permission to publish messages",
+              "subscribe": "Permission to subscribe to messages",
+              "manage": "Permission to manage the resource"
+            }
+          }
+        }
       }
     },
     "parameters": {

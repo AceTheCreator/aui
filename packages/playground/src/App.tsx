@@ -1,9 +1,11 @@
-import { AsyncAPI, defaultConfig } from 'aui'
+import { AsyncAPIRenderer, defaultConfig } from 'aui'
 import type { ConfigInterface } from 'aui'
 import 'aui/style.css'
 import { useMemo, useState } from 'react'
 import exampleDoc from './examples/example1.json'
 // import exampleDoc from './torture.json'
+import { DiagnosticsPanel } from './components/DiagnosticsPanel'
+import type { ParserDiagnostic } from './components/DiagnosticsPanel'
 import { EditorPane } from './components/EditorPane'
 import { EditorTabs } from './components/EditorTabs'
 import type { EditorTab } from './components/EditorTabs'
@@ -11,6 +13,7 @@ import { FetchSchema } from './components/FetchSchema'
 import { ResizeHandle } from './components/ResizeHandle'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ViewToggle } from './components/ViewToggle'
+import { useDebouncedValue } from './hooks/useDebouncedValue'
 import { useJsonEditor } from './hooks/useJsonEditor'
 import { useResizableSplit } from './hooks/useResizableSplit'
 import { scrollbarStyle, UI_PALETTES } from './theme'
@@ -25,7 +28,15 @@ export default function App() {
   const [editorExpanded, setEditorExpanded] = useState(true)
   const palette = UI_PALETTES[uiMode]
 
-  const doc = useJsonEditor<unknown>(DEFAULT_DOC_TEXT, exampleDoc)
+  // AsyncAPIRenderer parses `raw` itself via the real @asyncapi/parser and reports
+  // real spec diagnostics — no need for our own JSON.parse validation on this side.
+  const [docText, setDocText] = useState(DEFAULT_DOC_TEXT)
+  // Parsing hits the real spec-validating parser (~500ms) — debounce so typing doesn't
+  // fire a fresh parse on every keystroke.
+  const debouncedDocText = useDebouncedValue(docText, 400)
+  const [diagnostics, setDiagnostics] = useState<ParserDiagnostic[]>([])
+  const hasDocErrors = diagnostics.some((d) => d.severity === 0)
+
   const config = useJsonEditor<ConfigInterface>(DEFAULT_CONFIG_TEXT, defaultConfig, {
     emptyValue: defaultConfig,
   })
@@ -54,7 +65,11 @@ export default function App() {
         style={{ width: editorExpanded ? `${splitPercent}%` : '100%', overflow: 'auto' }}
       >
         <style>{scrollbarStyle('.playground-preview-scroll', palette)}</style>
-        {!doc.error && <AsyncAPI asyncapi={doc.value as any} config={previewConfig} />}
+        <AsyncAPIRenderer
+          raw={debouncedDocText}
+          config={previewConfig}
+          onDiagnostics={(d) => setDiagnostics(d as ParserDiagnostic[])}
+        />
       </div>
 
       {editorExpanded && (
@@ -73,7 +88,7 @@ export default function App() {
                 </div>
               }
               tabs={[
-                { id: 'doc', label: 'AsyncAPI Document', hasError: doc.error != null },
+                { id: 'doc', label: 'AsyncAPI Document', hasError: hasDocErrors },
                 { id: 'config', label: 'Config', hasError: config.error != null },
               ]}
             />
@@ -85,15 +100,16 @@ export default function App() {
             >
               {activeTab === 'doc' ? (
                 <>
-                  <FetchSchema palette={palette} onLoad={doc.onChange} />
+                  <FetchSchema palette={palette} onLoad={setDocText} />
                   <EditorPane
                     ariaLabel="AsyncAPI document JSON"
-                    value={doc.text}
-                    onChange={doc.onChange}
-                    error={doc.error}
+                    value={docText}
+                    onChange={setDocText}
+                    error={null}
                     mode={uiMode}
                     palette={palette}
                   />
+                  <DiagnosticsPanel diagnostics={diagnostics} palette={palette} />
                 </>
               ) : (
                 <EditorPane

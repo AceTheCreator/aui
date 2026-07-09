@@ -24,8 +24,6 @@ export function Message({ message, messageId, i }: MessageProps) {
     message.deprecated ||
     (message.tags && (message.tags as Tag[]).length > 0);
 
-    console.log(message.correlationId)
-
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="px-4 py-3">

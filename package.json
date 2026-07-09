@@ -1,10 +1,14 @@
 {
   "name": "aui-monorepo",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build:lib": "npm run build --workspace=packages/aui",
     "dev:lib": "npm run dev --workspace=packages/aui",
+    "test": "npm run test --workspace=packages/aui",
+    "test:watch": "npm run test:watch --workspace=packages/aui",
     "playground": "npm run build --workspace=packages/aui && concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
     "storybook": "npm run storybook --workspace=packages/aui"
   },

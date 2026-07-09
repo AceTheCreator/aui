@@ -11,7 +11,10 @@ interface ServersInterface {
 
 export default function Servers({ servers }: ServersInterface) {
   const serverNames = [...Object.keys(servers)];
-  const [current, setCurrent] = useState(serverNames[0]);
+  const [selected, setSelected] = useState<string | undefined>(undefined);
+  // Falls back to the first server whenever there's no explicit selection yet, or the
+  // previously selected one no longer exists (e.g. after switching to a different document).
+  const current = selected && serverNames.includes(selected) ? selected : serverNames[0];
   const content = <Server {...servers[current]} />;
   return (
     <div className="flex justify-center w-full">
@@ -22,7 +25,7 @@ export default function Servers({ servers }: ServersInterface) {
           <VerticalNavigation
             serverNames={serverNames}
             current={current}
-            setCurrent={setCurrent}
+            setCurrent={setSelected}
           />
         }
         stickySideContent={true}

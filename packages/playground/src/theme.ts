@@ -11,6 +11,7 @@ export interface UiPalette {
   errorBg: string
   errorBorder: string
   errorText: string
+  warningText: string
   handleBg: string
   handleBgHover: string
   scrollbarTrack: string
@@ -30,6 +31,7 @@ export const UI_PALETTES: Record<UiMode, UiPalette> = {
     errorBg: '#450a0a',
     errorBorder: '#7f1d1d',
     errorText: '#fca5a5',
+    warningText: '#fbbf24',
     handleBg: '#1f2937',
     handleBgHover: '#374151',
     scrollbarTrack: '#030712',
@@ -47,6 +49,7 @@ export const UI_PALETTES: Record<UiMode, UiPalette> = {
     errorBg: '#fef2f2',
     errorBorder: '#fecaca',
     errorText: '#dc2626',
+    warningText: '#b45309',
     handleBg: '#e5e7eb',
     handleBgHover: '#d1d5db',
     scrollbarTrack: '#f9fafb',

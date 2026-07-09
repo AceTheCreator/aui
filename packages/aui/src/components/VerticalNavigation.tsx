@@ -1,10 +1,9 @@
-import React from "react";
 import classNames from "../helpers/classNames"
 
 type VerticalNavigationProps = {
     serverNames?: string[];
     current?: string;
-    setCurrent: React.Dispatch<React.SetStateAction<string>>;
+    setCurrent: (name: string) => void;
   };
 
 export default function VerticalNavigation({ serverNames = [], current, setCurrent }: VerticalNavigationProps) {
