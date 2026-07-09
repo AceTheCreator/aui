@@ -1,4 +1,4 @@
-import {use, useMemo} from "react";
+import {useEffect, useState} from "react";
 import {generate} from "json-schema-faker";
 
 interface ExamplesProps {
@@ -25,7 +25,20 @@ function extendExampleSchema(schema: JsonSchema): JsonSchema {
 }
 
 export function Examples ({schema}: ExamplesProps) {
-    const value = use(useMemo(() => generate(extendExampleSchema(schema), { seed: 42, useExamplesValue: true, optionalsProbability: 1 }), [schema]));
+    const [value, setValue] = useState<unknown>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        generate(extendExampleSchema(schema), { seed: 42, useExamplesValue: true, optionalsProbability: 1 }).then((result) => {
+            if (!cancelled) setValue(result);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [schema]);
+
+    if (value === null) return null;
+
     return (
       <div className="text-xs bg-neutral-50 text-foreground-secondary p-2 rounded overflow-x-auto">
         <pre>{JSON.stringify(value, null, 2)}</pre>

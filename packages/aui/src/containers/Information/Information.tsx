@@ -16,7 +16,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
 }) => {
 
   const content = (
-      <div className="prose mt-4">
+      <div className="mt-4 w-full">
         <Markdown>{description}</Markdown>
       </div>
   );
@@ -33,7 +33,7 @@ const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   return (
     <div className="flex justify-center w-full">
       <Section
-      title={title}
+        title={title}
         content={content}
         sideContent={sideContent}
         stickySideContent={true}

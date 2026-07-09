@@ -102,49 +102,75 @@ export default function App() {
   }, [handlePointerMove, stopDragging])
 
   return (
-    <div ref={containerRef} style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: `${leftWidth}%` }}>
-        <div style={{ display: 'flex', borderBottom: '1px solid #1f2937', background: '#030712', flexShrink: 0 }}>
-          {(['doc', 'config'] as const).map((tab) => (
+    <div ref={containerRef} style={{ display: "flex", height: "100vh" }}>
+      <div style={{ width: `${100 - leftWidth}%`, overflow: "auto" }}>
+        {!docError && <AsyncAPI asyncapi={doc as any} config={config} />}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: `${leftWidth}%`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            borderBottom: "1px solid #1f2937",
+            background: "#030712",
+            flexShrink: 0,
+          }}
+        >
+          {(["doc", "config"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
-                padding: '0.5rem 1rem',
-                fontSize: '0.8125rem',
-                fontFamily: 'inherit',
-                border: 'none',
-                borderBottom: activeTab === tab ? '2px solid #f3f4f6' : '2px solid transparent',
-                background: 'transparent',
-                color: activeTab === tab ? '#f3f4f6' : '#6b7280',
-                cursor: 'pointer',
+                padding: "0.5rem 1rem",
+                fontSize: "0.8125rem",
+                fontFamily: "inherit",
+                border: "none",
+                borderBottom:
+                  activeTab === tab
+                    ? "2px solid #f3f4f6"
+                    : "2px solid transparent",
+                background: "transparent",
+                color: activeTab === tab ? "#f3f4f6" : "#6b7280",
+                cursor: "pointer",
               }}
             >
-              {tab === 'doc' ? 'AsyncAPI Document' : 'Config'}
-              {(tab === 'doc' ? docError : configError) && (
-                <span style={{ color: '#dc2626', marginLeft: '0.375rem' }}>●</span>
+              {tab === "doc" ? "AsyncAPI Document" : "Config"}
+              {(tab === "doc" ? docError : configError) && (
+                <span style={{ color: "#dc2626", marginLeft: "0.375rem" }}>
+                  ●
+                </span>
               )}
             </button>
           ))}
         </div>
-        {activeTab === 'doc' ? (
-          <EditorPane value={docText} onChange={handleDocChange} error={docError} />
+        {activeTab === "doc" ? (
+          <EditorPane
+            value={docText}
+            onChange={handleDocChange}
+            error={docError}
+          />
         ) : (
-          <EditorPane value={configText} onChange={handleConfigChange} error={configError} />
+          <EditorPane
+            value={configText}
+            onChange={handleConfigChange}
+            error={configError}
+          />
         )}
       </div>
       <div
         onPointerDown={startDragging}
         style={{
-          width: '5px',
-          cursor: 'col-resize',
-          background: '#e5e7eb',
+          width: "5px",
+          cursor: "col-resize",
+          background: "#e5e7eb",
           flexShrink: 0,
         }}
       />
-      <div style={{ width: `${100 - leftWidth}%`, overflow: 'auto' }}>
-        {!docError && <AsyncAPI asyncapi={doc as any} config={config} />}
-      </div>
     </div>
-  )
+  );
 }

@@ -86,7 +86,7 @@ export default function Navigation({
       <button
         onClick={() => setOpen((v) => !v)}
         title={open ? "Close navigation" : "Open navigation"}
-        className="panel-toggle-btn bg-neutral-50"
+        className="panel-toggle-btn bg-neutral-100"
         style={open && panelWidth ? { left: `${panelWidth + 10}px` } : undefined}
       >
         <SidebarIcon isCollapsed={open} />

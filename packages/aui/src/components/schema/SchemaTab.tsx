@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SchemaViewer } from "../../containers/Schema/SchemaViewer";
 import SchemaTree from "./SchemaTree";
 import TabToggle from "../TabToggle";
+import { Examples } from "../Examples";
 
 function SchemaTabs({
   schema,
@@ -12,7 +13,7 @@ function SchemaTabs({
   label: string;
   description?: string;
 }) {
-  const [tab, setTab] = useState<"schema" | "json">("schema");
+  const [tab, setTab] = useState<"schema" | "json" | "example">("schema");
 
   return (
     <div>
@@ -31,18 +32,16 @@ function SchemaTabs({
           tabs={[
             { id: "schema", label: "Schema" },
             { id: "json", label: "JSON" },
+            { id: "example", label: "Example" },
           ]}
           selected={tab}
-          onChange={(id) => setTab(id as "schema" | "json")}
+          onChange={(id) => setTab(id as "schema" | "json" | "example")}
           ariaLabel="Schema view toggle"
         />
       </div>
-
-      {tab === "json" ? (
-        <SchemaViewer schema={schema} />
-      ) : (
-        <SchemaTree schema={schema} rootName={label} />
-      )}
+      {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
+      {tab === "json" && <SchemaViewer schema={schema} />}
+      {tab === "example" && <Examples schema={schema} />}
     </div>
   );
 }
