@@ -10,32 +10,36 @@
     "url": "https://smartylighting.example.com/support",
     "email": "support@smartylighting.example.com"
   },
+  "externalDocs": {
+    "description": "Learn more about the AsyncAPI Initiative and the case studies.",
+    "url": "https://www.asyncapi.com/"
+  },
   "license": {
     "name": "Apache 2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
   "tags": [
-  {
-    "name": "streetlights",
-    "description": "# Streetlights\n\nCore functionality for streetlight management."
-  },
-  {
-    "name": "telemetry",
-    "description": "Real-time environmental measurements and status updates."
-  },
-  {
-    "name": "commands",
-    "description": "Commands sent to streetlight controllers."
-  },
-  {
-    "name": "maintenance",
-    "description": "Maintenance workflows and alerts."
-  },
-  {
-    "name": "kafka",
-    "description": "Kafka implementation details and bindings."
-  }
-],
+    {
+      "name": "streetlights",
+      "description": "# Streetlights\n\nCore functionality for streetlight management."
+    },
+    {
+      "name": "telemetry",
+      "description": "Real-time environmental measurements and status updates."
+    },
+    {
+      "name": "commands",
+      "description": "Commands sent to streetlight controllers."
+    },
+    {
+      "name": "maintenance",
+      "description": "Maintenance workflows and alerts."
+    },
+    {
+      "name": "kafka",
+      "description": "Kafka implementation details and bindings."
+    }
+  ],
   "x-logo": "https://cdn.prod.website-files.com/60e49b51af3305d435c286ab/60e78065113f2f12904a43b1_aklivity-logo.svg"
 },
   "defaultContentType": "application/json",

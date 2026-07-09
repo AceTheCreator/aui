@@ -8,6 +8,10 @@
       "name": "AsyncAPI Community",
       "email": "case-study@asyncapi.com"
     },
+    "externalDocs": {
+      "description": "Learn more about the AsyncAPI Initiative and the case studies.",
+      "url": "https://www.asyncapi.com/"
+    },
     "tags": [
       {
         "name": "costing",

@@ -11,7 +11,7 @@ interface AsyncAPIRendererProps {
 }
 
 export function AsyncAPIRenderer({ raw, config, onDiagnostics }: AsyncAPIRendererProps) {
-  const [parsedDoc, setParsedDoc] = useState<AsyncAPIDocumentData | null>(null);
+  const [document, setDocument] = useState<AsyncAPIDocumentData | null>(null);
 
   // Keep the latest onDiagnostics without making the effect below re-run (and
   // therefore re-parse) whenever the caller passes a new callback identity.
@@ -22,7 +22,7 @@ export function AsyncAPIRenderer({ raw, config, onDiagnostics }: AsyncAPIRendere
     let active = true;
     parseDocument(raw).then(({ document, diagnostics }) => {
       if (!active) return;
-      setParsedDoc(document);
+      setDocument(document);
       onDiagnosticsRef.current?.(diagnostics);
     });
     return () => {
@@ -33,6 +33,6 @@ export function AsyncAPIRenderer({ raw, config, onDiagnostics }: AsyncAPIRendere
     // not wait on a fresh ~500ms parse.
   }, [raw]);
 
-  if (!parsedDoc) return null;
-  return <AsyncAPI kind="resolved" doc={parsedDoc} config={config} />;
+  if (!document) return null;
+  return <AsyncAPI kind="resolved" doc={document} config={config} />;
 }
