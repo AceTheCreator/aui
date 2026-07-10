@@ -39,9 +39,17 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   const firstTab = (tabs[0]?.id ?? "operations") as AsyncAPITabKey;
   const [activeTab, setActiveTab] = useState<AsyncAPITabKey>(firstTab);
-  const [selectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
-  const [selectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
-  const [selectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
+  const [rawSelectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
+  const [rawSelectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
+  const [rawSelectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
+
+  // `activeTab` and the selection keys can go stale when a live config edit hides
+  // their tab (e.g. `show.operations: false` while Operations is active), so clamp
+  // them to the currently visible tabs instead of trusting the stored state.
+  const effectiveTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : firstTab;
+  const selectedOperationKey = show.operations !== false ? rawSelectedOperationKey : null;
+  const selectedMessageKey = show.messages !== false ? rawSelectedMessageKey : null;
+  const selectedSchemaKey = show.schemas !== false ? rawSelectedSchemaKey : null;
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
 
@@ -81,13 +89,13 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   );
 
   const activeContent =
-    activeTab === "operations" ? (
+    effectiveTab === "operations" ? (
       <Operations
         operations={asyncapi.operations ?? {}}
         selectedKey={selectedOperationKey}
         onSelectKey={setSelectedOperationKey}
       />
-    ) : activeTab === "messages" ? (
+    ) : effectiveTab === "messages" ? (
       <Messages
         messages={(asyncapi.components?.messages ?? {}) as Record<string, MessageObject>}
         selectedKey={selectedMessageKey}
@@ -126,7 +134,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
                 : undefined
             }
             sidebarConfig={config.sidebar}
-            activeTab={activeTab}
+            activeTab={effectiveTab}
             onTabChange={setActiveTab}
             onItemSelect={(tab, key) => {
               setActiveTab(tab);
@@ -147,15 +155,15 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
         )}
         <ContentTab
           tabs={tabs}
-          current={activeTab}
+          current={effectiveTab}
           onChange={(id) => {
             if (isAsyncAPITabKey(id)) setActiveTab(id);
           }}
         />
         <div
-          id={`panel-${activeTab}`}
+          id={`panel-${effectiveTab}`}
           role="tabpanel"
-          aria-labelledby={`tab-${activeTab}`}
+          aria-labelledby={`tab-${effectiveTab}`}
         >
           {activeContent}
         </div>
