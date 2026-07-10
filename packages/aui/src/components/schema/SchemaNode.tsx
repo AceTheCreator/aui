@@ -71,6 +71,14 @@ export default function SchemaNode({
 }: SchemaNodeProps) {
   const nestedBranchLineVariant = childBranchLineVariant(branchLineVariant);
   const [expanded, setExpanded] = useState(defaultExpanded);
+  // When `defaultExpanded` changes after mount (e.g. a live `expand.schemas` config
+  // edit), re-apply it to every node, overriding manual toggles made under the old
+  // default. Adjusted during render so the old state never paints.
+  const [prevDefaultExpanded, setPrevDefaultExpanded] = useState(defaultExpanded);
+  if (prevDefaultExpanded !== defaultExpanded) {
+    setPrevDefaultExpanded(defaultExpanded);
+    setExpanded(defaultExpanded);
+  }
   const [selectedCase, setSelectedCase] = useState(0);
 
   const { schema, refLabel, circular } = useMemo(() => {
