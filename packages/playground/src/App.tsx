@@ -37,6 +37,13 @@ export default function App() {
   const [diagnostics, setDiagnostics] = useState<ParserDiagnostic[]>([])
   const hasDocErrors = diagnostics.some((d) => d.severity === 0)
 
+  // The doc editor accepts both JSON and YAML (e.g. fetched .yml examples), so pick
+  // the highlighter from the content itself.
+  const docLanguage = useMemo(() => {
+    const head = docText.trimStart()
+    return head.startsWith('{') ? 'json' : 'yaml'
+  }, [docText])
+
   const config = useJsonEditor<ConfigInterface>(DEFAULT_CONFIG_TEXT, defaultConfig, {
     emptyValue: defaultConfig,
   })
@@ -102,12 +109,13 @@ export default function App() {
                 <>
                   <FetchSchema palette={palette} onLoad={setDocText} />
                   <EditorPane
-                    ariaLabel="AsyncAPI document JSON"
+                    ariaLabel="AsyncAPI document"
                     value={docText}
                     onChange={setDocText}
                     error={null}
                     mode={uiMode}
                     palette={palette}
+                    language={docLanguage}
                   />
                   <DiagnosticsPanel diagnostics={diagnostics} palette={palette} />
                 </>
