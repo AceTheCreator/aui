@@ -42,7 +42,7 @@ export default function InfoMetadata({
   };
   return (
     <>
-      <dl className="flex flex-wrap @lg:flex-unwrap gap-2 @lg:gap-0 ">
+      <dl className="flex flex-wrap @lg:flex-unwrap gap-2 ">
         {details.licenseName && (
           <DefinitionListItem
             IconClass={IconScale}
@@ -60,7 +60,7 @@ export default function InfoMetadata({
             href={details.externalDocsUrl}
             term={EXTERNAL_DOCUMENTATION_TEXT}
             visibleTerm={details.externalDocsTitle ? false : true}
-            className="mb-4 ml-0 @lg:ml-2 text-foreground-secondary hover:text-secondary-500"
+            className="mb-4 text-foreground-secondary hover:text-secondary-500"
           />
         )}
         {details.contactEmail && (
