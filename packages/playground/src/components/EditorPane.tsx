@@ -1,9 +1,12 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { json } from '@codemirror/lang-json'
+import { yaml } from '@codemirror/lang-yaml'
 import { tokyoNight, githubLight } from "@uiw/codemirror-themes-all";
 import { useMemo } from 'react'
 import { scrollbarStyle } from '../theme'
 import type { UiMode, UiPalette } from '../theme'
+
+export type EditorLanguage = 'json' | 'yaml'
 
 interface EditorPaneProps {
   value: string
@@ -12,11 +15,14 @@ interface EditorPaneProps {
   ariaLabel: string
   mode: UiMode
   palette: UiPalette
+  language?: EditorLanguage
 }
 
-const extensions = [json()]
+const jsonExtensions = [json()]
+const yamlExtensions = [yaml()]
 
-export function EditorPane({ value, onChange, error, ariaLabel, mode, palette }: EditorPaneProps) {
+export function EditorPane({ value, onChange, error, ariaLabel, mode, palette, language = 'json' }: EditorPaneProps) {
+  const extensions = language === 'yaml' ? yamlExtensions : jsonExtensions
   const basicSetup = useMemo(
     () => ({
       foldGutter: true,
