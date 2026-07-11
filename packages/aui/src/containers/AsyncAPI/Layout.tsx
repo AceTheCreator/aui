@@ -52,6 +52,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const selectedSchemaKey = show.schemas !== false ? rawSelectedSchemaKey : null;
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
+  const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     derefCache.clear();
@@ -84,8 +85,8 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const defaultSchemaExpanded = config.expand?.schemas === true;
 
   const value = useMemo(
-    () => ({ document: asyncapi, deref, portalHost, defaultSchemaExpanded }),
-    [asyncapi, deref, portalHost, defaultSchemaExpanded],
+    () => ({ document: asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded }),
+    [asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded],
   );
 
   const activeContent =
@@ -109,6 +110,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   return (
     <AsyncAPIDocumentContext.Provider value={value}>
       <div
+        ref={setRootElement}
         style={themeVars as React.CSSProperties}
         className={`relative @container bg-background text-foreground p-2 ${show.sidebar !== false ? "pt-14" : ""}`}
       >

@@ -7,6 +7,8 @@ interface AsyncAPIContextValue {
   /** Resolves a JSON Pointer $ref string to the object it references in the document. */
   deref: (ref: string) => unknown;
   portalHost: HTMLElement | null;
+  /** The Layout component's own root element — used to scope viewport-fixed overlays (e.g. SidePanel) to where <AsyncAPI> is actually embedded, rather than the full browser viewport. */
+  rootElement: HTMLElement | null;
   /** Whether schema tree nodes start expanded by default. Defaults to false. */
   defaultSchemaExpanded?: boolean;
 }
