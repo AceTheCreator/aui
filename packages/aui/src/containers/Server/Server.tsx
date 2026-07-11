@@ -24,16 +24,19 @@ export default function Server({
   security,
   bindings,
 }: ServerInterface) {
-
   const urlChunks = chunkURL(host, variables);
+
+  // `variables` is typed as a Map (a codegen artifact from the AsyncAPI JSON schema),
+  // but parsed documents are always plain objects at runtime — never real Map instances.
+  const variableEntries = variables as unknown as Record<string, ServerVariable> | undefined;
 
   const variableElems = (
     <>
-      {variables &&
-        Array.from(variables.keys()).map((variable, i) => {
-          const variableProps = variables.get(variable) as ServerVariable;
+      {variableEntries &&
+        Object.keys(variableEntries).map((variable, i) => {
+          const variableProps = variableEntries[variable];
           return (
-            <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4">
+            <div key={variable} className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4">
               <dt className="text-sm font-medium text-foreground-muted">
                 <code
                   className={`${chunkColors[i % chunkColors.length]} font-bold`}
