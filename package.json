@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "build:lib": "npm run build --workspace=packages/aui",
+    "build:playground-lib": "npm run build:lib && npm run build:lib --workspace=packages/playground",
     "dev:lib": "npm run dev --workspace=packages/aui",
     "test": "npm run test --workspace=packages/aui",
     "test:watch": "npm run test:watch --workspace=packages/aui",
