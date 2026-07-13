@@ -7,7 +7,8 @@ async function loadParser() {
   try {
     const { default: Parser } = await import("@asyncapi/parser/browser");
     return Parser;
-  } catch {
+  } catch (err) {
+    console.error("[aui] Failed to load '@asyncapi/parser/browser':", err);
     throw new Error(
       "[aui] The parsed entry requires '@asyncapi/parser'. " +
         "Install it (`npm i @asyncapi/parser`), or use 'aui' with a pre-resolved document.",
