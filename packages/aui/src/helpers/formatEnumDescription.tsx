@@ -1,4 +1,5 @@
 import React from "react";
+import type { JSX } from "react";
 
 export default function formatEnumDescription(values: string[]): JSX.Element {
   if (values.length === 0) {

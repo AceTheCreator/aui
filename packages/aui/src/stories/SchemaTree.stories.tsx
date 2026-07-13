@@ -35,7 +35,7 @@ const deref = (refPath: string): unknown => {
 
 const withSchemaContext = (Story: ComponentType) => (
   <AsyncAPIDocumentContext.Provider
-    value={{ document: mockDocument, deref }}
+    value={{ document: mockDocument, deref, portalHost: null, rootElement: null }}
   >
     <div className="max-w-3xl p-4">
       <Story />

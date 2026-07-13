@@ -41,7 +41,7 @@ function SchemaTabs({
       </div>
       {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
       {tab === "json" && <SchemaViewer schema={schema} />}
-      {tab === "example" && <Examples schema={schema} />}
+      {tab === "example" && <Examples schema={schema as Record<string, unknown>} />}
     </div>
   );
 }

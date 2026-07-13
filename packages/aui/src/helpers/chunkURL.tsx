@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { chunkColors } from "../contants";
 import { Server as ServerInterface } from "../types/asyncapi/Server";
 import { ServerVariable } from "../types/asyncapi/ServerVariable";

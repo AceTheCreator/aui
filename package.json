@@ -11,7 +11,10 @@
     "test": "npm run test --workspace=packages/aui",
     "test:watch": "npm run test:watch --workspace=packages/aui",
     "playground": "npm run build --workspace=packages/aui && concurrently \"npm run watch --workspace=packages/aui\" \"npm run dev --workspace=packages/playground\"",
-    "storybook": "npm run storybook --workspace=packages/aui"
+    "storybook": "npm run storybook --workspace=packages/aui",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run build --workspace=packages/aui && changeset publish"
   },
   "peerDependencies": {
     "@asyncapi/avro-schema-parser": "^3.0.0",
@@ -26,6 +29,7 @@
     }
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "concurrently": "^9.0.0"
   }
 }

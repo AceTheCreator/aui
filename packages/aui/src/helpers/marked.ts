@@ -21,13 +21,13 @@ const marked = new Marked(
   markedHighlight({
     emptyLangClass: "hljs",
     langPrefix: "hljs language-",
-    highlight(code, language, info) {
+    highlight(code, language) {
       if (!hljs.getLanguage(language)) {
         return code;
       }
       try {
         return hljs.highlight(code, { language }).value;
-      } catch (e) {
+      } catch {
         return code;
       }
     },
@@ -46,7 +46,8 @@ marked.use({
 });
 
 export function renderMarkdown(content: string): string {
-  return marked.parse(content);
+  // No async extensions are registered above, so `parse` always resolves synchronously.
+  return marked.parse(content) as string;
 }
 
 export { hljs };

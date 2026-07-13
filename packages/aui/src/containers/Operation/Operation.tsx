@@ -23,7 +23,6 @@ export default function Operation({ op, id }: OperationProps) {
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
   const traits = op.traits as unknown as Array<Record<string, unknown>> | undefined;
   const reply = op.reply as unknown as OperationReply | undefined;
-  const channel = op.channel as unknown as string | undefined;
   const externalDocs = op.externalDocs as unknown as ExternalDocs | undefined;
   const security = op.security as unknown as unknown[] | undefined;
 
@@ -100,7 +99,6 @@ export default function Operation({ op, id }: OperationProps) {
             Description
           </p>
           <Markdown>{op.description}</Markdown>
-          <Markdown>{channel.description}</Markdown>
         </div>
       )}
 

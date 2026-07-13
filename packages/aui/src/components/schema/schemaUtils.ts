@@ -1,7 +1,6 @@
 import { asSchemaNode, isSchemaRecord, SchemaNodeData } from "../../types/schema";
-import { buildTypeDisplay } from "./schemaDisplayUtils";
 
-const EMPTY_REF_STACK: ReadonlySet<string> = new Set();
+const EMPTY_REF_STACK: Set<string> = new Set();
 
 /** Extracts the schema name from a JSON Pointer, e.g. "#/components/schemas/sentAt" → "sentAt". */
 export const refNameFromPath = (ref: string) =>

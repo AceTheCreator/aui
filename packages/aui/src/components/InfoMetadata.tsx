@@ -21,7 +21,7 @@ export default function InfoMetadata({
   externalDocs,
   contact,
   tags,
-}: Info) {
+}: Pick<Info, "license" | "externalDocs" | "contact" | "tags">) {
   const resolvedExternalDocs = externalDocs as ExternalDocs | undefined;
   const details = {
     licenseName: license && license.name ? license.name : null,

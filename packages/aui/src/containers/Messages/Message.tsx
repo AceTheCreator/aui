@@ -101,7 +101,9 @@ export function Message({ message, messageId, i }: MessageProps) {
                       <SchemaTabs
                         schema={message.payload}
                         label="Payload"
-                        description={message.payload?.description}
+                        description={
+                          typeof message.payload === "object" ? message.payload.description : undefined
+                        }
                       />
                     )}
                 </div>

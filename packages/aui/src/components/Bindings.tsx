@@ -112,7 +112,7 @@ export default function Bindings({ bindings, expand = true, protocol }: Props) {
                   {prettyKey(key)}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <BindingValue name={key} value={value} />
+                  <BindingValue value={value} />
                 </div>
               </div>
             ))
