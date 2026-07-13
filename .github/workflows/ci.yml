@@ -44,5 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playground-dist
-          path: packages/playground/dist
+          # vite outputs the standalone app build here — dist/ is reserved for
+          # the library's own build:lib output (see packages/playground/vite.config.ts).
+          path: packages/playground/dist-app
           retention-days: 7

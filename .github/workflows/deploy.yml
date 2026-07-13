@@ -26,7 +26,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: playground-dist
-          path: packages/playground/dist
+          path: packages/playground/dist-app
 
       # Requires two repo secrets (Settings -> Secrets and variables -> Actions):
       #   NETLIFY_AUTH_TOKEN — a personal/team access token from Netlify (User settings -> Applications)
@@ -34,7 +34,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3
         with:
-          publish-dir: packages/playground/dist
+          publish-dir: packages/playground/dist-app
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy ${{ github.sha }}"
