@@ -67,7 +67,7 @@ describe("AsyncAPI", () => {
   });
 
   it("converts Avro multi-format payloads at render time (without parser)", () => {
-    render(<AsyncAPI asyncapi={avroDoc as any} />);
+    render(<AsyncAPI asyncapi={asDoc(avroDoc)} />);
 
     expect(
       screen.getByRole("heading", { name: "Streetlights Avro API" }),
@@ -101,7 +101,7 @@ describe("AsyncAPI", () => {
       },
     };
 
-    render(<AsyncAPI asyncapi={doc as any} />);
+    render(<AsyncAPI asyncapi={asDoc(doc)} />);
 
     fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
     expect(
