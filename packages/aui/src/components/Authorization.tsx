@@ -91,7 +91,7 @@ export default function Authorization({ securities }: Props) {
       <Tabs tabs={filteredTabs} current={authTab} onChange={setAuthTab} />
       <div className="py-4 prose text-foreground-muted">
         {authTab === "userPassword" && (
-          <AuthDescription description={activeDescription}>
+          <AuthDescription>
             You have to{" "}
             <strong className="text-foreground-secondary">
               provide user and password
@@ -109,7 +109,7 @@ export default function Authorization({ securities }: Props) {
           </AuthDescription>
         )}
         {authTab === "gssapi" && (
-          <AuthDescription description={activeDescription}>
+          <AuthDescription>
             You have to{" "}
             <strong className="text-foreground-secondary">
               authenticate using Kerberos (GSSAPI)
@@ -118,7 +118,7 @@ export default function Authorization({ securities }: Props) {
           </AuthDescription>
         )}
         {authTab === "X509" && (
-          <AuthDescription description={activeDescription}>
+          <AuthDescription>
             You have to{" "}
             <strong className="text-foreground-secondary">
               download the certificate file
@@ -145,7 +145,7 @@ export default function Authorization({ securities }: Props) {
 const AuthDescription = ({ description, children }: { description?: string; children: ReactNode }) => {
   if (description) return (
     <>
-      <Markdown>{description}</Markdown> <span>{children}</span>
+      <Markdown>{description}</Markdown>
     </>
   );
   return <span>{children}</span>;

@@ -26,7 +26,6 @@ export default function SchemaUnionBranch({
       ? caseLabels
       : Array.from({ length: caseCount }, (_, index) => `case ${index + 1}`);
 
-  const keyword = variant === "anyOf" ? "anyof" : "oneof";
   const variantLabel = variant === "anyOf" ? "Any of:" : "One of:";
   const ariaLabel = variant === "anyOf" ? "Any of cases" : "One of cases";
 

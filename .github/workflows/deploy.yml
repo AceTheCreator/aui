@@ -1,0 +1,47 @@
+name: Deploy Playground
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Netlify
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download playground build
+        uses: actions/download-artifact@v4
+        with:
+          name: playground-dist
+          path: packages/playground/dist-app
+
+      # Requires two repo secrets (Settings -> Secrets and variables -> Actions):
+      #   NETLIFY_AUTH_TOKEN — a personal/team access token from Netlify (User settings -> Applications)
+      #   NETLIFY_SITE_ID    — the target site's API ID (Site settings -> General -> Site details)
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: packages/playground/dist-app
+          production-branch: master
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy ${{ github.sha }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5

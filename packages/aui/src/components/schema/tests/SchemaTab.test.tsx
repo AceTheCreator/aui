@@ -12,6 +12,7 @@ function Providers({ children }: { children: ReactNode }) {
         document: {},
         deref: () => undefined,
         portalHost: null,
+        rootElement: null,
         defaultSchemaExpanded: true,
       }}
     >

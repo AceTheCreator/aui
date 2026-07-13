@@ -79,7 +79,9 @@ function SchemaTabs({
       {tab === "json" && (
         <SchemaViewer schema={originalSchema ?? schema} />
       )}
-      {tab === "example" && showExample && <Examples schema={schema} />}
+      {tab === "example" && showExample && (
+        <Examples schema={schema as Record<string, unknown>} />
+      )}
     </div>
   );
 }

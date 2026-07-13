@@ -6,13 +6,11 @@ import { Info as AsyncAPIMetadata } from "../../types/asyncapi/Info";
 
 const Information: React.FunctionComponent<AsyncAPIMetadata> = ({
   title,
-  version,
   description,
   license,
   externalDocs,
   contact,
   tags,
-  extensions,
 }) => {
 
   const content = (

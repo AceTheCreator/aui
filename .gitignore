@@ -26,3 +26,4 @@ storybook-static
 *.sln
 *.sw?
 .gstack/
+.claude/

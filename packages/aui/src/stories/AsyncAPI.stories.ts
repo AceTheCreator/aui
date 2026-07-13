@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AsyncAPI from "../containers/AsyncAPI/AsyncAPI";
-import torture from "../config/examples/adeo-kafka.json";
+import type { AsyncAPIDocumentData } from "../types/schema";
+import torture from "../config/examples/streetlight-kafka.json";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -22,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Base: Story = {
   args: {
-    asyncapi: torture,
+    asyncapi: torture as unknown as AsyncAPIDocumentData,
   },
 };
 

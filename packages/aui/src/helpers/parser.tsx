@@ -6,9 +6,19 @@ import { registerAvroSchemaParser } from "./avro/avroSchemaParser";
 
 async function loadParser() {
   try {
-    const { default: Parser } = await import("@asyncapi/parser/browser");
+    const mod = await import("@asyncapi/parser/browser");
+    // @asyncapi/parser/browser is a UMD bundle with no package.json `exports` map, so
+    // its CJS/ESM default-export shape is ambiguous — different bundlers' interop
+    // resolve it differently (e.g. Vite's dev-time esbuild pre-bundling exposes
+    // `.default`, while some production Rollup builds resolve the module itself to
+    // the class). Support both rather than assuming one.
+    const Parser = mod.default ?? mod;
+    if (typeof Parser !== "function") {
+      throw new Error("Unexpected export shape from '@asyncapi/parser/browser'.");
+    }
     return Parser;
-  } catch {
+  } catch (err) {
+    console.error("[aui] Failed to load '@asyncapi/parser/browser':", err);
     throw new Error(
       "[aui] The parsed entry requires '@asyncapi/parser'. " +
         "Install it (`npm i @asyncapi/parser`), or use 'aui' with a pre-resolved document.",

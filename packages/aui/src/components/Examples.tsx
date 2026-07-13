@@ -1,11 +1,11 @@
 import {useEffect, useState} from "react";
 import {generate} from "json-schema-faker";
 
-interface ExamplesProps {
-    schema: any;
-}
-
 type JsonSchema = Record<string, unknown>;
+
+interface ExamplesProps {
+    schema: JsonSchema;
+}
 
 function extendExampleSchema(schema: JsonSchema): JsonSchema {
     if (schema.type === "object" && schema.properties && typeof schema.properties === "object") {

@@ -1,0 +1,50 @@
+name: CI
+
+# Reusable — invoked by deploy.yml and release.yml as their required first job
+# (`needs: ci`), plus workflow_dispatch for manually running it standalone.
+# typecheck ignores pre-existing errors in the auto-generated src/types/asyncapi/**
+# model files (see packages/aui/scripts/typecheck.mjs); lint ignores that directory
+# outright (see packages/aui/eslint.config.js). Both still gate on everything else.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (aui)
+        run: npm run lint --workspace=packages/aui
+
+      - name: Typecheck (aui)
+        run: npm run typecheck --workspace=packages/aui
+
+      - name: Test (aui)
+        run: npm run test --workspace=packages/aui
+
+      - name: Build library (aui)
+        run: npm run build --workspace=packages/aui
+
+      - name: Build playground
+        run: npm run build --workspace=packages/playground
+
+      - name: Upload playground build
+        uses: actions/upload-artifact@v4
+        with:
+          name: playground-dist
+          # vite outputs the standalone app build here — dist/ is reserved for
+          # the library's own build:lib output (see packages/playground/vite.config.ts).
+          path: packages/playground/dist-app
+          retention-days: 7
