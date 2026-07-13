@@ -1,0 +1,186 @@
+import { ReactNode } from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import SchemaTabs from "../SchemaTab";
+import { AsyncAPIDocumentContext } from "../../../contexts";
+
+/** SchemaTree (the Schema tab body) reads deref/expand state from the document context. */
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <AsyncAPIDocumentContext.Provider
+      value={{
+        document: {},
+        deref: () => undefined,
+        portalHost: null,
+        defaultSchemaExpanded: true,
+      }}
+    >
+      {children}
+    </AsyncAPIDocumentContext.Provider>
+  );
+}
+
+const renderTabs = (props: Parameters<typeof SchemaTabs>[0]) =>
+  render(<SchemaTabs {...props} />, { wrapper: Providers });
+
+const jsonSchema = {
+  type: "object",
+  properties: { name: { type: "string" } },
+  required: ["name"],
+};
+
+const rawAvro = {
+  type: "record",
+  name: "User",
+  fields: [{ name: "name", type: "string" }],
+};
+
+describe("SchemaTabs", () => {
+  it("renders the label, description, and schema tree by default", () => {
+    renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      description: "A user payload",
+    });
+
+    expect(screen.getByText("Payload")).toBeInTheDocument();
+    expect(screen.getByText("A user payload")).toBeInTheDocument();
+
+    // Schema tab is preselected and shows the tree, not raw JSON.
+    expect(screen.getByRole("tab", { name: "Schema" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByText("name")).toBeInTheDocument();
+    expect(document.querySelector("pre")).not.toBeInTheDocument();
+  });
+
+  it("offers Schema, JSON, and Example tabs for plain JSON Schema", () => {
+    renderTabs({ schema: jsonSchema, label: "Payload" });
+
+    expect(
+      screen.getAllByRole("tab").map((tab) => tab.textContent),
+    ).toEqual(["Schema", "JSON", "Example"]);
+  });
+
+  it("shows the raw source on the JSON tab when an originalSchema exists", () => {
+    renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      schemaFormat: "application/vnd.apache.avro;version=1.9.0",
+      originalSchema: rawAvro,
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "JSON" }));
+
+    // The JSON tab must show the pre-conversion Avro definition, not the
+    // converted JSON Schema.
+    const pre = document.querySelector("pre");
+    expect(pre?.textContent).toContain('"record"');
+    expect(pre?.textContent).not.toContain('"properties"');
+  });
+
+  it("falls back to the converted schema on the JSON tab without an original", () => {
+    renderTabs({ schema: jsonSchema, label: "Payload" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "JSON" }));
+
+    expect(document.querySelector("pre")?.textContent).toContain('"properties"');
+  });
+
+  it("shows a format badge for Avro (with version) but none for default formats", () => {
+    const { unmount } = renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      schemaFormat: "application/vnd.apache.avro;version=1.9.0",
+    });
+
+    const badge = screen.getByText("avro 1.9.0");
+    expect(badge).toHaveAttribute(
+      "title",
+      "application/vnd.apache.avro;version=1.9.0",
+    );
+    unmount();
+
+    renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      schemaFormat: "application/vnd.aai.asyncapi;version=3.0.0",
+    });
+    expect(screen.queryByText(/avro/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/application\/vnd\.aai/)).not.toBeInTheDocument();
+  });
+
+  it("hides the Example tab and shows a warning banner on conversion errors", () => {
+    renderTabs({
+      schema: rawAvro,
+      label: "Payload",
+      schemaFormat: "application/vnd.apache.avro;version=1.9.0",
+      originalSchema: rawAvro,
+      conversionError: "unknown type: banana",
+    });
+
+    expect(
+      screen.getByText(/Could not convert Avro schema/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/unknown type: banana/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Example" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the Example tab for non-JSON-Schema formats like protobuf", () => {
+    renderTabs({
+      schema: {},
+      label: "Payload",
+      schemaFormat: "application/vnd.google.protobuf;version=3",
+    });
+
+    expect(
+      screen.queryByRole("tab", { name: "Example" }),
+    ).not.toBeInTheDocument();
+    // Unknown formats surface verbatim as the badge.
+    expect(
+      screen.getByText("application/vnd.google.protobuf;version=3"),
+    ).toBeInTheDocument();
+  });
+
+  it("generates an example on the Example tab", async () => {
+    renderTabs({ schema: jsonSchema, label: "Payload" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Example" }));
+
+    // json-schema-faker output is seeded, so `name` is always present.
+    const pre = await screen.findByText(/"name"/);
+    expect(pre).toBeInTheDocument();
+  });
+
+  it("falls back to the Schema tab when the Example tab disappears", async () => {
+    const { rerender } = renderTabs({ schema: jsonSchema, label: "Payload" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Example" }));
+    await screen.findByText(/"name"/);
+    expect(screen.getByRole("tab", { name: "Example" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+
+    // The document is edited into a broken Avro schema: conversion now fails,
+    // the Example tab vanishes, and the panel must not go blank.
+    rerender(
+      <SchemaTabs
+        schema={rawAvro}
+        label="Payload"
+        schemaFormat="application/vnd.apache.avro;version=1.9.0"
+        originalSchema={rawAvro}
+        conversionError="boom"
+      />,
+    );
+
+    expect(screen.getByRole("tab", { name: "Schema" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByText(/Could not convert Avro schema/)).toBeInTheDocument();
+  });
+});
