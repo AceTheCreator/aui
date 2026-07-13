@@ -34,12 +34,12 @@ export interface PlaygroundProps {
 export function Playground({
   initialDocument,
   initialConfig,
-  defaultUiMode = 'dark',
+  defaultUiMode = 'light',
   height = '100%',
 }: PlaygroundProps) {
   const [activeTab, setActiveTab] = useState<EditorTab>('doc')
   const [uiMode, setUiMode] = useState<UiMode>(defaultUiMode)
-  const [editorExpanded, setEditorExpanded] = useState(true)
+  const [editorExpanded, setEditorExpanded] = useState(false)
   const palette = UI_PALETTES[uiMode]
 
   // AsyncAPIRenderer parses `raw` itself via the real @asyncapi/parser and reports
