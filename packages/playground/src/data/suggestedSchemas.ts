@@ -1,3 +1,6 @@
+import avroStreetlightExample from '../examples/avro-streetlight.json'
+import tortureExample from '../examples/torture.json'
+
 const RAW_URLS = [
   'https://github.com/asyncapi/spec/blob/master/examples/streetlights-operation-security-asyncapi.yml',
   'https://github.com/asyncapi/spec/blob/master/examples/adeo-kafka-request-reply-asyncapi.yml',
@@ -29,9 +32,23 @@ function labelFromUrl(url: string): string {
 export interface SuggestedSchema {
   label: string
   url: string
+  /** Inline document text for bundled examples — loaded directly, no fetch. */
+  content?: string
 }
 
-export const SUGGESTED_SCHEMAS: SuggestedSchema[] = [...new Set(RAW_URLS)].map((url) => ({
-  url,
-  label: labelFromUrl(url),
-}))
+export const SUGGESTED_SCHEMAS: SuggestedSchema[] = [
+  ...[...new Set(RAW_URLS)].map((url) => ({
+    url,
+    label: labelFromUrl(url),
+  })),
+  {
+    label: 'Streetlights Avro',
+    url: 'local://avro-streetlight.json',
+    content: JSON.stringify(avroStreetlightExample, null, 2),
+  },
+  {
+    label: 'Unrealistic Torture Test',
+    url: 'local://torture.json',
+    content: JSON.stringify(tortureExample, null, 2),
+  },
+]

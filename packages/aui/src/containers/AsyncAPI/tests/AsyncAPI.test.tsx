@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import AsyncAPI from "../AsyncAPI";
 import type { AsyncAPIDocumentData } from "../../../types/schema";
 import exampleDoc from "../../../config/examples/example1.json";
+import avroDoc from "../../../config/examples/avro-streetlight.json";
 
 const asDoc = (doc: unknown) => doc as AsyncAPIDocumentData;
 
@@ -63,6 +64,49 @@ describe("AsyncAPI", () => {
 
     rerender(<AsyncAPI asyncapi={asDoc(nestedDoc)} config={{ expand: { schemas: false } }} />);
     expect(panel().queryByText("source")).not.toBeInTheDocument();
+  });
+
+  it("converts Avro multi-format payloads at render time (without parser)", () => {
+    render(<AsyncAPI asyncapi={asDoc(avroDoc)} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Streetlights Avro API" }),
+    ).toBeInTheDocument();
+
+    // The message payload is a raw Avro record inside a { schemaFormat,
+    // schema } wrapper — no parser ran, so aui converts it when rendering.
+    fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
+    const messagesPanel = within(document.getElementById("panel-messages")!);
+    fireEvent.click(messagesPanel.getByRole("button", { name: /show more/i }));
+    expect(messagesPanel.getByText("streetlightId")).toBeInTheDocument();
+    expect(messagesPanel.getByText("avro 1.9.0")).toBeInTheDocument();
+
+    // components.schemas entries in wrappers convert too.
+    fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    const schemasPanel = within(document.getElementById("panel-schemas")!);
+    expect(schemasPanel.getByText("tags[]")).toBeInTheDocument();
+  });
+
+  it("fails soft when an Avro schema is malformed", () => {
+    const doc = {
+      asyncapi: "3.0.0",
+      info: { title: "Broken Avro", version: "1.0.0" },
+      components: {
+        schemas: {
+          broken: {
+            schemaFormat: "application/vnd.apache.avro;version=1.9.0",
+            schema: { type: "record", name: "Broken" }, // record without fields
+          },
+        },
+      },
+    };
+
+    render(<AsyncAPI asyncapi={asDoc(doc)} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    expect(
+      screen.getByText(/Could not convert Avro schema/),
+    ).toBeInTheDocument();
   });
 
   it("switches away from the active tab when a config change hides it", () => {

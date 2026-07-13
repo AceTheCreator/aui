@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`avroToJsonSchema > converts a realistic nested schema (golden) 1`] = `
+{
+  "description": "Light intensity measurement for a streetlight.",
+  "properties": {
+    "correlationId": {
+      "format": "uuid",
+      "type": "string",
+    },
+    "location": {
+      "properties": {
+        "lat": {
+          "format": "double",
+          "type": "number",
+        },
+        "lon": {
+          "format": "double",
+          "type": "number",
+        },
+      },
+      "required": [
+        "lat",
+        "lon",
+      ],
+      "type": "object",
+      "x-parser-schema-id": "com.smartylighting.Location",
+    },
+    "lumens": {
+      "description": "Lumens.",
+      "examples": [
+        3,
+      ],
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer",
+    },
+    "previousLocation": {
+      "default": null,
+      "oneOf": [
+        {
+          "properties": {
+            "lat": {
+              "format": "double",
+              "type": "number",
+            },
+            "lon": {
+              "format": "double",
+              "type": "number",
+            },
+          },
+          "required": [
+            "lat",
+            "lon",
+          ],
+          "type": "object",
+          "x-parser-schema-id": "com.smartylighting.Location",
+        },
+        {
+          "type": "null",
+        },
+      ],
+    },
+    "status": {
+      "enum": [
+        "ON",
+        "OFF",
+        "FAULT",
+      ],
+      "type": "string",
+    },
+    "streetlightId": {
+      "description": "Id of the streetlight.",
+      "type": "string",
+    },
+  },
+  "required": [
+    "streetlightId",
+    "lumens",
+    "status",
+    "location",
+    "correlationId",
+  ],
+  "type": "object",
+  "x-parser-schema-id": "com.smartylighting.LightMeasured",
+}
+`;

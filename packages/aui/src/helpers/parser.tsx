@@ -2,6 +2,7 @@ import AsyncAPI from "../containers/AsyncAPI/AsyncAPI";
 import { AsyncAPIDocumentData } from "../types/schema";
 import type { ConfigInterface } from "../config/config";
 import type { AsyncAPIDocumentInterface } from "@asyncapi/parser";
+import { registerAvroSchemaParser } from "./avro/avroSchemaParser";
 
 async function loadParser() {
   try {
@@ -25,29 +26,6 @@ async function loadParser() {
   }
 }
 
-async function registerOptionalSchemaParsers(
-  parser: InstanceType<Awaited<ReturnType<typeof loadParser>>>,
-) {
-  // Skip loading Node-only schema parsers in the browser.
-  if (typeof window !== "undefined") {
-    if (import.meta.env.DEV) {
-      console.info(
-        "[aui] Skipping optional Avro schema parser in the browser. " +
-          "@asyncapi/avro-schema-parser currently depends on Node.js APIs.",
-      );
-    }
-    return;
-  }
-
-  try {
-    const { default: AvroSchemaParser } =
-      await import("@asyncapi/avro-schema-parser");
-    parser.registerSchemaParser(AvroSchemaParser());
-  } catch (err) {
-    console.warn("[aui] Failed to load optional Avro schema parser.", err);
-  }
-}
-
 export async function parseDocument(raw: string): Promise<{
   diagnostics: unknown[];
   document: AsyncAPIDocumentData | null;
@@ -55,7 +33,8 @@ export async function parseDocument(raw: string): Promise<{
   const Parser = await loadParser();
   const parser = new Parser();
 
-  await registerOptionalSchemaParsers(parser);
+  // Built-in Avro plugin: exact MIME list plus any-version registry fallback.
+  registerAvroSchemaParser(parser);
 
   try {
     const { document, diagnostics } = await parser.parse(raw);

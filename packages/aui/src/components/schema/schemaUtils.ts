@@ -1,6 +1,7 @@
 import { asSchemaNode, isSchemaRecord, SchemaNodeData } from "../../types/schema";
+import { resolveSchemaInput } from "../../helpers/schemaFormat";
 
-const EMPTY_REF_STACK: Set<string> = new Set();
+const EMPTY_REF_STACK = new Set<string>();
 
 /** Extracts the schema name from a JSON Pointer, e.g. "#/components/schemas/sentAt" → "sentAt". */
 export const refNameFromPath = (ref: string) =>
@@ -30,9 +31,13 @@ export const normalizeSchema = (
   const resolved = asSchemaNode(deref(ref));
   if (!resolved) return { schema: raw, refLabel };
 
+  // Multi-format wrappers (Avro, etc.) behind $ref are not unwrapped by
+  // resolveSchemaInput at the payload root — convert them here after deref.
+  const { schema: unwrapped } = resolveSchemaInput(resolved);
+
   refStack.add(ref);
   try {
-    const inner = normalizeSchema(resolved, deref, refStack);
+    const inner = normalizeSchema(unwrapped, deref, refStack);
     return {
       schema: inner.schema,
       refLabel: inner.circular ? undefined : refLabel,

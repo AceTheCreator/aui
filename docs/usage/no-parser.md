@@ -61,6 +61,10 @@ export default function App() {
 
 The `kind: "resolved"` variant uses the same `AsyncAPI` component, it is just a different prop shape that conveys the pre-resolved state.
 
+## Multi-format schemas
+
+Avro payloads and other multi-format wrappers are unwrapped at render time. See [Avro schemas](./avro.md) for more details.
+
 ## When to use this entry
 
 | Scenario                                              | Use                      |

@@ -78,7 +78,7 @@ export default function Authorization({ securities }: Props) {
     if (filteredTabs.length > 0) {
       setAuthTab(filteredTabs[0].id);
     }
-  }, [securities]);
+  }, [filteredTabs]);
 
   function filteredType<T extends SecurityScheme>(type: string): T {
     return securities.find((security) => security.type === type) as T;
