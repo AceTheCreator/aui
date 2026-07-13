@@ -2,7 +2,7 @@ import AsyncAPI from "../containers/AsyncAPI/AsyncAPI";
 import { AsyncAPIDocumentData } from "../types/schema";
 import type { ConfigInterface } from "../config/config";
 import type { AsyncAPIDocumentInterface } from "@asyncapi/parser";
-import { AvroSchemaParser } from "./avro/avroSchemaParser";
+import { registerAvroSchemaParser } from "./avro/avroSchemaParser";
 
 async function loadParser() {
   try {
@@ -23,9 +23,8 @@ export async function parseDocument(raw: string): Promise<{
   const Parser = await loadParser();
   const parser = new Parser();
 
-  // Built-in plugins, registered the same way a consumer would register
-  // @asyncapi/avro-schema-parser on a bare parser.
-  parser.registerSchemaParser(AvroSchemaParser());
+  // Built-in Avro plugin: exact MIME list plus any-version registry fallback.
+  registerAvroSchemaParser(parser);
 
   try {
     const { document, diagnostics } = await parser.parse(raw);

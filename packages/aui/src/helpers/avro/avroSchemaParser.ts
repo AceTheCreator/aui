@@ -4,7 +4,7 @@
  * needs Node's Buffer), so Avro documents parse identically in the browser
  * and in Node. Mirrors the upstream package's factory shape:
  *
- *   parser.registerSchemaParser(AvroSchemaParser());
+ *   registerAvroSchemaParser(parser);
  *
  * All @asyncapi/parser imports are type-only, so this module adds no runtime
  * dependency on the parser. It is deliberately not re-exported from the avro
@@ -21,10 +21,11 @@ import type {
 import { avroToJsonSchema } from "./avroToJsonSchema";
 import { validateAvroStructure } from "./validateAvroStructure";
 import type { AvroSchema } from "./types";
-import { X_AUI_CONVERSION_ERROR } from "../schemaFormat";
+import { isAvroSchemaFormat, X_AUI_CONVERSION_ERROR } from "../schemaFormat";
 
-// The MIME strings @asyncapi/avro-schema-parser registers, plus version-less
-// variants (parser-js matches schemaFormat by exact string).
+// MIME strings registered on the parser Map. parser-js matches schemaFormat by
+// exact string, so registerAvroSchemaParser also installs a registry fallback
+// for any version matching isAvroSchemaFormat (e.g. version=1.11.0).
 const AVRO_MIME_TYPES = [
   "application/vnd.apache.avro",
   "application/vnd.apache.avro+json",
@@ -42,6 +43,14 @@ interface KafkaKeyBearer {
   bindings?: { kafka?: { key?: unknown } };
 }
 
+/** Minimal parser surface needed to register and patch MIME lookup. */
+interface SchemaParserHost {
+  registerSchemaParser(parser: SchemaParser): unknown;
+  parserRegistry: {
+    get(key: string): SchemaParser | undefined;
+  };
+}
+
 // A function that returns a SchemaParser object
 // Just like how @asyncapi/avro-schema-parser does it.
 export function AvroSchemaParser(): SchemaParser {
@@ -49,6 +58,24 @@ export function AvroSchemaParser(): SchemaParser {
     validate,
     parse,
     getMimeTypes: () => AVRO_MIME_TYPES,
+  };
+}
+
+/**
+ * Registers the Avro schema parser and makes parser-js accept any Avro
+ * schemaFormat version (not only the exact strings in AVRO_MIME_TYPES).
+ */
+export function registerAvroSchemaParser(parser: SchemaParserHost): void {
+  const schemaParser = AvroSchemaParser();
+  parser.registerSchemaParser(schemaParser);
+
+  const registry = parser.parserRegistry;
+  const originalGet = registry.get.bind(registry);
+  registry.get = (key: string) => {
+    const hit = originalGet(key);
+    if (hit !== undefined) return hit;
+    // Fall back for unlisted versions (e.g. application/vnd.apache.avro;version=1.11.0).
+    return isAvroSchemaFormat(key) ? schemaParser : undefined;
   };
 }
 
@@ -60,6 +87,13 @@ function validate(input: ValidateSchemaInput<unknown, unknown>) {
 }
 
 function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
+  // Run structural checks here: parser-js only wires plugin validate() into
+  // the v2 ruleset, so v3 would otherwise convert malformed Avro silently.
+  const problems = validateAvroStructure(input.data);
+  if (problems.length > 0) {
+    return { [X_AUI_CONVERSION_ERROR]: problems[0]! };
+  }
+
   try {
     // The cast is safe: the converted schema is a plain JSON Schema object;
     // SchemaNodeData just types `type` more loosely than the spec union.

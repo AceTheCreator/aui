@@ -120,7 +120,10 @@ function exampleAttributeMapping(
 
   switch (type) {
     case "boolean":
-      jsonSchema.examples = [example === "true"];
+      // Accept JSON booleans and the string forms Avro tools sometimes emit.
+      jsonSchema.examples = [
+        typeof example === "boolean" ? example : example === "true",
+      ];
       break;
     case "int":
       jsonSchema.examples = [parseInt(example as string, 10)];
@@ -128,6 +131,14 @@ function exampleAttributeMapping(
     default:
       jsonSchema.examples = [example];
   }
+}
+
+/** True when a named-type reference carries site-specific attrs that must not
+ * be written onto the shared cached schema object. */
+function hasReferenceSiteAttributes(avroDefinition: AvroLoose): boolean {
+  return Object.keys(avroDefinition).some(
+    (key) => key !== "type" && key !== "name" && key !== "namespace",
+  );
 }
 
 function additionalAttributesMapping(
@@ -276,7 +287,11 @@ function convertAvroToJsonSchema(
         recordCache[getFullyQualifiedName(avroDefinition) as string] ??
         (typeof type === "string" ? recordCache[type] : undefined);
       if (cachedRecord) {
-        jsonSchema = cachedRecord;
+        // Clone when this reference site has its own doc/default/example/… —
+        // otherwise commonAttributesMapping would mutate the shared cache.
+        jsonSchema = hasReferenceSiteAttributes(loose)
+          ? { ...cachedRecord }
+          : cachedRecord;
       }
       break;
     }
@@ -303,10 +318,17 @@ function processRecordSchema(
     const cachedByName =
       typeof field.type === "string" ? recordCache[field.type] : undefined;
     if (cachedByName) {
-      propsMap.set(field.name as string, cachedByName);
-
-      const cached: AvroLoose = { name: field.name, ...cachedByName };
-      requiredAttributesMapping(cached, jsonSchema, cached.default !== undefined);
+      // Use the field's own default for required-ness (not the cached schema's).
+      // Clone before applying field-level doc/default/example so the cache stays clean.
+      const def = hasReferenceSiteAttributes(field)
+        ? { ...cachedByName }
+        : cachedByName;
+      requiredAttributesMapping(field, jsonSchema, field.default !== undefined);
+      if (hasReferenceSiteAttributes(field)) {
+        commonAttributesMapping(field, def, recordCache);
+        additionalAttributesMapping(field.type, field, def);
+      }
+      propsMap.set(field.name as string, def);
     } else {
       const def = convertAvroToJsonSchema(field.type as AvroSchema, recordCache);
 

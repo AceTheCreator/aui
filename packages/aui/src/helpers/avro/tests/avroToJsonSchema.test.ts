@@ -159,6 +159,75 @@ describe("avroToJsonSchema", () => {
       expect(result.properties?.count.examples).toEqual([3]);
     });
 
+    it("preserves boolean examples as booleans", () => {
+      const result = avroToJsonSchema({
+        type: "record",
+        name: "Rec",
+        fields: [
+          { name: "flag", type: "boolean", example: true },
+          { name: "flagStr", type: "boolean", example: "true" },
+        ],
+      });
+
+      expect(result.properties?.flag.examples).toEqual([true]);
+      expect(result.properties?.flagStr.examples).toEqual([true]);
+    });
+
+    it("does not leak reference-site doc onto the cached record", () => {
+      const result = avroToJsonSchema({
+        type: "record",
+        name: "Outer",
+        fields: [
+          {
+            name: "first",
+            type: {
+              type: "record",
+              name: "MyRecord",
+              doc: "original doc",
+              fields: [{ name: "x", type: "int" }],
+            },
+          },
+          {
+            name: "second",
+            type: [{ type: "MyRecord", doc: "union doc" }, "null"],
+          },
+        ],
+      });
+
+      expect(result.properties?.first.description).toBe("original doc");
+      expect(result.properties?.second.oneOf?.[0]?.description).toBe("union doc");
+    });
+
+    it("applies field-level default/doc on named-type references", () => {
+      const result = avroToJsonSchema({
+        type: "record",
+        name: "Outer",
+        fields: [
+          {
+            name: "first",
+            type: {
+              type: "record",
+              name: "Sub",
+              fields: [{ name: "a", type: "string" }],
+            },
+          },
+          {
+            name: "second",
+            type: "Sub",
+            default: {},
+            doc: "second field doc",
+          },
+        ],
+      });
+
+      expect(result.required).toEqual(["first"]);
+      expect(result.properties?.second.description).toBe("second field doc");
+      expect(result.properties?.second.default).toEqual({});
+      // Defining site is unchanged.
+      expect(result.properties?.first.description).toBeUndefined();
+      expect(result.properties?.first.default).toBeUndefined();
+    });
+
     it("resolves sibling named-type references and marks reuse with x-parser-schema-id", () => {
       const result = avroToJsonSchema({
         type: "record",

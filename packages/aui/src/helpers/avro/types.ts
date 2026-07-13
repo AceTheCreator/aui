@@ -67,13 +67,27 @@ export interface AvroPrimitiveSchema {
   [key: string]: unknown;
 }
 
+/**
+ * Object-shaped reference to a previously defined named type, optionally with
+ * site-specific attributes (e.g. `{ type: "MyRecord", doc: "…" }`).
+ */
+export interface AvroNamedTypeReference {
+  type: string;
+  name?: string;
+  namespace?: string;
+  doc?: string;
+  default?: unknown;
+  [key: string]: unknown;
+}
+
 export type AvroSchemaObject =
   | AvroRecordSchema
   | AvroEnumSchema
   | AvroArraySchema
   | AvroMapSchema
   | AvroFixedSchema
-  | AvroPrimitiveSchema;
+  | AvroPrimitiveSchema
+  | AvroNamedTypeReference;
 
 /**
  * An Avro schema definition: a primitive-type or named-type-reference string,

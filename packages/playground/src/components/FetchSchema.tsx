@@ -46,6 +46,17 @@ export function FetchSchema({ palette, onLoad }: FetchSchemaProps) {
     const trimmed = targetUrl.trim()
     if (!trimmed) return
 
+    // Bundled examples use a local:// URL that is not fetchable — reload from
+    // the inline content instead of hitting the network.
+    const local = SUGGESTED_SCHEMAS.find(
+      (s) => s.url === trimmed && s.content !== undefined,
+    )
+    if (local) {
+      setError(null)
+      onLoad(local.content!)
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {

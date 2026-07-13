@@ -67,6 +67,21 @@ export function schemaFormatBadge(format: unknown): string | null {
   return format;
 }
 
+/** Whether the Example tab can safely generate samples via json-schema-faker.
+ * Non-JSON-Schema multi-format bodies (protobuf, RAML, …) are excluded. */
+export function supportsGeneratedExamples(
+  schemaFormat?: string,
+  conversionError?: string,
+): boolean {
+  if (conversionError) return false;
+  if (!schemaFormat) return true;
+  if (isAvroSchemaFormat(schemaFormat)) return true;
+  return (
+    schemaFormat.startsWith("application/vnd.aai.asyncapi") ||
+    schemaFormat.startsWith("application/schema")
+  );
+}
+
 const JSON_SCHEMA_MARKERS = [
   "properties",
   "oneOf",
@@ -115,16 +130,32 @@ export function looksLikeRawAvro(value: unknown): boolean {
  * Normalizes any payload/headers/components.schemas entry for rendering:
  * unwraps v3 multi-format wrappers and converts raw Avro to JSON Schema when
  * an Avro schemaFormat is declared. Never throws.
+ *
+ * When `deref` is provided, a top-level `$ref` is resolved first so multi-format
+ * Avro wrappers behind a ref still convert (and surface format/error metadata).
  */
-export function resolveSchemaInput(input: unknown): ResolvedSchemaInput {
-  const resolved = unwrapSchemaInput(input);
+export function resolveSchemaInput(
+  input: unknown,
+  deref?: (ref: string) => unknown,
+): ResolvedSchemaInput {
+  let current = input;
+  if (
+    deref &&
+    isSchemaRecord(current) &&
+    typeof current.$ref === "string"
+  ) {
+    const resolved = deref(current.$ref);
+    if (resolved !== undefined) current = resolved;
+  }
+
+  const resolved = unwrapSchemaInput(current);
 
   const ownDescription = resolved.schema.description;
   if (typeof ownDescription === "string") {
     return { ...resolved, description: ownDescription };
   }
-  const wrapperDescription = isMultiFormatSchema(input)
-    ? input.description
+  const wrapperDescription = isMultiFormatSchema(current)
+    ? current.description
     : undefined;
   if (typeof wrapperDescription === "string") {
     return { ...resolved, description: wrapperDescription };
@@ -147,6 +178,7 @@ function unwrapSchemaInput(input: unknown): ResolvedSchemaInput {
     return {
       schema: asSchemaNode(original) ?? {},
       schemaFormat,
+      originalSchema: original,
       conversionError: parseError,
     };
   }
@@ -166,6 +198,7 @@ function unwrapSchemaInput(input: unknown): ResolvedSchemaInput {
       return {
         schema: asSchemaNode(inner) ?? {},
         schemaFormat,
+        originalSchema: inner,
         conversionError: problems[0],
       };
     }
@@ -179,11 +212,18 @@ function unwrapSchemaInput(input: unknown): ResolvedSchemaInput {
       return {
         schema: asSchemaNode(inner) ?? {},
         schemaFormat,
+        originalSchema: inner,
         conversionError:
           err instanceof Error ? err.message : "Failed to convert Avro schema",
       };
     }
   }
 
-  return { schema: asSchemaNode(inner) ?? {}, schemaFormat };
+  // Non-Avro multi-format (or Avro that is already JSON-Schema-shaped). Preserve
+  // non-object bodies (e.g. protobuf source text) for the JSON tab.
+  const schemaNode = asSchemaNode(inner);
+  if (schemaNode) {
+    return { schema: schemaNode, schemaFormat };
+  }
+  return { schema: {}, schemaFormat, originalSchema: inner };
 }

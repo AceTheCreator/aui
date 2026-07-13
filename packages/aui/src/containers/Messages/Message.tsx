@@ -7,6 +7,7 @@ import { Tag } from "../../types/asyncapi/Tag";
 import { CorrelationId } from "../../types/asyncapi/CorrelationId";
 import SchemaTabs from "../../components/schema/SchemaTab";
 import { resolveSchemaInput } from "../../helpers/schemaFormat";
+import { useAsyncAPIDocument } from "../../contexts";
 
 interface MessageProps {
   message: MessageObject;
@@ -17,14 +18,15 @@ interface MessageProps {
 export function Message({ message, messageId, i }: MessageProps) {
   const [expanded, setExpanded] = useState(false);
   const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
+  const { deref } = useAsyncAPIDocument();
 
   const payload = useMemo(
-    () => (message.payload ? resolveSchemaInput(message.payload) : null),
-    [message.payload],
+    () => (message.payload ? resolveSchemaInput(message.payload, deref) : null),
+    [message.payload, deref],
   );
   const headers = useMemo(
-    () => (message.headers ? resolveSchemaInput(message.headers) : null),
-    [message.headers],
+    () => (message.headers ? resolveSchemaInput(message.headers, deref) : null),
+    [message.headers, deref],
   );
 
   const hasMore =

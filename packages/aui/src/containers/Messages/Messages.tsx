@@ -8,6 +8,7 @@ import SchemaTabs from "../../components/schema/SchemaTab";
 import TagComponent from "../../components/Tag";
 import { CorrelationId } from "../../types/asyncapi/CorrelationId";
 import { resolveSchemaInput } from "../../helpers/schemaFormat";
+import { useAsyncAPIDocument } from "../../contexts";
 
 interface MessagesProps {
   messages: Record<string, MessageObject>;
@@ -17,6 +18,7 @@ interface MessagesProps {
 function MessageRow({ messageKey, message, first, isSelected }: { messageKey: string; message: MessageObject; first: boolean; isSelected?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const { deref } = useAsyncAPIDocument();
 
   useEffect(() => {
     if (isSelected) setExpanded(true);
@@ -24,12 +26,12 @@ function MessageRow({ messageKey, message, first, isSelected }: { messageKey: st
   const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
 
   const payload = useMemo(
-    () => (message.payload ? resolveSchemaInput(message.payload) : null),
-    [message.payload],
+    () => (message.payload ? resolveSchemaInput(message.payload, deref) : null),
+    [message.payload, deref],
   );
   const headers = useMemo(
-    () => (message.headers ? resolveSchemaInput(message.headers) : null),
-    [message.headers],
+    () => (message.headers ? resolveSchemaInput(message.headers, deref) : null),
+    [message.headers, deref],
   );
 
   const hasMore =

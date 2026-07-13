@@ -5,6 +5,7 @@ import {
   looksLikeRawAvro,
   resolveSchemaInput,
   schemaFormatBadge,
+  supportsGeneratedExamples,
 } from "../schemaFormat";
 
 const AVRO_FORMAT = "application/vnd.apache.avro;version=1.9.0";
@@ -109,7 +110,52 @@ describe("resolveSchemaInput", () => {
     });
 
     expect(result.schema).toBe(malformed);
+    expect(result.originalSchema).toBe(malformed);
     expect(result.conversionError).toContain("fields");
+  });
+
+  it("preserves string-bodied non-Avro schemas for the JSON tab", () => {
+    const proto = 'syntax = "proto3"; message Foo {}';
+    const result = resolveSchemaInput({
+      schemaFormat: "application/vnd.google.protobuf;version=3",
+      schema: proto,
+    });
+
+    expect(result.schema).toEqual({});
+    expect(result.originalSchema).toBe(proto);
+    expect(result.schemaFormat).toBe("application/vnd.google.protobuf;version=3");
+  });
+
+  it("preserves invalid Avro string bodies alongside conversionError", () => {
+    const result = resolveSchemaInput({
+      schemaFormat: AVRO_FORMAT,
+      schema: "not a valid type!!!",
+    });
+
+    expect(result.conversionError).toContain("not a valid type");
+    expect(result.originalSchema).toBe("not a valid type!!!");
+  });
+
+  it("resolves a top-level $ref before converting multi-format Avro", () => {
+    const components = {
+      lightMeasuredPayload: {
+        schemaFormat: AVRO_FORMAT,
+        schema: rawAvroRecord,
+      },
+    };
+    const deref = (ref: string) => {
+      const name = ref.split("/").pop()!;
+      return (components as Record<string, unknown>)[name];
+    };
+
+    const result = resolveSchemaInput(
+      { $ref: "#/components/schemas/lightMeasuredPayload" },
+      deref,
+    );
+
+    expect(result.schemaFormat).toBe(AVRO_FORMAT);
+    expect(result.schema.type).toBe("object");
+    expect(Object.keys(result.schema.properties ?? {})).toEqual(["lat", "lon"]);
   });
 
   it("surfaces the with-parser conversion-error marker", () => {
@@ -164,5 +210,18 @@ describe("isMultiFormatSchema", () => {
     expect(isMultiFormatSchema({ schemaFormat: AVRO_FORMAT })).toBe(false);
     expect(isMultiFormatSchema({ schema: {} })).toBe(false);
     expect(isMultiFormatSchema(null)).toBe(false);
+  });
+});
+
+describe("supportsGeneratedExamples", () => {
+  it("allows default JSON Schema and Avro, hides other multi-formats", () => {
+    expect(supportsGeneratedExamples(undefined)).toBe(true);
+    expect(supportsGeneratedExamples(AVRO_FORMAT)).toBe(true);
+    expect(supportsGeneratedExamples("application/schema+json;version=draft-07")).toBe(true);
+    expect(supportsGeneratedExamples("application/vnd.google.protobuf;version=3")).toBe(false);
+  });
+
+  it("hides examples when conversion failed", () => {
+    expect(supportsGeneratedExamples(AVRO_FORMAT, "boom")).toBe(false);
   });
 });

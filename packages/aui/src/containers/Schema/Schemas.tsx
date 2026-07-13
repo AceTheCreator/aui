@@ -7,6 +7,7 @@ import {
   schemaFormatBadge,
   ResolvedSchemaInput,
 } from "../../helpers/schemaFormat";
+import { useAsyncAPIDocument } from "../../contexts";
 
 interface SchemasProps {
   schemas: Record<string, SchemaNodeData>;
@@ -14,15 +15,17 @@ interface SchemasProps {
 }
 
 export default function Schemas({ schemas, selectedKey }: SchemasProps) {
+  const { deref } = useAsyncAPIDocument();
+
   // v3 components.schemas entries can be multi-format wrappers
   // ({ schemaFormat, schema }) — normalize each entry for rendering.
   const schemaEntries = useMemo<[string, ResolvedSchemaInput][]>(
     () =>
       Object.entries(schemas).map(([schemaName, schema]) => [
         schemaName,
-        resolveSchemaInput(schema),
+        resolveSchemaInput(schema, deref),
       ]),
-    [schemas],
+    [schemas, deref],
   );
 
   const content = schemaEntries.length ? (

@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SchemaViewer } from "../../containers/Schema/SchemaViewer";
 import SchemaTree from "./SchemaTree";
 import TabToggle from "../TabToggle";
 import { Examples } from "../Examples";
-import { schemaFormatBadge } from "../../helpers/schemaFormat";
+import {
+  schemaFormatBadge,
+  supportsGeneratedExamples,
+} from "../../helpers/schemaFormat";
 
 function SchemaTabs({
   schema,
@@ -22,6 +25,15 @@ function SchemaTabs({
 }) {
   const [tab, setTab] = useState<"schema" | "json" | "example">("schema");
   const formatBadge = schemaFormatBadge(schemaFormat);
+  const showExample = supportsGeneratedExamples(schemaFormat, conversionError);
+
+  // If the Example tab disappears (conversion failed / non-JSON-Schema format)
+  // while it was selected, fall back so the panel is not blank.
+  useEffect(() => {
+    if (!showExample && tab === "example") {
+      setTab("schema");
+    }
+  }, [showExample, tab]);
 
   return (
     <div>
@@ -50,9 +62,7 @@ function SchemaTabs({
           tabs={[
             { id: "schema", label: "Schema" },
             { id: "json", label: "JSON" },
-            // Generated examples need a converted schema; hide them when the
-            // conversion failed and we only hold the raw definition.
-            ...(conversionError ? [] : [{ id: "example", label: "Example" }]),
+            ...(showExample ? [{ id: "example", label: "Example" }] : []),
           ]}
           selected={tab}
           onChange={(id) => setTab(id as "schema" | "json" | "example")}
@@ -69,7 +79,7 @@ function SchemaTabs({
       {tab === "json" && (
         <SchemaViewer schema={originalSchema ?? schema} />
       )}
-      {tab === "example" && !conversionError && <Examples schema={schema} />}
+      {tab === "example" && showExample && <Examples schema={schema} />}
     </div>
   );
 }
