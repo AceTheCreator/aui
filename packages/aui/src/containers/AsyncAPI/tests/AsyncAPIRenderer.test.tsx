@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AsyncAPIRenderer } from "../AsyncAPIRenderer";
 import exampleDoc from "../../../config/examples/example1.json";
+import avroDoc from "../../../config/examples/avro-streetlight.json";
 
 const raw = JSON.stringify(exampleDoc);
 
@@ -30,6 +31,32 @@ describe("AsyncAPIRenderer", () => {
     await vi.waitFor(() => expect(onDiagnostics).toHaveBeenCalled());
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("converts Avro payloads during parsing (browser-safe) and renders record fields", async () => {
+    const onDiagnostics = vi.fn();
+    render(
+      <AsyncAPIRenderer raw={JSON.stringify(avroDoc)} onDiagnostics={onDiagnostics} />,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Streetlights Avro API" }),
+    ).toBeInTheDocument();
+
+    // jsdom has `window`, so this exercises the same code path as a real
+    // browser — where Avro payloads used to fail with "Unknown schema format".
+    const diagnostics = onDiagnostics.mock.calls.flatMap((call) => call[0]);
+    expect(
+      diagnostics.some((diagnostic: { message?: unknown }) =>
+        String(diagnostic.message).includes("Unknown schema format"),
+      ),
+    ).toBe(false);
+
+    // The Avro record in components.schemas renders as a browsable tree.
+    fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    const schemasPanel = within(document.getElementById("panel-schemas")!);
+    expect(schemasPanel.getByText("tags[]")).toBeInTheDocument();
+    expect(schemasPanel.getByText("avro 1.9.0")).toBeInTheDocument();
   });
 
   it("re-parses when raw changes and reflects the new document", async () => {

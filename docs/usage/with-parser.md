@@ -100,6 +100,10 @@ export default function App() {
 }
 ```
 
+## Multi-format schemas
+
+Avro payloads (`schemaFormat: application/vnd.apache.avro…`) are supported out of the box — no extra install. See [Avro schemas](./avro.md) for more details.
+
 ## Error handling
 
 If `@asyncapi/parser` is not installed, `parseAndRender` (and by extension `AsyncAPIRenderer`) throws a readable error at call time:

@@ -20,7 +20,8 @@
     "./style.css": "./dist/aui.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "dev": "vite",
@@ -50,15 +51,11 @@
     "remark-gfm": "^4.0.1"
   },
   "peerDependencies": {
-    "@asyncapi/avro-schema-parser": "^3.0.0",
     "@asyncapi/parser": "^3.6.0",
     "react": ">=18",
     "react-dom": ">=18"
   },
   "peerDependenciesMeta": {
-    "@asyncapi/avro-schema-parser": {
-      "optional": true
-    },
     "@asyncapi/parser": {
       "optional": true
     }

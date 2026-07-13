@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import IconArrowDown from "../../icons/ArrowDown";
 import TagComponent from "../../components/Tag";
 import Tabs from "../../components/Tabs";
@@ -6,6 +6,7 @@ import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Tag } from "../../types/asyncapi/Tag";
 import { CorrelationId } from "../../types/asyncapi/CorrelationId";
 import SchemaTabs from "../../components/schema/SchemaTab";
+import { resolveSchemaInput } from "../../helpers/schemaFormat";
 
 interface MessageProps {
   message: MessageObject;
@@ -16,6 +17,15 @@ interface MessageProps {
 export function Message({ message, messageId, i }: MessageProps) {
   const [expanded, setExpanded] = useState(false);
   const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
+
+  const payload = useMemo(
+    () => (message.payload ? resolveSchemaInput(message.payload) : null),
+    [message.payload],
+  );
+  const headers = useMemo(
+    () => (message.headers ? resolveSchemaInput(message.headers) : null),
+    [message.headers],
+  );
 
   const hasMore =
     message.description ||
@@ -92,18 +102,26 @@ export function Message({ message, messageId, i }: MessageProps) {
                   />
                 ) : null}
                 <div className="mt-4">
-                  {(schemaTab === "headers" || !message.payload) &&
-                    message.headers && (
-                      <SchemaTabs schema={message.headers} label="Headers" />
-                    )}
-                  {(schemaTab === "payload" || !message.headers) &&
-                    message.payload && (
-                      <SchemaTabs
-                        schema={message.payload}
-                        label="Payload"
-                        description={message.payload?.description}
-                      />
-                    )}
+                  {(schemaTab === "headers" || !message.payload) && headers && (
+                    <SchemaTabs
+                      schema={headers.schema}
+                      label="Headers"
+                      description={headers.description}
+                      schemaFormat={headers.schemaFormat}
+                      originalSchema={headers.originalSchema}
+                      conversionError={headers.conversionError}
+                    />
+                  )}
+                  {(schemaTab === "payload" || !message.headers) && payload && (
+                    <SchemaTabs
+                      schema={payload.schema}
+                      label="Payload"
+                      description={payload.description}
+                      schemaFormat={payload.schemaFormat}
+                      originalSchema={payload.originalSchema}
+                      conversionError={payload.conversionError}
+                    />
+                  )}
                 </div>
               </div>
             )}

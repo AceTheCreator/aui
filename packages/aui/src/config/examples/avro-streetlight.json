@@ -1,0 +1,120 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "Streetlights Avro API",
+    "version": "1.0.0",
+    "description": "Streetlight measurements published as Avro-encoded Kafka records."
+  },
+  "defaultContentType": "avro/binary",
+  "channels": {
+    "lightingMeasured": {
+      "address": "smartylighting.streetlights.event.measured",
+      "description": "Environmental lighting measurements.",
+      "messages": {
+        "lightMeasured": {
+          "$ref": "#/components/messages/lightMeasured"
+        }
+      }
+    }
+  },
+  "operations": {
+    "receiveLightMeasurement": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/lightingMeasured"
+      },
+      "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "messages": [
+        {
+          "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "lightMeasured": {
+        "name": "lightMeasured",
+        "title": "Light measured",
+        "summary": "Environmental lighting conditions of a particular streetlight.",
+        "contentType": "avro/binary",
+        "payload": {
+          "schemaFormat": "application/vnd.apache.avro;version=1.9.0",
+          "schema": {
+            "type": "record",
+            "name": "LightMeasured",
+            "namespace": "com.smartylighting",
+            "doc": "Light intensity measurement for a streetlight.",
+            "fields": [
+              {
+                "name": "streetlightId",
+                "type": "string",
+                "doc": "Id of the streetlight."
+              },
+              {
+                "name": "lumens",
+                "type": "int",
+                "doc": "Light intensity measured in lumens.",
+                "example": "3"
+              },
+              {
+                "name": "status",
+                "type": {
+                  "type": "enum",
+                  "name": "Status",
+                  "namespace": "com.smartylighting",
+                  "symbols": ["ON", "OFF", "FAULT"]
+                },
+                "doc": "Operational status of the streetlight."
+              },
+              {
+                "name": "location",
+                "type": {
+                  "type": "record",
+                  "name": "Location",
+                  "namespace": "com.smartylighting",
+                  "fields": [
+                    { "name": "lat", "type": "double" },
+                    { "name": "lon", "type": "double" }
+                  ]
+                },
+                "doc": "Current position of the streetlight."
+              },
+              {
+                "name": "previousLocation",
+                "type": ["null", "com.smartylighting.Location"],
+                "default": null,
+                "doc": "Position before the last relocation, when known."
+              },
+              {
+                "name": "correlationId",
+                "type": { "type": "string", "logicalType": "uuid" },
+                "doc": "Correlates measurements across systems."
+              }
+            ]
+          }
+        }
+      }
+    },
+    "schemas": {
+      "avroLocation": {
+        "schemaFormat": "application/vnd.apache.avro;version=1.9.0",
+        "schema": {
+          "type": "record",
+          "name": "StandaloneLocation",
+          "namespace": "com.smartylighting",
+          "doc": "A geographic position.",
+          "fields": [
+            { "name": "lat", "type": "double" },
+            { "name": "lon", "type": "double" },
+            {
+              "name": "tags",
+              "type": { "type": "array", "items": "string" },
+              "default": []
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -70,11 +70,17 @@ export function FetchSchema({ palette, onLoad }: FetchSchemaProps) {
     }
   }
 
-  const selectSuggestion = (suggestionUrl: string) => {
-    setUrl(suggestionUrl)
+  const selectSuggestion = (suggestion: { url: string; content?: string }) => {
+    setUrl(suggestion.url)
     setIsOpen(false)
     setActiveIndex(-1)
-    fetchSchema(suggestionUrl)
+    if (suggestion.content !== undefined) {
+      // For local examples — load its text directly, nothing to fetch.
+      setError(null)
+      onLoad(suggestion.content)
+      return
+    }
+    fetchSchema(suggestion.url)
   }
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
@@ -99,7 +105,7 @@ export function FetchSchema({ palette, onLoad }: FetchSchemaProps) {
     } else if (e.key === 'Enter') {
       if (isOpen && activeIndex >= 0 && suggestions[activeIndex]) {
         e.preventDefault()
-        selectSuggestion(suggestions[activeIndex].url)
+        selectSuggestion(suggestions[activeIndex])
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false)
@@ -208,7 +214,7 @@ export function FetchSchema({ palette, onLoad }: FetchSchemaProps) {
               // selection registers before the dropdown closes on blur.
               onMouseDown={(e) => {
                 e.preventDefault()
-                selectSuggestion(s.url)
+                selectSuggestion(s)
               }}
               onMouseEnter={() => setActiveIndex(i)}
               style={{
