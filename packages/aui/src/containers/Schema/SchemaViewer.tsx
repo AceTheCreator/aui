@@ -1,6 +1,5 @@
 import React from 'react';
-import DOMPurify from 'isomorphic-dompurify';
-import { hljs } from '../../helpers/marked';
+import { CodeBlock } from '../../components/CodeBlock';
 
 interface SchemaViewerProps {
   schema: object | unknown;
@@ -29,14 +28,6 @@ function stripParserExtensions(value: unknown): unknown {
 
 export const SchemaViewer: React.FC<SchemaViewerProps> = ({ schema }) => {
   const json = JSON.stringify(stripParserExtensions(schema), null, 2);
-  const highlighted = hljs.highlight(json, { language: 'json' }).value;
 
-  return (
-      <pre className="text-xs rounded overflow-x-auto">
-        <code
-          className="hljs language-json"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(highlighted) }}
-        />
-      </pre>
-  );
+  return <CodeBlock code={json} />;
 };
