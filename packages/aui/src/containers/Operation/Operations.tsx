@@ -89,17 +89,6 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
             }
           />
         </div>
-        {selectedExternalDocs?.url && (
-          <a
-            href={selectedExternalDocs.url}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 text-foreground-muted hover:text-foreground-secondary"
-            title={selectedExternalDocs.description || "External documentation"}
-          >
-            <IconExternalLink className="w-4 h-4" />
-          </a>
-        )}
       </div>
     ) : (
       selectedKey ?? "Operation"

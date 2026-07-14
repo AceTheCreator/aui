@@ -2,7 +2,6 @@ import { useState } from "react";
 import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
-import { isUrl } from "../../helpers/common";
 import IconArrowRight from "../../icons/ArrowRight";
 import IconDownRight from "../../icons/ArrowDown";
 import IconExternalLink from "../../icons/ExternalLink";
