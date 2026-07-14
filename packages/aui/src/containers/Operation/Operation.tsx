@@ -81,7 +81,7 @@ export default function Operation({ op, id }: OperationProps) {
       {security && security.length > 0 && (
         <div>
           <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
-            Authorization Mechanisms
+            Operation Authorization
           </p>
           <div className="rounded-lg border border-border overflow-hidden">
             <div
