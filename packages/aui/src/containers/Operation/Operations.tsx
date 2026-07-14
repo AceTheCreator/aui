@@ -3,9 +3,7 @@ import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
 import { Operation_TEXT } from "../../contants";
 import { useAsyncAPIDocument } from "../../contexts";
-import IconExternalLink from "../../icons/ExternalLink";
 import { Channel } from "../../types/asyncapi/Channel";
-import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { Parameter } from "../../types/asyncapi/Parameter";
 import { Operation as OperationType } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
@@ -66,7 +64,6 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
   });
 
   const selectedChannel = selectedOp ? (selectedOp.channel as unknown as Channel) : null;
-  const selectedExternalDocs = selectedOp?.externalDocs as unknown as ExternalDocs | undefined;
   const selectedIsSend = selectedOp?.action === OperationAction.SEND;
   const selectedBadgeClassName = selectedIsSend
     ? "bg-green-100 text-green-800"
