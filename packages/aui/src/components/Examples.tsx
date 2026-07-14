@@ -1,5 +1,7 @@
 import {useEffect, useState} from "react";
 import {generate} from "json-schema-faker";
+import DOMPurify from "isomorphic-dompurify";
+import { hljs } from "../helpers/marked";
 
 type JsonSchema = Record<string, unknown>;
 
@@ -37,11 +39,22 @@ export function Examples ({schema}: ExamplesProps) {
         };
     }, [schema]);
 
+        <pre>{JSON.stringify(value, null, 2)}</pre>
+      const json = JSON.stringify(value, null, 2);
+  const highlighted = hljs.highlight(json, { language: 'json' }).value;
+
+
     if (value === null) return null;
 
     return (
-      <div className="text-xs bg-neutral-50 text-foreground-secondary p-2 rounded overflow-x-auto">
-        <pre>{JSON.stringify(value, null, 2)}</pre>
-      </div>
+      <pre className="text-xs rounded overflow-x-auto">
+        <code
+          className="hljs language-json"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(highlighted) }}
+        />
+        <span className="text-xs text-foreground-muted italic mt-2 font-bold inline-block">
+          This example is auto generated
+        </span>
+      </pre>
     );
 }

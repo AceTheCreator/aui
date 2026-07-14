@@ -73,7 +73,7 @@ interface Props {
   protocol: string;
 }
 
-export default function Bindings({ bindings, expand = true, protocol }: Props) {
+export default function Bindings({ bindings, expand = false, protocol }: Props) {
   const [expanded, setExpanded] = useState(expand);
   const meta = PROTOCOL_META[protocol.toLowerCase()] ?? { label: protocol, color: "bg-neutral-100 text-foreground-secondary border-border" };
 

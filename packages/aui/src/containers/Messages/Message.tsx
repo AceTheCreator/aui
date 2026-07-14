@@ -17,7 +17,7 @@ interface MessageProps {
 
 export function Message({ message, messageId, i }: MessageProps) {
   const [expanded, setExpanded] = useState(false);
-  const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("headers");
+  const [schemaTab, setSchemaTab] = useState<"payload" | "headers">("payload");
   const { deref } = useAsyncAPIDocument();
 
   const payload = useMemo(
@@ -82,7 +82,9 @@ export function Message({ message, messageId, i }: MessageProps) {
 
       {/* Expanded section */}
       <div
-        className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+        className={`grid transition-all duration-200 ease-in-out ${
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
       >
         <div className="overflow-hidden">
           <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
@@ -96,24 +98,14 @@ export function Message({ message, messageId, i }: MessageProps) {
                 {message.payload && message.headers ? (
                   <Tabs
                     tabs={[
-                      { id: "headers", name: "Headers" },
                       { id: "payload", name: "Payload" },
+                      { id: "headers", name: "Headers" },
                     ]}
                     current={schemaTab}
                     onChange={(id) => setSchemaTab(id as "payload" | "headers")}
                   />
                 ) : null}
                 <div className="mt-4">
-                  {(schemaTab === "headers" || !message.payload) && headers && (
-                    <SchemaTabs
-                      schema={headers.schema}
-                      label="Headers"
-                      description={headers.description}
-                      schemaFormat={headers.schemaFormat}
-                      originalSchema={headers.originalSchema}
-                      conversionError={headers.conversionError}
-                    />
-                  )}
                   {(schemaTab === "payload" || !message.headers) && payload && (
                     <SchemaTabs
                       schema={payload.schema}
@@ -122,6 +114,16 @@ export function Message({ message, messageId, i }: MessageProps) {
                       schemaFormat={payload.schemaFormat}
                       originalSchema={payload.originalSchema}
                       conversionError={payload.conversionError}
+                    />
+                  )}
+                  {(schemaTab === "headers" || !message.payload) && headers && (
+                    <SchemaTabs
+                      schema={headers.schema}
+                      label="Headers"
+                      description={headers.description}
+                      schemaFormat={headers.schemaFormat}
+                      originalSchema={headers.originalSchema}
+                      conversionError={headers.conversionError}
                     />
                   )}
                 </div>
@@ -146,7 +148,9 @@ export function Message({ message, messageId, i }: MessageProps) {
         >
           <span>{expanded ? "Show less" : "Show more"}</span>
           <IconArrowDown
-            className={`w-3 h-3 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            className={`w-3 h-3 transition-transform duration-200 ${
+              expanded ? "rotate-180" : ""
+            }`}
           />
         </button>
       )}
