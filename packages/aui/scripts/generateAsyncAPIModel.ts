@@ -1,7 +1,7 @@
 import { TypeScriptFileGenerator } from '@asyncapi/modelina';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import spec from '../config/specs/3.0.0-without-$id.json';
+import spec from '../src/config/specs/3.0.0-without-$id.json';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const outputDir = path.resolve(__dirname, '../types/asyncapi');

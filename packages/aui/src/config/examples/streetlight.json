@@ -133,6 +133,23 @@
         }
       ]
     },
+    "receiveLightMeasurement1": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/lightingMeasured"
+      },
+      "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "traits": [
+        {
+          "$ref": "#/components/operationTraits/kafka"
+        }
+      ],
+      "messages": [
+        {
+          "$ref": "#/channels/lightingMeasured/messages/lightMeasured"
+        }
+      ]
+    },
     "turnOn": {
       "action": "send",
       "channel": {
