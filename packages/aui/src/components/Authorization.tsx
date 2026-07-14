@@ -187,7 +187,7 @@ export const OpenID = ({ security }: { security: OpenIdConnect }) => {
       )}
       <p>
         The OpenID Connect URL is{" "}
-        <a href="https://authserver.example/.well-known">
+        <a href={security.openIdConnectUrl} target="_blank" rel="noreferrer">
           {security.openIdConnectUrl}
         </a>
         .
@@ -243,33 +243,37 @@ export const OAuth2 = ({ security }: { security: Oauth2Flows }) => {
               </div>
               <div className="mt-5 border-t border-border">
                 <dl className="@sm:divide-y @sm:divide-border">
-                  <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-foreground-muted">
-                      Authorization URL
-                    </dt>
-                    <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
-                      <a href={``} className="text-foreground">
-                        {flowData.authorizationUrl}
-                      </a>
-                    </dd>
-                  </div>
-                  <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
-                    <dt className="text-sm font-medium text-foreground-muted">
-                      Token URL
-                    </dt>
-                    <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
-                      <a href={``} className="text-foreground">
-                        {flowData.tokenUrl}
-                      </a>
-                    </dd>
-                  </div>
+                  {flowData.authorizationUrl && (
+                    <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
+                      <dt className="text-sm font-medium text-foreground-muted">
+                        Authorization URL
+                      </dt>
+                      <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
+                        <a href={flowData.authorizationUrl} target="_blank" rel="noreferrer" className="text-foreground">
+                          {flowData.authorizationUrl}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                  {flowData.tokenUrl && (
+                    <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
+                      <dt className="text-sm font-medium text-foreground-muted">
+                        Token URL
+                      </dt>
+                      <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
+                        <a href={flowData.tokenUrl} target="_blank" rel="noreferrer" className="text-foreground">
+                          {flowData.tokenUrl}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
                   {flowData.refreshUrl && (
                     <div className="py-4 @sm:py-5 @sm:grid @sm:grid-cols-3 @sm:gap-4 items-center">
                       <dt className="text-sm font-medium text-foreground-muted">
                         Refresh URL
                       </dt>
                       <dd className="mt-1 text-sm text-foreground @sm:mt-0 @sm:col-span-2">
-                        <a href={``} className="text-foreground">
+                        <a href={flowData.refreshUrl} target="_blank" rel="noreferrer" className="text-foreground">
                           {flowData.refreshUrl}
                         </a>
                       </dd>

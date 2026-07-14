@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { chunkColors } from "../contants";
 import { useAsyncAPIDocument } from "../contexts";
+import formatEnumDescription from "../helpers/formatEnumDescription";
 import { Parameter } from "../types/asyncapi/Parameter";
 
 type AddressPart = { type: "text"; value: string } | { type: "param"; value: string };
@@ -32,7 +33,7 @@ interface ChannelAddressProps {
   truncate?: boolean;
 }
 
-export function ChannelAddress({ address, parameters, className, truncate = false }: ChannelAddressProps) {
+export function ChannelAddress({ address, parameters, className = "text-xs", truncate = false }: ChannelAddressProps) {
   const { portalHost } = useAsyncAPIDocument();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, placement: "top" as "top" | "bottom" });
@@ -69,9 +70,13 @@ export function ChannelAddress({ address, parameters, className, truncate = fals
 
   const content = parts.map((part, i) => {
     if (part.type === "text") return <span key={i}>{part.value}</span>;
-    const description = parameters?.[part.value]?.description;
+    const parameter = parameters?.[part.value];
     const color = chunkColors[colorIndex++ % chunkColors.length];
     const isHovered = hoveredIndex === i;
+    const hasDetails =
+      !!parameter &&
+      (parameter.description || parameter.default || (parameter.enum && parameter.enum.length > 0) ||
+        (parameter.examples && parameter.examples.length > 0));
     return (
       <span
         key={i}
@@ -79,19 +84,34 @@ export function ChannelAddress({ address, parameters, className, truncate = fals
         onMouseEnter={(e) => showTooltip(i, e.currentTarget)}
         onMouseLeave={() => setHoveredIndex(null)}
       >
-        <span className={`font-semibold ${color} ${description ? "cursor-help underline decoration-dotted" : ""}`}>
+        <span className={`font-semibold ${color} ${hasDetails ? "cursor-help underline decoration-dotted" : ""}`}>
           {`{${part.value}}`}
         </span>
-        {description && isHovered && portalHost &&
+        {hasDetails && isHovered && portalHost &&
           createPortal(
-            <span
-              className={`fixed -translate-x-1/2 px-2.5 py-1.5 bg-neutral-50 text-foreground-muted text-xs rounded whitespace-nowrap pointer-events-none z-[60] shadow-lg text-center leading-snug ${
+            <div
+              className={`fixed -translate-x-1/2 max-w-xs px-2.5 py-1.5 bg-neutral-50 text-foreground-muted text-xs rounded pointer-events-none z-[60] shadow-lg text-left leading-snug ${
                 coords.placement === "top" ? "-translate-y-full" : ""
               }`}
               style={{ top: coords.top, left: coords.left }}
             >
-              {description}
-            </span>,
+              {parameter.description && <div>{parameter.description}</div>}
+              {parameter.default && (
+                <div className="mt-1">
+                  <span className="font-semibold text-foreground-secondary">Default:</span>{" "}
+                  <code>{parameter.default}</code>
+                </div>
+              )}
+              {parameter.enum && parameter.enum.length > 0 && (
+                <div className="mt-1">{formatEnumDescription(parameter.enum)}</div>
+              )}
+              {parameter.examples && parameter.examples.length > 0 && (
+                <div className="mt-1">
+                  <span className="font-semibold text-foreground-secondary">Examples:</span>{" "}
+                  {parameter.examples.join(", ")}
+                </div>
+              )}
+            </div>,
             portalHost
           )}
       </span>
@@ -100,14 +120,14 @@ export function ChannelAddress({ address, parameters, className, truncate = fals
 
   if (!truncate) {
     return (
-      <code className={`text-xs px-2 py-1 rounded text-foreground-secondary break-all ${className ?? ""}`}>
+      <code className={`px-2 py-1 rounded text-foreground-secondary break-all ${className}`}>
         {content}
       </code>
     );
   }
 
   return (
-    <code className={`text-xs px-2 py-1 rounded text-foreground-secondary flex items-center min-w-0 ${className ?? ""}`}>
+    <code className={`px-2 py-1 rounded text-foreground-secondary flex items-center min-w-0 ${className}`}>
       <span ref={contentRef} className="overflow-hidden whitespace-nowrap min-w-0">
         {content}
       </span>

@@ -23,9 +23,9 @@ function SchemaTabs({
   originalSchema?: unknown;
   conversionError?: string;
 }) {
-  const [tab, setTab] = useState<"schema" | "json" | "example">("schema");
   const formatBadge = schemaFormatBadge(schemaFormat);
   const showExample = supportsGeneratedExamples(schemaFormat, conversionError);
+  const [tab, setTab] = useState<"schema" | "json" | "example">(showExample ? "example" : "schema");
 
   // If the Example tab disappears (conversion failed / non-JSON-Schema format)
   // while it was selected, fall back so the panel is not blank.
@@ -60,9 +60,9 @@ function SchemaTabs({
         </div>
         <TabToggle
           tabs={[
+            ...(showExample ? [{ id: "example", label: "Example" }] : []),
             { id: "schema", label: "Schema" },
             { id: "json", label: "JSON" },
-            ...(showExample ? [{ id: "example", label: "Example" }] : []),
           ]}
           selected={tab}
           onChange={(id) => setTab(id as "schema" | "json" | "example")}

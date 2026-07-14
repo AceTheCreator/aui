@@ -174,7 +174,7 @@ export default function Navigation({
                               </span>
                             )}
                             {channel?.address
-                              ? <ChannelAddress address={channel.address} parameters={channel.parameters} className="bg-transparent p-0" />
+                              ? <ChannelAddress address={channel.address} parameters={channel.parameters} className="text-xs bg-transparent p-0" />
                               : <span className="truncate">{item}</span>
                             }
                           </button>
