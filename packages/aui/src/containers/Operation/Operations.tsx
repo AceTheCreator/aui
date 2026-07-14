@@ -3,7 +3,9 @@ import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
 import { Operation_TEXT } from "../../contants";
 import { useAsyncAPIDocument } from "../../contexts";
+import IconExternalLink from "../../icons/ExternalLink";
 import { Channel } from "../../types/asyncapi/Channel";
+import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { Parameter } from "../../types/asyncapi/Parameter";
 import { Operation as OperationType } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
@@ -64,12 +66,44 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
   });
 
   const selectedChannel = selectedOp ? (selectedOp.channel as unknown as Channel) : null;
-  const panelTitle = selectedOp && selectedChannel?.address ? (
-    <ChannelAddress
-      address={selectedChannel.address}
-      parameters={selectedChannel.parameters as unknown as Record<string, Parameter>}
-    />
-  ) : (selectedKey ?? "Operation");
+  const selectedExternalDocs = selectedOp?.externalDocs as unknown as ExternalDocs | undefined;
+  const selectedIsSend = selectedOp?.action === OperationAction.SEND;
+  const selectedBadgeClassName = selectedIsSend
+    ? "bg-green-100 text-green-800"
+    : selectedOp?.action === OperationAction.RECEIVE
+      ? "bg-blue-100 text-blue-800"
+      : "bg-neutral-100 text-foreground-secondary";
+  const panelTitle =
+    selectedOp && selectedChannel?.address ? (
+      <div className="flex items-center gap-2 min-w-0">
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium uppercase ${selectedBadgeClassName}`}
+        >
+          {selectedOp.action}
+        </span>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <ChannelAddress
+            address={selectedChannel.address}
+            parameters={
+              selectedChannel.parameters as unknown as Record<string, Parameter>
+            }
+          />
+        </div>
+        {selectedExternalDocs?.url && (
+          <a
+            href={selectedExternalDocs.url}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-foreground-muted hover:text-foreground-secondary"
+            title={selectedExternalDocs.description || "External documentation"}
+          >
+            <IconExternalLink className="w-4 h-4" />
+          </a>
+        )}
+      </div>
+    ) : (
+      selectedKey ?? "Operation"
+    );
 
   const content = (
     <div className="bg-surface rounded-lg border border-border overflow-hidden">

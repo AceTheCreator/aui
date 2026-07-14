@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
 import { isUrl } from "../../helpers/common";
+import IconArrowRight from "../../icons/ArrowRight";
+import IconDownRight from "../../icons/ArrowDown";
+import IconExternalLink from "../../icons/ExternalLink";
 import { ExternalDocs } from "../../types/asyncapi/ExternalDocs";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { Operation as OperationInterface } from "../../types/asyncapi/Operation";
@@ -18,6 +22,7 @@ interface OperationProps {
 }
 
 export default function Operation({ op, id }: OperationProps) {
+  const [authExpanded, setAuthExpanded] = useState(false);
   const messages = (op.messages ?? []) as unknown as MessageObject[];
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
@@ -33,12 +38,6 @@ export default function Operation({ op, id }: OperationProps) {
       : undefined);
 
   const isSend = op.action === OperationAction.SEND;
-  const badgeClassName = isSend
-    ? "bg-green-100 text-green-800"
-    : op.action === OperationAction.RECEIVE
-      ? "bg-blue-100 text-blue-800"
-      : "bg-neutral-100 text-foreground-secondary";
-  
   const messageList = (
     <div className="space-y-2">
       {messages.map((msg, i) => (
@@ -49,79 +48,33 @@ export default function Operation({ op, id }: OperationProps) {
 
   return (
     <div className="space-y-6">
-      {op.title && (
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">{op.title}</h2>
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200`}
+        >
+          ID: {id}
+        </span>
+        {externalDocs?.url && (
+          <a
+            href={externalDocs.url}
+            target="_blank"
+            rel="noreferrer"
+            title={externalDocs.description || externalDocs.url}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-neutral-100 text-foreground-secondary border border-border hover:bg-neutral-200 transition-colors"
+          >
+            External Documentation
+            <IconExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
+        {op.description && (
+          <div>
+            <Markdown>{op.description}</Markdown>
+          </div>
+        )}
       {op.summary && (
         <div>
           <p className="text-sm text-foreground-secondary">{op.summary}</p>
-        </div>
-      )}
-      <div className={`flex justify-between w-[400px]`}>
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            Operation Method
-          </p>
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium uppercase ${badgeClassName}`}
-          >
-            {op.action}
-          </span>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            Operation ID
-          </p>
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200`}
-          >
-            {id}
-          </span>
-        </div>
-      </div>
-
-      {/* Title */}
-      {op.title && (
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            Title
-          </p>
-          <p className="text-sm text-foreground">{op.title}</p>
-        </div>
-      )}
-
-      {/* Description */}
-      {op.description && (
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            Description
-          </p>
-          <Markdown>{op.description}</Markdown>
-        </div>
-      )}
-
-      {/* External Docs */}
-      {externalDocs?.url && (
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            External Documentation
-          </p>
-          {isUrl(externalDocs.url) ? (
-            <a
-              href={externalDocs.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm underline underline-offset-2 hover:text-blue-800 break-all"
-            >
-              {externalDocs.url}
-            </a>
-          ) : (
-            <p className="text-sm text-foreground-secondary">
-              {externalDocs.url}
-            </p>
-          )}
         </div>
       )}
 
@@ -131,11 +84,32 @@ export default function Operation({ op, id }: OperationProps) {
           <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Authorization Mechanisms
           </p>
-          <Authorization
-            securities={
-              security as Parameters<typeof Authorization>[0]["securities"]
-            }
-          />
+          <div className="rounded-lg border border-border overflow-hidden">
+            <div
+              className="flex items-center justify-between px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => setAuthExpanded((v) => !v)}
+            >
+              <span className="text-xs font-normal text-foreground-muted bg-neutral-100 border border-border rounded-full px-2 py-0.5">
+                {security.length}
+              </span>
+              {authExpanded ? (
+                <IconDownRight className="w-4 h-4 text-foreground-muted shrink-0" />
+              ) : (
+                <IconArrowRight className="w-4 h-4 text-foreground-muted shrink-0" />
+              )}
+            </div>
+            {authExpanded && (
+              <div className="px-4 py-2 border-t border-border">
+                <Authorization
+                  securities={
+                    security as Parameters<
+                      typeof Authorization
+                    >[0]["securities"]
+                  }
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -178,7 +152,7 @@ export default function Operation({ op, id }: OperationProps) {
                   the following messages:
                 </>
               ) : (
-                "the following message:"
+                " the following message:"
               )}
             </p>
             {messageList}
