@@ -11,6 +11,8 @@ import { OperationAction } from "../types/asyncapi/OperationAction";
 import { SideBarConfig } from "../config/config";
 import { useAsyncAPIDocument } from "../contexts";
 import { hasRef } from "../utils/hasRef";
+import { useAutoHideOnScroll } from "../utils/useAutoHideOnScroll";
+import { useElementRect } from "../utils/useElementRect";
 import { ChannelAddress } from "./ChannelAddress";
 import { Parameter } from "../types/asyncapi/Parameter";
 
@@ -49,7 +51,29 @@ export default function Navigation({
   const [open, setOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(0);
   const [panelElement, setpanelElement] = useState<HTMLDivElement | null>(null);
-  const { deref } = useAsyncAPIDocument();
+  const { deref, rootElement } = useAsyncAPIDocument();
+
+  // Once the widget's top is scrolled past, the toggle detaches and pins to the
+  // viewport top: hidden while scrolling down, revealed on any upward scroll,
+  // and never hidden while the panel is open.
+  const toggleMode = useAutoHideOnScroll(rootElement, open);
+  const isPinnedToViewport = toggleMode !== "docked";
+  const rootRect = useElementRect(rootElement, isPinnedToViewport);
+
+  // Horizontal follow of the open panel uses transform (not `left`) so the
+  // docked<->pinned position swap doesn't animate through a stale `left`.
+  const panelShift = open && panelWidth ? panelWidth - 2 : 0;
+  const toggleStyle: React.CSSProperties = {
+    transform: `translate(${panelShift}px, ${toggleMode === "hidden" ? "-150%" : "0px"})`,
+    ...(isPinnedToViewport
+      ? {
+          position: "fixed",
+          top: 10,
+          left: (rootRect?.left ?? 0) + 12,
+          pointerEvents: toggleMode === "hidden" ? "none" : undefined,
+        }
+      : {}),
+  };
 
   useEffect(() => {
     if (!panelElement) return;
@@ -87,7 +111,7 @@ export default function Navigation({
         onClick={() => setOpen((v) => !v)}
         title={open ? "Close navigation" : "Open navigation"}
         className="panel-toggle-btn bg-neutral-100"
-        style={open && panelWidth ? { left: `${panelWidth + 10}px` } : undefined}
+        style={toggleStyle}
       >
         <SidebarIcon isCollapsed={open} />
       </button>
