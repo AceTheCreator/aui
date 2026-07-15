@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {generate} from "json-schema-faker";
+import {CopyButton} from "./CopyButton";
 
 type JsonSchema = Record<string, unknown>;
 
@@ -39,9 +40,14 @@ export function Examples ({schema}: ExamplesProps) {
 
     if (value === null) return null;
 
+    const content = JSON.stringify(value, null, 2);
+
     return (
-      <div className="text-xs bg-neutral-50 text-foreground-secondary p-2 rounded overflow-x-auto">
-        <pre>{JSON.stringify(value, null, 2)}</pre>
+      <div className="relative">
+        <CopyButton text={content} ariaLabel="Copy example" />
+        <div className="text-xs bg-neutral-50 text-foreground-secondary p-2 rounded overflow-x-auto">
+          <pre>{content}</pre>
+        </div>
       </div>
     );
 }
