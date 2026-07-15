@@ -42,6 +42,8 @@ export default function SchemaTreeRow({
 }: SchemaTreeRowProps) {
   const colors = getDepthColors(depth);
   const showRef = schema && shouldShowRefFootnote(schema, refLabel);
+  // Indent only when the row is expandable — leaf rows have no tree line to align with.
+  const contentIndent = expandable ? CONTENT_INDENT : "";
 
   // Split "parent.child.name", "parent.pair[]", or "parent[].name" — highlight final segment.
   let prefix = "";
@@ -112,14 +114,14 @@ export default function SchemaTreeRow({
           schema={schema}
           itemSchema={itemSchema}
           fieldName={name}
-          className={`flex flex-col gap-1 mt-1 ${CONTENT_INDENT}`}
+          className={`flex flex-col gap-1 mt-1 ${contentIndent}`}
         />
       )}
       {description &&
         description.split("\n\n").map((paragraph, index) => (
           <p
             key={index}
-            className={`text-xs text-gray-500 mt-1 ${CONTENT_INDENT} leading-relaxed`}
+            className={`text-xs text-gray-500 mt-1 ${contentIndent} leading-relaxed`}
           >
             {paragraph}
           </p>

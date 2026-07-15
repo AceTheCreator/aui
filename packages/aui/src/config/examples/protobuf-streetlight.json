@@ -1,0 +1,55 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "Streetlights Protobuf API",
+    "version": "1.0.0",
+    "description": "Streetlight sensor readings published as Protobuf-encoded Kafka records."
+  },
+  "defaultContentType": "application/octet-stream",
+  "channels": {
+    "lightingMeasured": {
+      "address": "smartylighting.streetlights.event.measured",
+      "description": "Environmental lighting measurements.",
+      "messages": {
+        "sensorReading": {
+          "$ref": "#/components/messages/sensorReading"
+        }
+      }
+    }
+  },
+  "operations": {
+    "receiveSensorReading": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/lightingMeasured"
+      },
+      "summary": "Inform about environmental lighting conditions of a particular streetlight.",
+      "messages": [
+        {
+          "$ref": "#/channels/lightingMeasured/messages/sensorReading"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "sensorReading": {
+        "name": "sensorReading",
+        "title": "Sensor reading",
+        "summary": "Environmental lighting conditions of a particular streetlight.",
+        "contentType": "application/octet-stream",
+        "payload": {
+          "schemaFormat": "application/vnd.google.protobuf;version=3",
+          "schema": "syntax = \"proto3\";\n\nimport \"google/protobuf/timestamp.proto\";\n\n// A sensor reading published by a streetlight.\nmessage SensorReading {\n  // Id of the streetlight.\n  string streetlight_id = 1;\n\n  // Light intensity measured in lumens.\n  // @Min 0\n  // @Example 3000\n  int32 lumens = 2;\n\n  // Operational status of the streetlight.\n  Status status = 3;\n\n  // Where the streetlight is installed.\n  Location location = 4;\n\n  // When the reading was taken.\n  google.protobuf.Timestamp measured_at = 5;\n\n  // Recent error codes, newest first.\n  // @MaxItems 10\n  repeated string error_codes = 6;\n}\n\nenum Status {\n  STATUS_UNSPECIFIED = 0;\n  ON = 1;\n  OFF = 2;\n  FAULT = 3;\n}\n\nmessage Location {\n  // @Min -90\n  // @Max 90\n  double lat = 1;\n  // @Min -180\n  // @Max 180\n  double lng = 2;\n}\n"
+        }
+      }
+    },
+    "schemas": {
+      "dimLightCommand": {
+        "schemaFormat": "application/vnd.google.protobuf;version=3",
+        "description": "Command palette entry for dimming a streetlight.",
+        "schema": "syntax = \"proto3\";\n\n// Command to dim a streetlight.\nmessage DimLight {\n  // Id of the streetlight.\n  string streetlight_id = 1;\n\n  // Target brightness.\n  // @Minimum 0\n  // @Maximum 100\n  int32 percentage = 2;\n}\n"
+      }
+    }
+  }
+}

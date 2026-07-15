@@ -86,7 +86,9 @@ a {
   color: #64748b;
   z-index: 51;
   pointer-events: auto;
-  transition: background 0.2s ease, color 0.2s ease, left 0.3s ease-in-out;
+  /* Panel-follow and hide/reveal both move via transform; `left` must not
+     transition or the absolute<->fixed swap would animate horizontally. */
+  transition: background 0.2s ease, color 0.2s ease, transform 0.3s ease-in-out;
 }
 
 .panel-toggle-btn:hover {

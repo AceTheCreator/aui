@@ -22,6 +22,10 @@ import { avroToJsonSchema } from "./avroToJsonSchema";
 import { validateAvroStructure } from "./validateAvroStructure";
 import type { AvroSchema } from "./types";
 import { isAvroSchemaFormat, X_AUI_CONVERSION_ERROR } from "../schemaFormat";
+import {
+  registerSchemaParserWithFallback,
+  type SchemaParserHost,
+} from "../schemaParserRegistry";
 
 // MIME strings registered on the parser Map. parser-js matches schemaFormat by
 // exact string, so registerAvroSchemaParser also installs a registry fallback
@@ -43,14 +47,6 @@ interface KafkaKeyBearer {
   bindings?: { kafka?: { key?: unknown } };
 }
 
-/** Minimal parser surface needed to register and patch MIME lookup. */
-interface SchemaParserHost {
-  registerSchemaParser(parser: SchemaParser): unknown;
-  parserRegistry: {
-    get(key: string): SchemaParser | undefined;
-  };
-}
-
 // A function that returns a SchemaParser object
 // Just like how @asyncapi/avro-schema-parser does it.
 export function AvroSchemaParser(): SchemaParser {
@@ -66,17 +62,7 @@ export function AvroSchemaParser(): SchemaParser {
  * schemaFormat version (not only the exact strings in AVRO_MIME_TYPES).
  */
 export function registerAvroSchemaParser(parser: SchemaParserHost): void {
-  const schemaParser = AvroSchemaParser();
-  parser.registerSchemaParser(schemaParser);
-
-  const registry = parser.parserRegistry;
-  const originalGet = registry.get.bind(registry);
-  registry.get = (key: string) => {
-    const hit = originalGet(key);
-    if (hit !== undefined) return hit;
-    // Fall back for unlisted versions (e.g. application/vnd.apache.avro;version=1.11.0).
-    return isAvroSchemaFormat(key) ? schemaParser : undefined;
-  };
+  registerSchemaParserWithFallback(parser, AvroSchemaParser(), isAvroSchemaFormat);
 }
 
 function validate(input: ValidateSchemaInput<unknown, unknown>) {
