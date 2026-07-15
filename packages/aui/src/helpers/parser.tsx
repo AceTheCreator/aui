@@ -18,10 +18,10 @@ async function loadParser() {
     }
     return Parser;
   } catch (err) {
-    console.error("[aui] Failed to load '@asyncapi/parser/browser':", err);
+    console.error("[apiuikit] Failed to load '@asyncapi/parser/browser':", err);
     throw new Error(
-      "[aui] The parsed entry requires '@asyncapi/parser'. " +
-        "Install it (`npm i @asyncapi/parser`), or use 'aui' with a pre-resolved document.",
+      "[apiuikit] The parsed entry requires '@asyncapi/parser'. " +
+        "Install it (`npm i @asyncapi/parser`), or use 'apiuikit' with a pre-resolved document.",
     );
   }
 }

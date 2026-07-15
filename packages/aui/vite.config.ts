@@ -26,9 +26,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: 'src/index.ts',
-      name: 'aui',
+      name: 'apiuikit',
       formats: ['es', 'cjs'],
-      fileName: (format) => `aui.${format}.js`,
+      fileName: (format) => `apiuikit.${format}.js`,
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],
@@ -37,6 +37,12 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
         },
+        // Pinned so the filename matches package.json's exports["./style.css"]
+        // regardless of the package name — Vite otherwise derives the CSS
+        // asset name from package.json.name, which silently breaks that path
+        // on a rename.
+        assetFileNames: (assetInfo) =>
+          assetInfo.names?.[0]?.endsWith('.css') ? 'apiuikit.css' : 'assets/[name]-[hash][extname]',
       },
     },
   },

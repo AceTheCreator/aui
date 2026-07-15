@@ -161,7 +161,7 @@ describe("resolveSchemaInput", () => {
   it("surfaces the with-parser conversion-error marker", () => {
     const result = resolveSchemaInput({
       schemaFormat: AVRO_FORMAT,
-      schema: { "x-aui-conversion-error": "boom" },
+      schema: { "x-apiuikit-conversion-error": "boom" },
       "x-parser-original-payload": rawAvroRecord,
     });
 

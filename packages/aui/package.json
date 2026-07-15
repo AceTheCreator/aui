@@ -1,5 +1,5 @@
 {
-  "name": "aui",
+  "name": "apiuikit",
   "version": "0.1.0",
   "description": "React component library for rendering AsyncAPI 3.x specifications",
   "license": "MIT",
@@ -8,16 +8,16 @@
     "url": "https://github.com/AceTheCreator/aui.git"
   },
   "type": "module",
-  "main": "./dist/aui.cjs.js",
-  "module": "./dist/aui.es.js",
+  "main": "./dist/apiuikit.cjs.js",
+  "module": "./dist/apiuikit.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/aui.es.js",
-      "require": "./dist/aui.cjs.js"
+      "import": "./dist/apiuikit.es.js",
+      "require": "./dist/apiuikit.cjs.js"
     },
-    "./style.css": "./dist/aui.css"
+    "./style.css": "./dist/apiuikit.css"
   },
   "files": [
     "dist",

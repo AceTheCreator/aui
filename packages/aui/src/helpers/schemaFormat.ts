@@ -13,7 +13,7 @@ import { avroToJsonSchema, validateAvroStructure, AvroSchema } from "./avro";
 
 export const X_PARSER_ORIGINAL_PAYLOAD = "x-parser-original-payload";
 /** Marker set by the with-parser fail-soft path when conversion throws. */
-export const X_AUI_CONVERSION_ERROR = "x-aui-conversion-error";
+export const X_APIUIKIT_CONVERSION_ERROR = "x-apiuikit-conversion-error";
 
 /** The MIME strings @asyncapi/avro-schema-parser registers, which parser-js
  * matches exactly, plus version-less variants accepted in without-parser mode. */
@@ -173,7 +173,7 @@ function unwrapSchemaInput(input: unknown): ResolvedSchemaInput {
   const original = input[X_PARSER_ORIGINAL_PAYLOAD];
 
   // The with-parser fail-soft marker: conversion already failed during parse.
-  const parseError = asSchemaNode(inner)?.[X_AUI_CONVERSION_ERROR];
+  const parseError = asSchemaNode(inner)?.[X_APIUIKIT_CONVERSION_ERROR];
   if (typeof parseError === "string") {
     return {
       schema: asSchemaNode(original) ?? {},

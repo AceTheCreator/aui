@@ -27,7 +27,7 @@ The simplest way to use the parser entry. Pass a raw string and the component ha
 ### TypeScript
 
 ```tsx
-import { AsyncApiViewer } from "aui";
+import { AsyncApiViewer } from "apiuikit";
 
 export default function App() {
   return (
@@ -42,7 +42,7 @@ export default function App() {
 ### JavaScript
 
 ```jsx
-import { AsyncApiViewer } from "aui";
+import { AsyncApiViewer } from "apiuikit";
 
 export default function App() {
   return <AsyncApiViewer raw={rawYaml} />;
@@ -68,8 +68,8 @@ function parseAndRender(
 ### TypeScript
 
 ```tsx
-import { parseAndRender } from "aui";
-import type { ConfigInterface } from "aui";
+import { parseAndRender } from "apiuikit";
+import type { ConfigInterface } from "apiuikit";
 
 const config: ConfigInterface = {
   show: { schemas: false },
@@ -91,7 +91,7 @@ export default function App() {
 ### JavaScript
 
 ```jsx
-import { parseAndRender } from "aui";
+import { parseAndRender } from "apiuikit";
 
 const { diagnostics, view } = await parseAndRender(rawYaml);
 
@@ -110,5 +110,5 @@ If `@asyncapi/parser` is not installed, `parseAndRender` (and by extension `Asyn
 
 ```
 [aui] The parsed entry requires '@asyncapi/parser'.
-Install it (`npm i @asyncapi/parser`), or use 'aui' with a pre-resolved document.
+Install it (`npm i @asyncapi/parser`), or use 'apiuikit' with a pre-resolved document.
 ```

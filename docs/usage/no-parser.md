@@ -18,8 +18,8 @@ Pass a plain JavaScript object that matches the AsyncAPI 3.0 document shape.
 ### TypeScript
 
 ```tsx
-import AsyncAPI from "aui";
-import type { ConfigInterface } from "aui";
+import AsyncAPI from "apiuikit";
+import type { ConfigInterface } from "apiuikit";
 import doc from "./asyncapi.json";
 
 const config: ConfigInterface = {
@@ -35,7 +35,7 @@ export default function App() {
 ### JavaScript
 
 ```jsx
-import AsyncAPI from "aui";
+import AsyncAPI from "apiuikit";
 import doc from "./asyncapi.json";
 
 export default function App() {
@@ -48,8 +48,8 @@ export default function App() {
 If you run the AsyncAPI parser yourself upstream (e.g. in a build script or server), you can signal to the component that all `$ref`s have already been resolved. This skips the component's internal ref traversal:
 
 ```tsx
-import AsyncAPI from "aui";
-import type { AsyncAPIDocumentData } from "aui";
+import AsyncAPI from "apiuikit";
+import type { AsyncAPIDocumentData } from "apiuikit";
 
 // document was fully dereferenced upstream
 declare const resolvedDoc: AsyncAPIDocumentData;

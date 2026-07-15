@@ -1,6 +1,6 @@
 # Avro schemas
 
-aui renders AsyncAPI messages and components whose payload (or headers) use an Avro `schemaFormat`. Support works in both [with-parser](./with-parser.md) and [no-parser](./no-parser.md) entry points — no extra install is required.
+apiuikit renders AsyncAPI messages and components whose payload (or headers) use an Avro `schemaFormat`. Support works in both [with-parser](./with-parser.md) and [no-parser](./no-parser.md) entry points — no extra install is required.
 
 ## What you need in the document
 
@@ -47,7 +47,7 @@ The same shape works as JSON:
 
 ## Dependencies
 
-- **With parser:** aui registers its own browser-safe Avro schema parser on `@asyncapi/parser`. You do **not** need `@asyncapi/avro-schema-parser` (or its Node-only `avsc` dependency).
+- **With parser:** apiuikit registers its own browser-safe Avro schema parser on `@asyncapi/parser`. You do **not** need `@asyncapi/avro-schema-parser` (or its Node-only `avsc` dependency).
 - **Without parser:** conversion happens at render time in the component — no parser and no extra dependency.
 
 ## Implementation notes (For Contributers)
@@ -71,11 +71,11 @@ Both paths share the pure converter in `helpers/avro` (`avroToJsonSchema`, `vali
 2. If the format is Avro and the inner value is still Avro-shaped, convert (or reuse a prior conversion).
 3. Surface `originalSchema` for the JSON tab and any `conversionError` for fail-soft UI.
 
-The with-parser fail-soft path may set `x-aui-conversion-error` when conversion throws during parse; the renderer picks that marker up the same way.
+The with-parser fail-soft path may set `x-apiuikit-conversion-error` when conversion throws during parse; the renderer picks that marker up the same way.
 
 ### Why not `@asyncapi/avro-schema-parser`?
 
-That package depends on `avsc`, which expects Node's `Buffer`. aui's `AvroSchemaParser` mirrors the upstream plugin factory (`parser.registerSchemaParser(AvroSchemaParser())`) with the same MIME list, but uses the in-tree converter so Avro documents parse identically in the browser and in Node.
+That package depends on `avsc`, which expects Node's `Buffer`. apiuikit's `AvroSchemaParser` mirrors the upstream plugin factory (`parser.registerSchemaParser(AvroSchemaParser())`) with the same MIME list, but uses the in-tree converter so Avro documents parse identically in the browser and in Node.
 
 ### Key source files
 

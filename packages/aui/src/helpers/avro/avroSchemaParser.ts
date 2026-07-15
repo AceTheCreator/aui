@@ -21,7 +21,7 @@ import type {
 import { avroToJsonSchema } from "./avroToJsonSchema";
 import { validateAvroStructure } from "./validateAvroStructure";
 import type { AvroSchema } from "./types";
-import { isAvroSchemaFormat, X_AUI_CONVERSION_ERROR } from "../schemaFormat";
+import { isAvroSchemaFormat, X_APIUIKIT_CONVERSION_ERROR } from "../schemaFormat";
 
 // MIME strings registered on the parser Map. parser-js matches schemaFormat by
 // exact string, so registerAvroSchemaParser also installs a registry fallback
@@ -91,7 +91,7 @@ function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
   // the v2 ruleset, so v3 would otherwise convert malformed Avro silently.
   const problems = validateAvroStructure(input.data);
   if (problems.length > 0) {
-    return { [X_AUI_CONVERSION_ERROR]: problems[0]! };
+    return { [X_APIUIKIT_CONVERSION_ERROR]: problems[0]! };
   }
 
   try {
@@ -114,7 +114,7 @@ function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
     // the whole document. Return a marker so rendering fails soft for this
     // schema only (resolveSchemaInput picks it up).
     return {
-      [X_AUI_CONVERSION_ERROR]:
+      [X_APIUIKIT_CONVERSION_ERROR]:
         err instanceof Error ? err.message : "Failed to convert Avro schema",
     };
   }

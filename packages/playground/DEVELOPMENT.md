@@ -5,8 +5,8 @@
 - `[0]` `vite build --watch` in `packages/aui` — rebuilds the library into `packages/aui/dist/` on every source change
 - `[1]` `vite` dev server in `packages/playground` — serves the playground app
 
-The playground imports `aui` through the npm workspace symlink
-(`node_modules/aui -> packages/aui`), so Vite serves the **built files** in
+The playground imports `apiuikit` through the npm workspace symlink
+(`node_modules/apiuikit -> packages/aui`), so Vite serves the **built files** in
 `packages/aui/dist/` directly (you'll see them as `/@fs/...` URLs). That is
 intentional: the playground exercises the same artifact that gets published to
 npm, not the raw source.
@@ -16,8 +16,8 @@ npm, not the raw source.
 A library rebuild is not atomic. `vite build --watch` first **empties `dist/`**
 (`emptyOutDir`), then writes the outputs back over several seconds. If the
 playground dev server watched `dist/` directly, the first file written would
-trigger an HMR/full-reload **while `dist/aui.es.js` and `dist/aui.css` don't
-exist yet** — the browser reloads into `Failed to load url ...aui.es.js. Does
+trigger an HMR/full-reload **while `dist/apiuikit.es.js` and `dist/apiuikit.css` don't
+exist yet** — the browser reloads into `Failed to load url ...apiuikit.es.js. Does
 the file exist?` and shows a blank screen until you reload manually. (This was
 the original behavior; the symptoms are exactly those "Pre-transform error"
 lines from the `[1]` process.)
@@ -44,7 +44,7 @@ ordering:
    - `server.watch.ignored: ['**/packages/aui/dist/**']` makes the dev server
      blind to `dist/` churn. No file event from a rebuild-in-progress can
      trigger a reload anymore.
-   - The inline `auiRebuildReload` plugin polls the marker with
+   - The inline `apiuikitRebuildReload` plugin polls the marker with
      `fs.watchFile` (`fs.watchFile` is used instead of `fs.watch`/chokidar
      because it tolerates the file not existing yet on first startup and
      coalesces each touch into one event). When the marker's mtime changes it
