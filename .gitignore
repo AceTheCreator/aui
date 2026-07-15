@@ -15,6 +15,10 @@ dist-ssr
 storybook-static
 .build-complete
 
+# Copied from the repo root README.md by packages/lib's prepublishOnly script
+# so the published npm package page isn't empty — not hand-maintained here.
+packages/lib/README.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -27,11 +27,11 @@ The simplest way to use the parser entry. Pass a raw string and the component ha
 ### TypeScript
 
 ```tsx
-import { AsyncApiViewer } from "apiuikit";
+import { AsyncAPIRenderer } from "apiuikit";
 
 export default function App() {
   return (
-    <AsyncApiViewer
+    <AsyncAPIRenderer
       raw={rawYaml}
       onDiagnostics={(diagnostics) => console.log(diagnostics)}
     />
@@ -42,10 +42,10 @@ export default function App() {
 ### JavaScript
 
 ```jsx
-import { AsyncApiViewer } from "apiuikit";
+import { AsyncAPIRenderer } from "apiuikit";
 
 export default function App() {
-  return <AsyncApiViewer raw={rawYaml} />;
+  return <AsyncAPIRenderer raw={rawYaml} />;
 }
 ```
 
@@ -109,6 +109,6 @@ Avro payloads (`schemaFormat: application/vnd.apache.avro…`) and Protobuf payl
 If `@asyncapi/parser` is not installed, `parseAndRender` (and by extension `AsyncAPIRenderer`) throws a readable error at call time:
 
 ```
-[aui] The parsed entry requires '@asyncapi/parser'.
-Install it (`npm i @asyncapi/parser`), or use 'apiuikit' with a pre-resolved document.
+[apiuikit] The parsed entry requires '@asyncapi/parser'.
+Install it (`npm i @asyncapi/parser`), or use the `AsyncAPI` component with a pre-resolved document instead.
 ```

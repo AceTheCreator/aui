@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AceTheCreator/aui.git"
+    "url": "https://github.com/AceTheCreator/apiuikit"
   },
   "type": "module",
   "main": "./dist/apiuikit.cjs.js",
@@ -27,7 +27,7 @@
     "dev": "vite",
     "build": "vite build",
     "watch": "vite build --watch",
-    "prepublishOnly": "vite build",
+    "prepublishOnly": "cp ../../README.md ./README.md && vite build",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:strict": "tsc -b",
     "test": "vitest run",
