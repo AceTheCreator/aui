@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import SchemaTabs from "../SchemaTab";
 import { AsyncAPIDocumentContext } from "../../../contexts";
+import { DEFAULT_DEPTH_COLORS } from "../depthColors";
 
 /** SchemaTree (the Schema tab body) reads deref/expand state from the document context. */
 function Providers({ children }: { children: ReactNode }) {
@@ -14,6 +15,7 @@ function Providers({ children }: { children: ReactNode }) {
         portalHost: null,
         rootElement: null,
         defaultSchemaExpanded: true,
+        depthColors: DEFAULT_DEPTH_COLORS,
       }}
     >
       {children}
@@ -54,6 +56,18 @@ describe("SchemaTabs", () => {
     );
     expect(screen.getByText("name")).toBeInTheDocument();
     expect(document.querySelector("pre")).not.toBeInTheDocument();
+  });
+
+  it("colors the first visible schema row with the first depth color, not the second", () => {
+    // SchemaTab always renders the tree with `rootName` set, which suppresses the
+    // root row — its children (like "name" here) are the first thing a user sees,
+    // and must start at depth 0, not depth 1.
+    renderTabs({ schema: jsonSchema, label: "Payload" });
+    fireEvent.click(screen.getByRole("tab", { name: "Schema" }));
+
+    expect(screen.getByText("name")).toHaveStyle({
+      color: DEFAULT_DEPTH_COLORS[0],
+    });
   });
 
   it("offers Schema, JSON, and Example tabs for plain JSON Schema", () => {

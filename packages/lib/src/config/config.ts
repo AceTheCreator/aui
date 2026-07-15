@@ -67,4 +67,11 @@ export interface ThemeConfig {
   light?: ThemeModeColors;
   /** Applied when a dark theme is configured. Wins over `light` if both are set. */
   dark?: ThemeModeColors;
+  /**
+   * Colors for the schema tree's depth-indicator lines (and matching label
+   * text), cycled by nesting depth. Accepts any number of hex colors — if
+   * nesting goes deeper than the array provided, the palette repeats from
+   * the start. Defaults to the built-in palette if omitted or empty.
+   */
+  depthColors?: string[];
 }

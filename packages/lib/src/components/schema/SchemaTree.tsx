@@ -107,7 +107,10 @@ export default function SchemaTree({
       <SchemaNode
         schema={node}
         path={initialPath}
-        depth={0}
+        // When the root row is suppressed, its children are the first thing a user
+        // actually sees — start them at depth 0 (not 1) so the depth palette's first
+        // color applies to the first visible nesting level, not the invisible root.
+        depth={suppressRootRow ? -1 : 0}
         refStack={refStack}
         deref={deref}
         suppressRow={suppressRootRow}

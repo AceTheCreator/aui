@@ -11,6 +11,8 @@ interface AsyncAPIContextValue {
   rootElement: HTMLElement | null;
   /** Whether schema tree nodes start expanded by default. Defaults to false. */
   defaultSchemaExpanded?: boolean;
+  /** Resolved schema tree depth-line colors (config-provided or default), cycled by nesting depth. */
+  depthColors: string[];
 }
 
 export const AsyncAPIDocumentContext =

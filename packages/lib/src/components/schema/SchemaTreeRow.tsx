@@ -1,5 +1,6 @@
 import { SchemaNodeData } from "../../types/schema";
-import { getDepthColors } from "./depthColors";
+import { getDepthColor } from "./depthColors";
+import { useAsyncAPIDocument } from "../../contexts";
 import ExpandToggle from "./ExpandToggle";
 import SchemaConstraints from "./SchemaConstraints";
 import { hasConstraints } from "./schemaUtils";
@@ -40,7 +41,8 @@ export default function SchemaTreeRow({
   onToggle,
   showBorder = true,
 }: SchemaTreeRowProps) {
-  const colors = getDepthColors(depth);
+  const { depthColors } = useAsyncAPIDocument();
+  const color = getDepthColor(depth, depthColors);
   const showRef = schema && shouldShowRefFootnote(schema, refLabel);
   // Indent only when the row is expandable — leaf rows have no tree line to align with.
   const contentIndent = expandable ? CONTENT_INDENT : "";
@@ -79,7 +81,7 @@ export default function SchemaTreeRow({
         <span className="text-xs font-mono flex-1 min-w-0 flex items-center">
           <span className="truncate min-w-0">
             {prefix && <span className="text-gray-400">{prefix}</span>}
-            <span className={`font-semibold ${colors.text}`}>{name}</span>
+            <span className="font-semibold" style={{ color }}>{name}</span>
           </span>
           {required && (
             <span className="shrink-0 text-red-500 ml-2 text-[10px]">required</span>
