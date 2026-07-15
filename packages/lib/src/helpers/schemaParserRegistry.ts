@@ -1,5 +1,5 @@
 /**
- * Shared registration plumbing for aui's built-in @asyncapi/parser schema
+ * Shared registration plumbing for the lib's built-in @asyncapi/parser schema
  * parser plugins (Avro, Protobuf). All @asyncapi/parser imports are type-only,
  * so this module adds no runtime dependency on the parser.
  */

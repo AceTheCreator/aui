@@ -22,7 +22,7 @@ async function loadParser() {
     console.error("[apiuikit] Failed to load '@asyncapi/parser/browser':", err);
     throw new Error(
       "[apiuikit] The parsed entry requires '@asyncapi/parser'. " +
-        "Install it (`npm i @asyncapi/parser`), or use 'apiuikit' with a pre-resolved document.",
+        "Install it (`npm i @asyncapi/parser`), or use the `AsyncAPI` component with a pre-resolved document instead.",
     );
   }
 }

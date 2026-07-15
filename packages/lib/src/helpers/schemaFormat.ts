@@ -14,7 +14,7 @@ import { protoToJsonSchema } from "./protobuf";
 
 export const X_PARSER_ORIGINAL_PAYLOAD = "x-parser-original-payload";
 /** Marker set by the with-parser fail-soft path when conversion throws. */
-export const X_APIUIKIT_CONVERSION_ERROR = "x-apiuikit-conversion-error";
+export const X_LIB_CONVERSION_ERROR = "x-lib-conversion-error";
 
 /** The MIME strings @asyncapi/avro-schema-parser registers, which parser-js
  * matches exactly, plus version-less variants accepted in without-parser mode. */
@@ -94,7 +94,7 @@ export function schemaFormatName(format: unknown): string | null {
 }
 
 /** Whether the Example tab can safely generate samples via json-schema-faker.
- * Formats aui converts (Avro, Protobuf) qualify; other non-JSON-Schema
+ * Formats the lib converts (Avro, Protobuf) qualify; other non-JSON-Schema
  * multi-format bodies (RAML, …) are excluded. */
 export function supportsGeneratedExamples(
   schemaFormat?: string,
@@ -201,7 +201,7 @@ function unwrapSchemaInput(input: unknown): ResolvedSchemaInput {
   const original = input[X_PARSER_ORIGINAL_PAYLOAD];
 
   // The with-parser fail-soft marker: conversion already failed during parse.
-  const parseError = asSchemaNode(inner)?.[X_APIUIKIT_CONVERSION_ERROR];
+  const parseError = asSchemaNode(inner)?.[X_LIB_CONVERSION_ERROR];
   if (typeof parseError === "string") {
     return {
       schema: asSchemaNode(original) ?? {},

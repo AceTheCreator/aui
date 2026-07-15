@@ -7,7 +7,7 @@
  * Ported from @asyncapi/protobuf-schema-parser
  * (https://github.com/asyncapi/protobuf-schema-parser), Copyright the
  * AsyncAPI Initiative, licensed under Apache-2.0 — see THIRD_PARTY_NOTICES.md.
- * Divergence from upstream: typed against aui's SchemaNodeData instead of
+ * Divergence from upstream: typed against the lib's SchemaNodeData instead of
  * @asyncapi/parser's AsyncAPISchemaDefinition.
  */
 import type { SchemaNodeData } from "../../types/schema";

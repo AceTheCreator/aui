@@ -74,7 +74,7 @@ describe("AsyncAPI", () => {
     ).toBeInTheDocument();
 
     // The message payload is a raw Avro record inside a { schemaFormat,
-    // schema } wrapper — no parser ran, so aui converts it when rendering.
+    // schema } wrapper — no parser ran, so the lib converts it when rendering.
     fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
     const messagesPanel = within(document.getElementById("panel-messages")!);
     fireEvent.click(messagesPanel.getByRole("button", { name: /show more/i }));

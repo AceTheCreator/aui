@@ -2,12 +2,12 @@
 
 `npm run playground` (repo root) runs two processes with `concurrently`:
 
-- `[0]` `vite build --watch` in `packages/aui` — rebuilds the library into `packages/aui/dist/` on every source change
+- `[0]` `vite build --watch` in `packages/lib` — rebuilds the library into `packages/lib/dist/` on every source change
 - `[1]` `vite` dev server in `packages/playground` — serves the playground app
 
 The playground imports `apiuikit` through the npm workspace symlink
-(`node_modules/apiuikit -> packages/aui`), so Vite serves the **built files** in
-`packages/aui/dist/` directly (you'll see them as `/@fs/...` URLs). That is
+(`node_modules/apiuikit -> packages/lib`), so Vite serves the **built files** in
+`packages/lib/dist/` directly (you'll see them as `/@fs/...` URLs). That is
 intentional: the playground exercises the same artifact that gets published to
 npm, not the raw source.
 
@@ -27,8 +27,8 @@ lines from the `[1]` process.)
 Two small pieces, loosely coupled through one marker file, deterministic in
 ordering:
 
-1. **`packages/aui/vite.config.ts`** — the inline `buildCompleteMarker` plugin
-   writes a timestamp to **`packages/aui/.build-complete`** in its
+1. **`packages/lib/vite.config.ts`** — the inline `buildCompleteMarker` plugin
+   writes a timestamp to **`packages/lib/.build-complete`** in its
    `closeBundle` hook. In watch mode Vite closes the bundle after every rebuild
    (`BUNDLE_END`), and `closeBundle` runs only after **all** outputs (both the
    `es` and `cjs` files and their chunks) are fully written. So "the marker's
@@ -38,13 +38,13 @@ ordering:
    is deleted by `emptyOutDir` at the *start* of the next rebuild, which would
    turn the marker itself into a mid-build signal. It is gitignored
    (`.build-complete` in the root `.gitignore`) and never published
-   (`files: ["dist"]` in `packages/aui/package.json`).
+   (`files: ["dist"]` in `packages/lib/package.json`).
 
 2. **`packages/playground/vite.config.ts`** — two changes:
-   - `server.watch.ignored: ['**/packages/aui/dist/**']` makes the dev server
+   - `server.watch.ignored: ['**/packages/lib/dist/**']` makes the dev server
      blind to `dist/` churn. No file event from a rebuild-in-progress can
      trigger a reload anymore.
-   - The inline `apiuikitRebuildReload` plugin polls the marker with
+   - The inline `libRebuildReload` plugin polls the marker with
      `fs.watchFile` (`fs.watchFile` is used instead of `fs.watch`/chokidar
      because it tolerates the file not existing yet on first startup and
      coalesces each touch into one event). When the marker's mtime changes it
@@ -55,7 +55,7 @@ ordering:
 The resulting flow on every library edit:
 
 ```
-save packages/aui/src/**        (playground untouched, page keeps working)
+save packages/lib/src/**        (playground untouched, page keeps working)
   └─ [0] build started...       dist/ emptied + rewritten (~4s)
        └─ closeBundle           .build-complete touched
             └─ [1] marker seen  invalidateAll + single full-reload
@@ -76,10 +76,10 @@ save packages/aui/src/**        (playground untouched, page keeps working)
 - **Manually reloading the tab mid-build can still show the error page** — the
   files genuinely don't exist at that moment. Wait for the build to finish (or
   the automatic reload).
-- **If you rename/move `packages/aui/dist` or the marker file**, update both
-  vite configs together: the `ignored` glob and `auiMarker` path in
+- **If you rename/move `packages/lib/dist` or the marker file**, update both
+  vite configs together: the `ignored` glob and `libMarker` path in
   `packages/playground/vite.config.ts`, and the marker path in
-  `packages/aui/vite.config.ts`. Nothing else ties them together.
+  `packages/lib/vite.config.ts`. Nothing else ties them together.
 - **`vitest`/`storybook` are unaffected**: the marker plugin only runs during
   `vite build`, and writing the marker outside watch mode (e.g. a one-off
   `npm run build:lib`) is harmless — the playground reloads once, with a

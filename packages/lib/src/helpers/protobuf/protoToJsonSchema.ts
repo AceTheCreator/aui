@@ -21,7 +21,7 @@
  * callers (resolveSchemaInput / the parser plugin) fail soft.
  *
  * Divergences from upstream: renamed from proto2jsonSchema, typed against
- * aui's SchemaNodeData instead of @asyncapi/parser's spec types,
+ * the lib's SchemaNodeData instead of @asyncapi/parser's spec types,
  * `any`-casts replaced with narrow typed casts, and corrected reversed
  * `Path.resolve(origin, include)` args when reporting unresolved imports.
  */

@@ -1,5 +1,5 @@
 /**
- * aui's browser-safe Protobuf schema parser plugin for @asyncapi/parser. It
+ * The lib's browser-safe Protobuf schema parser plugin for @asyncapi/parser. It
  * replaces the optional @asyncapi/protobuf-schema-parser (which declares
  * @asyncapi/parser as a hard runtime dependency and doesn't export its bare
  * converter), so protobuf documents parse identically in the browser and in
@@ -25,7 +25,7 @@ import type {
 } from "@asyncapi/parser";
 import { protoToJsonSchema } from "./protoToJsonSchema";
 import { validateProtobufStructure } from "./validateProtobufStructure";
-import { isProtobufSchemaFormat, X_AUI_CONVERSION_ERROR } from "../schemaFormat";
+import { isProtobufSchemaFormat, X_LIB_CONVERSION_ERROR } from "../schemaFormat";
 import {
   registerSchemaParserWithFallback,
   type SchemaParserHost,
@@ -74,7 +74,7 @@ function validate(input: ValidateSchemaInput<unknown, unknown>) {
 function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
   if (typeof input.data !== "string") {
     return {
-      [X_AUI_CONVERSION_ERROR]:
+      [X_LIB_CONVERSION_ERROR]:
         "Protobuf schema must be a string of .proto source",
     };
   }
@@ -88,7 +88,7 @@ function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
     // the whole document. Return a marker so rendering fails soft for this
     // schema only (resolveSchemaInput picks it up).
     return {
-      [X_AUI_CONVERSION_ERROR]:
+      [X_LIB_CONVERSION_ERROR]:
         err instanceof Error ? err.message : "Failed to convert Protobuf schema",
     };
   }

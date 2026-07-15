@@ -52,7 +52,7 @@ describe("isProtobufSchemaFormat", () => {
 });
 
 describe("schemaFormatName", () => {
-  it("names the formats aui converts, null otherwise", () => {
+  it("names the formats the lib converts, null otherwise", () => {
     expect(schemaFormatName(AVRO_FORMAT)).toBe("Avro");
     expect(schemaFormatName(PROTOBUF_FORMAT)).toBe("Protobuf");
     expect(schemaFormatName(RAML_FORMAT)).toBeNull();
@@ -252,7 +252,7 @@ describe("resolveSchemaInput", () => {
   it("surfaces the with-parser conversion-error marker", () => {
     const result = resolveSchemaInput({
       schemaFormat: AVRO_FORMAT,
-      schema: { "x-apiuikit-conversion-error": "boom" },
+      schema: { "x-lib-conversion-error": "boom" },
       "x-parser-original-payload": rawAvroRecord,
     });
 

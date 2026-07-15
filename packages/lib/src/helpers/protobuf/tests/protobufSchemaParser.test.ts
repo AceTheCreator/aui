@@ -4,7 +4,7 @@ import {
   ProtobufSchemaParser,
   registerProtobufSchemaParser,
 } from "../protobufSchemaParser";
-import { X_AUI_CONVERSION_ERROR } from "../../schemaFormat";
+import { X_LIB_CONVERSION_ERROR } from "../../schemaFormat";
 import type { SchemaParserHost } from "../../schemaParserRegistry";
 
 const parseInput = (data: unknown) =>
@@ -30,13 +30,13 @@ describe("ProtobufSchemaParser", () => {
     const broken = (await parser.parse(
       parseInput("message Broken {"),
     )) as Record<string, unknown>;
-    expect(typeof broken[X_AUI_CONVERSION_ERROR]).toBe("string");
+    expect(typeof broken[X_LIB_CONVERSION_ERROR]).toBe("string");
 
     const nonString = (await parser.parse(parseInput({}))) as Record<
       string,
       unknown
     >;
-    expect(nonString[X_AUI_CONVERSION_ERROR]).toBe(
+    expect(nonString[X_LIB_CONVERSION_ERROR]).toBe(
       "Protobuf schema must be a string of .proto source",
     );
   });

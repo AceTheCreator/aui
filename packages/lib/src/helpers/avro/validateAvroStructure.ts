@@ -3,7 +3,7 @@
  *
  * Replaces the `avsc.Type.forSchema` validation used by
  * @asyncapi/avro-schema-parser — `avsc` depends on Node's Buffer, which is
- * why aui previously could not support Avro in the browser. This validator
+ * why the lib previously could not support Avro in the browser. This validator
  * only checks the structure needed for a safe conversion; it is not a full
  * Avro spec validator.
  */

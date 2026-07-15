@@ -8,7 +8,7 @@
  * Ported from @asyncapi/protobuf-schema-parser
  * (https://github.com/asyncapi/protobuf-schema-parser), Copyright the
  * AsyncAPI Initiative, licensed under Apache-2.0 — see THIRD_PARTY_NOTICES.md.
- * Divergences from upstream: typed against aui's SchemaNodeData, and the
+ * Divergences from upstream: typed against the lib's SchemaNodeData, and the
  * loose `any` maps replaced with `unknown` + boundary casts (behavior
  * unchanged — the option values come from protobufjs's parsed options and
  * were never validated upstream either).

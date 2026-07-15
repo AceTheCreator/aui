@@ -2,7 +2,7 @@ name: Release
 
 # Changesets-driven release: on every push to master, changesets/action either
 # opens/updates a "Version Packages" PR (when changeset files are pending) or,
-# once that PR is merged, publishes packages/aui to npm via `npm run release`.
+# once that PR is merged, publishes packages/lib to npm via `npm run release`.
 on:
   push:
     branches: [master]

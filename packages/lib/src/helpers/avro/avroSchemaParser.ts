@@ -1,5 +1,5 @@
 /**
- * aui's browser-safe Avro schema parser plugin for @asyncapi/parser. It
+ * The lib's browser-safe Avro schema parser plugin for @asyncapi/parser. It
  * replaces the optional @asyncapi/avro-schema-parser (whose avsc dependency
  * needs Node's Buffer), so Avro documents parse identically in the browser
  * and in Node. Mirrors the upstream package's factory shape:
@@ -23,7 +23,7 @@ import { validateAvroStructure } from "./validateAvroStructure";
 import type { AvroSchema } from "./types";
 import {
   isAvroSchemaFormat,
-  X_APIUIKIT_CONVERSION_ERROR,
+  X_LIB_CONVERSION_ERROR,
 } from "../schemaFormat";
 import {
   registerSchemaParserWithFallback,
@@ -80,7 +80,7 @@ function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
   // the v2 ruleset, so v3 would otherwise convert malformed Avro silently.
   const problems = validateAvroStructure(input.data);
   if (problems.length > 0) {
-    return { [X_APIUIKIT_CONVERSION_ERROR]: problems[0]! };
+    return { [X_LIB_CONVERSION_ERROR]: problems[0]! };
   }
 
   try {
@@ -103,7 +103,7 @@ function parse(input: ParseSchemaInput<unknown, unknown>): AsyncAPISchema {
     // the whole document. Return a marker so rendering fails soft for this
     // schema only (resolveSchemaInput picks it up).
     return {
-      [X_APIUIKIT_CONVERSION_ERROR]:
+      [X_LIB_CONVERSION_ERROR]:
         err instanceof Error ? err.message : "Failed to convert Avro schema",
     };
   }

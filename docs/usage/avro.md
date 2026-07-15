@@ -71,7 +71,7 @@ Both paths share the pure converter in `helpers/avro` (`avroToJsonSchema`, `vali
 2. If the format is Avro and the inner value is still Avro-shaped, convert (or reuse a prior conversion).
 3. Surface `originalSchema` for the JSON tab and any `conversionError` for fail-soft UI.
 
-The with-parser fail-soft path may set `x-apiuikit-conversion-error` when conversion throws during parse; the renderer picks that marker up the same way.
+The with-parser fail-soft path may set `x-lib-conversion-error` when conversion throws during parse; the renderer picks that marker up the same way.
 
 ### Why not `@asyncapi/avro-schema-parser`?
 
