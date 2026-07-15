@@ -1,4 +1,5 @@
 import avroStreetlightExample from '../examples/avro-streetlight.json'
+import protobufStreetlightExample from '../examples/protobuf-streetlight.json'
 import tortureExample from '../examples/torture.json'
 
 const RAW_URLS = [
@@ -45,6 +46,11 @@ export const SUGGESTED_SCHEMAS: SuggestedSchema[] = [
     label: 'Streetlights Avro',
     url: 'local://avro-streetlight.json',
     content: JSON.stringify(avroStreetlightExample, null, 2),
+  },
+  {
+    label: 'Streetlights Protobuf',
+    url: 'local://protobuf-streetlight.json',
+    content: JSON.stringify(protobufStreetlightExample, null, 2),
   },
   {
     label: 'Unrealistic Torture Test',

@@ -130,11 +130,59 @@ describe("SchemaTabs", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides the Example tab for non-JSON-Schema formats like protobuf", () => {
+  it("offers the Example tab and a short badge for protobuf", () => {
+    renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      schemaFormat: "application/vnd.google.protobuf;version=3",
+      originalSchema: 'syntax = "proto3"; message User { string name = 1; }',
+    });
+
+    expect(screen.getByRole("tab", { name: "Example" })).toBeInTheDocument();
+    const badge = screen.getByText("protobuf 3");
+    expect(badge).toHaveAttribute(
+      "title",
+      "application/vnd.google.protobuf;version=3",
+    );
+  });
+
+  it("shows raw .proto source unescaped on the JSON tab", () => {
+    const proto = 'syntax = "proto3";\nmessage User { string name = 1; }';
+    renderTabs({
+      schema: jsonSchema,
+      label: "Payload",
+      schemaFormat: "application/vnd.google.protobuf;version=3",
+      originalSchema: proto,
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "JSON" }));
+
+    // The string body renders as-is, not JSON.stringify'd onto one line.
+    expect(document.querySelector("pre")?.textContent).toBe(proto);
+  });
+
+  it("names Protobuf in the conversion-error banner", () => {
     renderTabs({
       schema: {},
       label: "Payload",
       schemaFormat: "application/vnd.google.protobuf;version=3",
+      originalSchema: "message Broken {",
+      conversionError: "illegal token",
+    });
+
+    expect(
+      screen.getByText(/Could not convert Protobuf schema/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Example" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the Example tab for unconverted formats like RAML", () => {
+    renderTabs({
+      schema: {},
+      label: "Payload",
+      schemaFormat: "application/raml+yaml;version=1.0",
     });
 
     expect(
@@ -142,7 +190,7 @@ describe("SchemaTabs", () => {
     ).not.toBeInTheDocument();
     // Unknown formats surface verbatim as the badge.
     expect(
-      screen.getByText("application/vnd.google.protobuf;version=3"),
+      screen.getByText("application/raml+yaml;version=1.0"),
     ).toBeInTheDocument();
   });
 

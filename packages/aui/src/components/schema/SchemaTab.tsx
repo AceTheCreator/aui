@@ -5,6 +5,7 @@ import TabToggle from "../TabToggle";
 import { Examples } from "../Examples";
 import {
   schemaFormatBadge,
+  schemaFormatName,
   supportsGeneratedExamples,
 } from "../../helpers/schemaFormat";
 
@@ -71,8 +72,8 @@ function SchemaTabs({
       </div>
       {conversionError && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mb-2">
-          Could not convert Avro schema — showing raw definition.{" "}
-          {conversionError}
+          Could not convert {schemaFormatName(schemaFormat) ?? "the"} schema —
+          showing raw definition. {conversionError}
         </p>
       )}
       {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}

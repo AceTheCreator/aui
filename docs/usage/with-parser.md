@@ -102,7 +102,7 @@ export default function App() {
 
 ## Multi-format schemas
 
-Avro payloads (`schemaFormat: application/vnd.apache.avro…`) are supported out of the box — no extra install. See [Avro schemas](./avro.md) for more details.
+Avro payloads (`schemaFormat: application/vnd.apache.avro…`) and Protobuf payloads (`schemaFormat: application/vnd.google.protobuf…`) are supported out of the box — no extra install. See [Avro schemas](./avro.md) and [Protobuf schemas](./protobuf.md) for more details.
 
 ## Error handling
 

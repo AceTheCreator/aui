@@ -3,6 +3,7 @@ import { AsyncAPIDocumentData } from "../types/schema";
 import type { ConfigInterface } from "../config/config";
 import type { AsyncAPIDocumentInterface } from "@asyncapi/parser";
 import { registerAvroSchemaParser } from "./avro/avroSchemaParser";
+import { registerProtobufSchemaParser } from "./protobuf/protobufSchemaParser";
 
 async function loadParser() {
   try {
@@ -33,8 +34,10 @@ export async function parseDocument(raw: string): Promise<{
   const Parser = await loadParser();
   const parser = new Parser();
 
-  // Built-in Avro plugin: exact MIME list plus any-version registry fallback.
+  // Built-in Avro and Protobuf plugins: exact MIME lists plus any-version
+  // registry fallbacks.
   registerAvroSchemaParser(parser);
+  registerProtobufSchemaParser(parser);
 
   try {
     const { document, diagnostics } = await parser.parse(raw);
