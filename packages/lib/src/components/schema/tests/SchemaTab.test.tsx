@@ -39,7 +39,7 @@ const rawAvro = {
 };
 
 describe("SchemaTabs", () => {
-  it("renders the label, description, and schema tree by default", () => {
+  it("renders the label, description, and example tab by default", () => {
     renderTabs({
       schema: jsonSchema,
       label: "Payload",
@@ -49,11 +49,14 @@ describe("SchemaTabs", () => {
     expect(screen.getByText("Payload")).toBeInTheDocument();
     expect(screen.getByText("A user payload")).toBeInTheDocument();
 
-    // Schema tab is preselected and shows the tree, not raw JSON.
-    expect(screen.getByRole("tab", { name: "Schema" })).toHaveAttribute(
+    // Example tab is preselected when examples are supported.
+    expect(screen.getByRole("tab", { name: "Example" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
+
+    // Switching to Schema shows the tree, not raw JSON.
+    fireEvent.click(screen.getByRole("tab", { name: "Schema" }));
     expect(screen.getByText("name")).toBeInTheDocument();
     expect(document.querySelector("pre")).not.toBeInTheDocument();
   });
@@ -70,12 +73,12 @@ describe("SchemaTabs", () => {
     });
   });
 
-  it("offers Schema, JSON, and Example tabs for plain JSON Schema", () => {
+  it("offers Example, Schema, and JSON tabs for plain JSON Schema", () => {
     renderTabs({ schema: jsonSchema, label: "Payload" });
 
     expect(
       screen.getAllByRole("tab").map((tab) => tab.textContent),
-    ).toEqual(["Schema", "JSON", "Example"]);
+    ).toEqual(["Example", "Schema", "JSON"]);
   });
 
   it("shows the raw source on the JSON tab when an originalSchema exists", () => {

@@ -1,11 +1,11 @@
 {
   "name": "apiuikit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A React UI library for rendering your API specifications",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AceTheCreator/aui.git"
+    "url": "https://github.com/AceTheCreator/apiuikit"
   },
   "type": "module",
   "main": "./dist/apiuikit.cjs.js",
@@ -27,7 +27,7 @@
     "dev": "vite",
     "build": "vite build",
     "watch": "vite build --watch",
-    "prepublishOnly": "vite build",
+    "prepublishOnly": "cp ../../README.md ./README.md && vite build",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:strict": "tsc -b",
     "test": "vitest run",
