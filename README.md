@@ -16,7 +16,7 @@ If you want to hand it a raw YAML/JSON string instead of a pre-parsed object, al
 npm install @asyncapi/parser
 ```
 
-## Usage
+## Usage in React
 
 The quickest path to use the kit for AsyncAPI is to pass a pre-resolved AsyncAPI document object (e.g. imported from a JSON file, or fetched from your own backend):
 

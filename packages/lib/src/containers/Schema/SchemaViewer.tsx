@@ -27,7 +27,13 @@ function stripParserExtensions(value: unknown): unknown {
 }
 
 export const SchemaViewer: React.FC<SchemaViewerProps> = ({ schema }) => {
-  const json = JSON.stringify(stripParserExtensions(schema), null, 2);
+  // Raw source bodies (e.g. .proto text) render as-is; only object/array
+  // schemas get JSON.stringify'd — stringifying an already-raw string would
+  // double-encode it (escaped quotes, literal \n).
+  const code =
+    typeof schema === 'string'
+      ? schema
+      : JSON.stringify(stripParserExtensions(schema), null, 2);
 
-  return <CodeBlock code={json} />;
+  return <CodeBlock code={code} />;
 };

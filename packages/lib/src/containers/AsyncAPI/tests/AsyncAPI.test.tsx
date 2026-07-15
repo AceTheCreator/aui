@@ -78,8 +78,13 @@ describe("AsyncAPI", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
     const messagesPanel = within(document.getElementById("panel-messages")!);
     fireEvent.click(messagesPanel.getByRole("button", { name: /show more/i }));
-    expect(messagesPanel.getByText("streetlightId")).toBeInTheDocument();
     expect(messagesPanel.getByText("avro 1.9.0")).toBeInTheDocument();
+
+    // Example is the default schema tab, but its generated sample renders
+    // asynchronously (json-schema-faker); switch to Schema for the converted
+    // tree, which renders synchronously.
+    fireEvent.click(messagesPanel.getByRole("tab", { name: "Schema" }));
+    expect(messagesPanel.getByText("streetlightId")).toBeInTheDocument();
 
     // components.schemas entries in wrappers convert too.
     fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
