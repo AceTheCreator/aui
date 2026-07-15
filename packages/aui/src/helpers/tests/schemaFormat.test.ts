@@ -2,13 +2,25 @@ import { describe, expect, it } from "vitest";
 import {
   isAvroSchemaFormat,
   isMultiFormatSchema,
+  isProtobufSchemaFormat,
   looksLikeRawAvro,
   resolveSchemaInput,
   schemaFormatBadge,
+  schemaFormatName,
   supportsGeneratedExamples,
 } from "../schemaFormat";
 
 const AVRO_FORMAT = "application/vnd.apache.avro;version=1.9.0";
+const PROTOBUF_FORMAT = "application/vnd.google.protobuf;version=3";
+const RAML_FORMAT = "application/raml+yaml;version=1.0";
+
+const rawProtoSource = `
+syntax = "proto3";
+message Point {
+  int32 lat = 1;
+  int32 lon = 2;
+}
+`;
 
 const rawAvroRecord = {
   type: "record",
@@ -29,10 +41,34 @@ describe("isAvroSchemaFormat", () => {
   });
 });
 
+describe("isProtobufSchemaFormat", () => {
+  it("matches versioned and version-less protobuf MIME types", () => {
+    expect(isProtobufSchemaFormat("application/vnd.google.protobuf")).toBe(true);
+    expect(isProtobufSchemaFormat("application/vnd.google.protobuf;version=2")).toBe(true);
+    expect(isProtobufSchemaFormat(PROTOBUF_FORMAT)).toBe(true);
+    expect(isProtobufSchemaFormat("application/vnd.apache.avro")).toBe(false);
+    expect(isProtobufSchemaFormat(undefined)).toBe(false);
+  });
+});
+
+describe("schemaFormatName", () => {
+  it("names the formats aui converts, null otherwise", () => {
+    expect(schemaFormatName(AVRO_FORMAT)).toBe("Avro");
+    expect(schemaFormatName(PROTOBUF_FORMAT)).toBe("Protobuf");
+    expect(schemaFormatName(RAML_FORMAT)).toBeNull();
+    expect(schemaFormatName(undefined)).toBeNull();
+  });
+});
+
 describe("schemaFormatBadge", () => {
   it("shortens Avro MIME types", () => {
     expect(schemaFormatBadge(AVRO_FORMAT)).toBe("avro 1.9.0");
     expect(schemaFormatBadge("application/vnd.apache.avro")).toBe("avro");
+  });
+
+  it("shortens protobuf MIME types", () => {
+    expect(schemaFormatBadge(PROTOBUF_FORMAT)).toBe("protobuf 3");
+    expect(schemaFormatBadge("application/vnd.google.protobuf")).toBe("protobuf");
   });
 
   it("hides default AsyncAPI and JSON Schema formats", () => {
@@ -114,16 +150,71 @@ describe("resolveSchemaInput", () => {
     expect(result.conversionError).toContain("fields");
   });
 
-  it("preserves string-bodied non-Avro schemas for the JSON tab", () => {
-    const proto = 'syntax = "proto3"; message Foo {}';
+  it("converts a multi-format wrapper holding raw protobuf source", () => {
     const result = resolveSchemaInput({
-      schemaFormat: "application/vnd.google.protobuf;version=3",
-      schema: proto,
+      schemaFormat: PROTOBUF_FORMAT,
+      schema: rawProtoSource,
+    });
+
+    expect(result.schemaFormat).toBe(PROTOBUF_FORMAT);
+    expect(result.originalSchema).toBe(rawProtoSource);
+    expect(result.conversionError).toBeUndefined();
+    expect(result.schema.type).toBe("object");
+    expect(Object.keys(result.schema.properties ?? {})).toEqual(["lat", "lon"]);
+    expect(result.schema.required).toEqual(["lat", "lon"]);
+  });
+
+  it("fails soft on invalid protobuf source without throwing", () => {
+    const broken = "message Broken {"; // unterminated block
+    const result = resolveSchemaInput({
+      schemaFormat: PROTOBUF_FORMAT,
+      schema: broken,
     });
 
     expect(result.schema).toEqual({});
-    expect(result.originalSchema).toBe(proto);
-    expect(result.schemaFormat).toBe("application/vnd.google.protobuf;version=3");
+    expect(result.originalSchema).toBe(broken);
+    expect(result.conversionError).toBeTruthy();
+  });
+
+  it("passes through a protobuf wrapper already converted by @asyncapi/parser", () => {
+    const converted = { type: "object", properties: { lat: { type: "integer" } } };
+    const result = resolveSchemaInput({
+      schemaFormat: PROTOBUF_FORMAT,
+      schema: converted,
+      "x-parser-original-payload": rawProtoSource,
+    });
+
+    expect(result.schema).toBe(converted);
+    expect(result.originalSchema).toBe(rawProtoSource);
+    expect(result.conversionError).toBeUndefined();
+  });
+
+  it("resolves a top-level $ref before converting multi-format protobuf", () => {
+    const components: Record<string, unknown> = {
+      pointPayload: { schemaFormat: PROTOBUF_FORMAT, schema: rawProtoSource },
+    };
+    const deref = (ref: string) => components[ref.split("/").pop()!];
+
+    const result = resolveSchemaInput(
+      { $ref: "#/components/schemas/pointPayload" },
+      deref,
+    );
+
+    expect(result.schemaFormat).toBe(PROTOBUF_FORMAT);
+    expect(Object.keys(result.schema.properties ?? {})).toEqual(["lat", "lon"]);
+  });
+
+  it("preserves string-bodied unconverted formats (RAML) for the JSON tab", () => {
+    const raml = "#%RAML 1.0 DataType\ntype: object";
+    const result = resolveSchemaInput({
+      schemaFormat: RAML_FORMAT,
+      schema: raml,
+    });
+
+    expect(result.schema).toEqual({});
+    expect(result.originalSchema).toBe(raml);
+    expect(result.schemaFormat).toBe(RAML_FORMAT);
+    expect(result.conversionError).toBeUndefined();
   });
 
   it("preserves invalid Avro string bodies alongside conversionError", () => {
@@ -214,11 +305,12 @@ describe("isMultiFormatSchema", () => {
 });
 
 describe("supportsGeneratedExamples", () => {
-  it("allows default JSON Schema and Avro, hides other multi-formats", () => {
+  it("allows default JSON Schema, Avro, and Protobuf; hides other multi-formats", () => {
     expect(supportsGeneratedExamples(undefined)).toBe(true);
     expect(supportsGeneratedExamples(AVRO_FORMAT)).toBe(true);
+    expect(supportsGeneratedExamples(PROTOBUF_FORMAT)).toBe(true);
     expect(supportsGeneratedExamples("application/schema+json;version=draft-07")).toBe(true);
-    expect(supportsGeneratedExamples("application/vnd.google.protobuf;version=3")).toBe(false);
+    expect(supportsGeneratedExamples(RAML_FORMAT)).toBe(false);
   });
 
   it("hides examples when conversion failed", () => {

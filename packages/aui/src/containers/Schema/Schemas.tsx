@@ -5,8 +5,10 @@ import { SchemaNodeData } from "../../types/schema";
 import {
   resolveSchemaInput,
   schemaFormatBadge,
+  schemaFormatName,
   ResolvedSchemaInput,
 } from "../../helpers/schemaFormat";
+import { SchemaViewer } from "./SchemaViewer";
 import { useAsyncAPIDocument } from "../../contexts";
 
 interface SchemasProps {
@@ -86,11 +88,21 @@ export default function Schemas({ schemas, selectedKey }: SchemasProps) {
             )}
             {resolved.conversionError && (
               <p className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
-                Could not convert Avro schema — showing raw definition.{" "}
-                {resolved.conversionError}
+                Could not convert{" "}
+                {schemaFormatName(resolved.schemaFormat) ?? "the"} schema —
+                showing raw definition. {resolved.conversionError}
               </p>
             )}
-            <SchemaTree schema={schema} rootName={schemaName} className="mt-4" />
+            {/* String sources (e.g. raw .proto text) can't be shown as a tree;
+                fall back to the raw definition the warning above refers to. */}
+            {resolved.conversionError &&
+            typeof resolved.originalSchema === "string" ? (
+              <div className="mt-4">
+                <SchemaViewer schema={resolved.originalSchema} />
+              </div>
+            ) : (
+              <SchemaTree schema={schema} rootName={schemaName} className="mt-4" />
+            )}
           </article>
         );
       })}

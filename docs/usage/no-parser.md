@@ -63,7 +63,7 @@ The `kind: "resolved"` variant uses the same `AsyncAPI` component, it is just a 
 
 ## Multi-format schemas
 
-Avro payloads and other multi-format wrappers are unwrapped at render time. See [Avro schemas](./avro.md) for more details.
+Avro and Protobuf payloads and other multi-format wrappers are unwrapped (and converted) at render time. See [Avro schemas](./avro.md) and [Protobuf schemas](./protobuf.md) for more details.
 
 ## When to use this entry
 
