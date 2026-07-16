@@ -8,6 +8,7 @@ import SchemaTreeBranch, {
 } from "./SchemaTreeBranch";
 import SchemaTreeRow from "./SchemaTreeRow";
 import {
+  EMPTY_ANCESTORS,
   flattenAllOf,
   getAdditionalItemsSchema,
   getAdditionalPropertiesSchema,
@@ -33,6 +34,8 @@ import {
   omitIfThenElse,
   omitNot,
   patternPropertyPath,
+  schemaIdLabel,
+  type SchemaAncestors,
 } from "./schemaUtils";
 import SchemaIfThenElseBranch from "./SchemaIfThenElseBranch";
 import SchemaMapBranch from "./SchemaMapBranch";
@@ -50,6 +53,12 @@ export interface SchemaNodeProps {
   branchLineVariant?: SchemaTreeBranchLineVariant;
   /** Whether this node (and its descendants) start expanded. Defaults to false. */
   defaultExpanded?: boolean;
+  /**
+   * Schemas already on the render path above this node. When this node's
+   * schema is among them (by object identity or by $ref string), it is a
+   * cycle — render a circular row instead of recursing forever.
+   */
+  ancestors?: SchemaAncestors;
 }
 
 /** Nested nodes inside a branch-line-less wrapper regain depth-colored lines. */
@@ -68,6 +77,7 @@ export default function SchemaNode({
   suppressRow = false,
   branchLineVariant = "depth",
   defaultExpanded = false,
+  ancestors = EMPTY_ANCESTORS,
 }: SchemaNodeProps) {
   const nestedBranchLineVariant = childBranchLineVariant(branchLineVariant);
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -82,13 +92,37 @@ export default function SchemaNode({
   const [selectedCase, setSelectedCase] = useState(0);
 
   const { schema, refLabel, circular } = useMemo(() => {
+    // Cross-render-level cycle check: this exact schema (or its $ref) is
+    // already being rendered somewhere above us in the tree.
+    if (
+      ancestors.objects.has(rawSchema) ||
+      (typeof rawSchema.$ref === "string" && ancestors.refs.has(rawSchema.$ref))
+    ) {
+      return {
+        schema: rawSchema,
+        refLabel: schemaIdLabel(rawSchema),
+        circular: true,
+      };
+    }
     const normalized = normalizeSchema(rawSchema, deref, refStack);
     if (normalized.circular) return normalized;
     return {
       ...normalized,
       schema: flattenAllOf(normalized.schema, deref, refStack),
     };
-  }, [rawSchema, deref, refStack]);
+  }, [rawSchema, deref, refStack, ancestors]);
+
+  // Chain handed to child nodes: everything above us, plus this node.
+  const childAncestors = useMemo<SchemaAncestors>(
+    () => ({
+      objects: new Set(ancestors.objects).add(rawSchema),
+      refs:
+        typeof rawSchema.$ref === "string"
+          ? new Set(ancestors.refs).add(rawSchema.$ref)
+          : ancestors.refs,
+    }),
+    [ancestors, rawSchema],
+  );
 
   // Strip logical operators before shape detection so they don't mask the true structure.
   const structuralSchema = omitNot(omitIfThenElse(schema));
@@ -141,6 +175,7 @@ export default function SchemaNode({
             depth={depth + 1}
             refStack={refStack}
             deref={deref}
+            ancestors={childAncestors}
             suppressRow
             branchLineVariant={nestedBranchLineVariant}
             defaultExpanded={defaultExpanded}
@@ -186,6 +221,7 @@ export default function SchemaNode({
         depth={depth + 1}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         suppressRow
         branchLineVariant="none"
         defaultExpanded={defaultExpanded}
@@ -229,11 +265,13 @@ export default function SchemaNode({
   };
 
   if (circular) {
+    // Identity cycles (pre-resolved documents) have no $ref string — fall back
+    // to the schema's stamped name, then to a generic marker.
     return (
       <SchemaTreeRow
         path={path}
         depth={depth}
-        typeLabelOverride={`↩ ${rawSchema.$ref}`}
+        typeLabelOverride={`↩ ${rawSchema.$ref ?? refLabel ?? "circular"}`}
         expandable={false}
         expanded={false}
         onToggle={() => undefined}
@@ -304,6 +342,7 @@ export default function SchemaNode({
         depth={caseDepth - 1}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         suppressRow
         branchLineVariant="none"
         defaultExpanded={defaultExpanded}
@@ -387,6 +426,7 @@ export default function SchemaNode({
         depth={mapDepth}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         branchLineVariant={nestedBranchLineVariant}
         defaultExpanded={defaultExpanded}
       />
@@ -414,6 +454,7 @@ export default function SchemaNode({
               required={requiredFields.has(name)}
               refStack={refStack}
               deref={deref}
+              ancestors={childAncestors}
               branchLineVariant={nestedBranchLineVariant}
               defaultExpanded={defaultExpanded}
             />
@@ -437,6 +478,7 @@ export default function SchemaNode({
             depth={childDepth}
             refStack={refStack}
             deref={deref}
+            ancestors={childAncestors}
             branchLineVariant={nestedBranchLineVariant}
             defaultExpanded={defaultExpanded}
           />
@@ -503,13 +545,34 @@ export default function SchemaNode({
       hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema);
     const arrayPath = `${path}[]`;
 
-    const resolvedItem = hasItem
-      ? flattenAllOf(
-          normalizeSchema(itemSchema, deref, refStack).schema,
-          deref,
-          refStack
-        )
+    // The resolved-but-unflattened item source keeps a stable identity across
+    // unrolls of a recursive schema (flattening copies, resolution doesn't) —
+    // it's what makes the item-level cycle check below possible.
+    const normalizedItem = hasItem
+      ? normalizeSchema(itemSchema, deref, refStack)
       : null;
+    const itemSource = normalizedItem?.schema ?? null;
+    const resolvedItem = itemSource
+      ? flattenAllOf(itemSource, deref, refStack)
+      : null;
+    // Items rendered through itemProperties below never pass their $ref node
+    // through a child SchemaNode, so the generic ancestor check can't see the
+    // cycle — check the item source against the chain here instead.
+    const itemCircular =
+      itemSource !== null &&
+      (childAncestors.objects.has(itemSource) ||
+        (typeof itemSchema?.$ref === "string" &&
+          childAncestors.refs.has(itemSchema.$ref)));
+    const itemAncestors: SchemaAncestors =
+      itemSource !== null
+        ? {
+            objects: new Set(childAncestors.objects).add(itemSource),
+            refs:
+              typeof itemSchema?.$ref === "string"
+                ? new Set(childAncestors.refs).add(itemSchema.$ref)
+                : childAncestors.refs,
+          }
+        : childAncestors;
     const isLeafArray =
       !isTuple &&
       !hasContainsSchema &&
@@ -539,6 +602,7 @@ export default function SchemaNode({
                 depth={childDepth}
                 refStack={refStack}
                 deref={deref}
+                ancestors={childAncestors}
                 branchLineVariant={nestedBranchLineVariant}
                 defaultExpanded={defaultExpanded}
               />
@@ -561,7 +625,19 @@ export default function SchemaNode({
           </>
         ) : (
           hasItem &&
-          (itemProperties.length > 0
+          (itemCircular ? (
+            <SchemaTreeRow
+              path={arrayPath}
+              depth={childDepth}
+              typeLabelOverride={`↩ ${
+                itemSchema.$ref ?? schemaIdLabel(itemSource!) ?? "circular"
+              }`}
+              expandable={false}
+              expanded={false}
+              onToggle={() => undefined}
+              showBorder={false}
+            />
+          ) : itemProperties.length > 0
             ? itemProperties.map(([name, prop]) => (
                 <SchemaNode
                   key={name}
@@ -571,6 +647,7 @@ export default function SchemaNode({
                   required={itemRequired.has(name)}
                   refStack={refStack}
                   deref={deref}
+                  ancestors={itemAncestors}
                   branchLineVariant={nestedBranchLineVariant}
                   defaultExpanded={defaultExpanded}
                 />
@@ -582,6 +659,7 @@ export default function SchemaNode({
                   depth={childDepth}
                   refStack={refStack}
                   deref={deref}
+                  ancestors={itemAncestors}
                   branchLineVariant={nestedBranchLineVariant}
                   defaultExpanded={defaultExpanded}
                 />

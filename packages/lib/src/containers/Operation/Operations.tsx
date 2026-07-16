@@ -2,12 +2,10 @@ import { ChannelAddress } from "../../components/ChannelAddress";
 import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
 import { Operation_TEXT } from "../../contants";
-import { useAsyncAPIDocument } from "../../contexts";
 import { Channel } from "../../types/asyncapi/Channel";
 import { Parameter } from "../../types/asyncapi/Parameter";
 import { Operation as OperationType } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
-import { resolveRefs } from "../../utils/hasRef";
 import Operation from "./Operation";
 
 interface OperationsProps {
@@ -18,7 +16,6 @@ interface OperationsProps {
 
 export default function Operations({ operations, selectedKey = null, onSelectKey }: OperationsProps) {
   const setSelectedKey = (key: string | null) => onSelectKey?.(key);
-  const { deref } = useAsyncAPIDocument();
 
   if (!Object.keys(operations).length) {
     return null;
@@ -28,7 +25,8 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
 
   const operationList: React.ReactNode[] = Object.keys(operations).map((key) => {
     const op = operations[key];
-    resolveRefs(op, deref);
+    // $refs (e.g. op.channel) are already inlined by resolveDocument /
+    // @asyncapi/parser before the document reaches any component.
     const channel = op.channel as unknown as Channel;
     const address = channel?.address;
     const parameters = channel?.parameters as unknown as Record<string, Parameter> | undefined;

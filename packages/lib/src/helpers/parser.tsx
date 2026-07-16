@@ -69,7 +69,7 @@ export async function parseAndRender(raw: string, config?: ConfigInterface) {
   return {
     diagnostics,
     view: document ? (
-      <AsyncAPI kind="resolved" doc={document} config={config} />
+      <AsyncAPI kind="resolved" asyncapi={document} config={config} />
     ) : null,
   };
 }
