@@ -1,5 +1,6 @@
 import {OperationAction} from './OperationAction';
 import {Reference} from './Reference';
+import {Channel} from './Channel';
 import {OperationReply} from './OperationReply';
 import {OperationTrait} from './OperationTrait';
 import {UserPassword} from './UserPassword';
@@ -19,7 +20,7 @@ import {ExternalDocs} from './ExternalDocs';
 import {OperationBindingsObject} from './OperationBindingsObject';
 interface Operation {
   'action': OperationAction;
-  'channel': Reference;
+  'channel': Reference | Channel;
   'messages'?: Reference[];
   'reply'?: Reference | OperationReply;
   'traits'?: (Reference | OperationTrait)[];

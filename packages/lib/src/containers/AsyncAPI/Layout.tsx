@@ -59,7 +59,9 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
     derefCache.clear();
   }, [asyncapi, derefCache]);
 
-  //TODO: Refactor the dereferencing logic
+  // Fallback resolver for the few $refs that survive upfront resolution —
+  // resolveDocument deliberately leaves cycle-forming refs in place, and the
+  // schema tree resolves those lazily (one level per expansion) via this.
   const deref = useCallback((refPath: string) => {
     if (derefCache.has(refPath)) return derefCache.get(refPath);
 

@@ -13,13 +13,41 @@ export interface NormalizedSchema {
   circular?: boolean;
 }
 
+/**
+ * Badge label for schemas whose $ref was already inlined upstream (by
+ * @asyncapi/parser or resolveDocument), which both stamp x-parser-schema-id
+ * on resolved targets. Named schemas carry their real name; parser-generated
+ * anonymous ids ("<anonymous-schema-1>") are not badges.
+ */
+export const schemaIdLabel = (schema: SchemaNodeData): string | undefined => {
+  const id = schema["x-parser-schema-id"];
+  return typeof id === "string" && !id.startsWith("<") ? id : undefined;
+};
+
+/**
+ * Schema nodes already on the active render path, tracked per branch as
+ * SchemaNode recurses. Two keys catch the two ways a schema can reach itself:
+ * `refs` for `$ref` strings in lazily-resolved documents, and
+ * `objects` for identity cycles in pre-resolved documents where a schema
+ * contains itself as a plain object reference (no $ref string to key on).
+ */
+export interface SchemaAncestors {
+  objects: ReadonlySet<object>;
+  refs: ReadonlySet<string>;
+}
+
+export const EMPTY_ANCESTORS: SchemaAncestors = {
+  objects: new Set(),
+  refs: new Set(),
+};
+
 /** Resolves $ref inline via deref; refStack tracks the active chain to detect circular refs. */
 export const normalizeSchema = (
   raw: SchemaNodeData,
   deref: (ref: string) => unknown,
   refStack: Set<string>
 ): NormalizedSchema => {
-  if (!raw.$ref) return { schema: raw };
+  if (!raw.$ref) return { schema: raw, refLabel: schemaIdLabel(raw) };
 
   const ref = raw.$ref;
   const refLabel = refNameFromPath(ref);
@@ -139,6 +167,11 @@ export const mergeSchemaObjects = (
   deref: (ref: string) => unknown,
   refStack: Set<string>
 ): SchemaNodeData => {
+  // Merging a schema with itself is the identity — and returning the same
+  // object (not a copy) keeps cycle cut-points recognizable downstream while
+  // preventing infinite recursion when that shared node is cyclic.
+  if (a === b) return a;
+
   const result: SchemaNodeData = { ...a };
 
   if (b.description) {
@@ -252,7 +285,8 @@ export const mergeSchemaObjects = (
 const flattenAllOfNested = (
   schema: SchemaNodeData,
   deref: (ref: string) => unknown,
-  refStack: Set<string>
+  refStack: Set<string>,
+  seen: Set<object>
 ): SchemaNodeData => {
   const result: SchemaNodeData = { ...schema };
   delete result.allOf;
@@ -261,7 +295,7 @@ const flattenAllOfNested = (
     result.properties = Object.fromEntries(
       Object.entries(result.properties).map(([key, prop]) =>
         isSchemaRecord(prop)
-          ? [key, flattenAllOf(prop, deref, refStack)]
+          ? [key, flattenAllOf(prop, deref, refStack, seen)]
           : [key, prop]
       )
     );
@@ -269,12 +303,12 @@ const flattenAllOfNested = (
 
   const itemSchema = getItemSchema(result);
   if (itemSchema) {
-    result.items = flattenAllOf(itemSchema, deref, refStack);
+    result.items = flattenAllOf(itemSchema, deref, refStack, seen);
   }
 
   const propertyNames = getPropertyNamesSchema(result);
   if (propertyNames !== null && isSchemaRecord(propertyNames)) {
-    result.propertyNames = flattenAllOf(propertyNames, deref, refStack);
+    result.propertyNames = flattenAllOf(propertyNames, deref, refStack, seen);
   }
 
   const additionalProperties = getAdditionalPropertiesSchema(result);
@@ -285,7 +319,8 @@ const flattenAllOfNested = (
     result.additionalProperties = flattenAllOf(
       additionalProperties,
       deref,
-      refStack
+      refStack,
+      seen
     );
   }
 
@@ -294,7 +329,7 @@ const flattenAllOfNested = (
     result.patternProperties = Object.fromEntries(
       patternEntries.map(([pattern, sub]) => [
         pattern,
-        flattenAllOf(sub, deref, refStack),
+        flattenAllOf(sub, deref, refStack, seen),
       ])
     );
   }
@@ -306,67 +341,81 @@ const flattenAllOfNested = (
 export const flattenAllOf = (
   schema: SchemaNodeData,
   deref: (ref: string) => unknown,
-  refStack: Set<string>
+  refStack: Set<string>,
+  seen: Set<object> = new Set()
 ): SchemaNodeData => {
-  const allOfItems = schema.allOf;
-  if (Array.isArray(allOfItems) && allOfItems.length > 0) {
-    const collectedConditionals: SchemaNodeData[] = [];
-    let merged: SchemaNodeData = {};
+  // Object-identity cycle guard. Pre-resolved documents (@asyncapi/parser
+  // output, resolveDocument output) can contain schemas that reach themselves
+  // through plain object references with no $ref string for refStack to key
+  // on — without this, the eager recursion below overflows the stack.
+  // Returning the node unchanged (same identity, not a copy) is what lets the
+  // render layer's ancestor tracking recognize the cut-point and stop with a
+  // circular row instead of recursing forever one level per node.
+  if (seen.has(schema)) return schema;
+  seen.add(schema);
+  try {
+    const allOfItems = schema.allOf;
+    if (Array.isArray(allOfItems) && allOfItems.length > 0) {
+      const collectedConditionals: SchemaNodeData[] = [];
+      let merged: SchemaNodeData = {};
 
-    for (const item of allOfItems) {
-      if (!isSchemaRecord(item)) continue;
-      const { schema: normalized, circular } = normalizeSchema(item, deref, refStack);
-      if (circular) continue;
-      const flattened = flattenAllOf(normalized, deref, refStack);
+      for (const item of allOfItems) {
+        if (!isSchemaRecord(item)) continue;
+        const { schema: normalized, circular } = normalizeSchema(item, deref, refStack);
+        if (circular) continue;
+        const flattened = flattenAllOf(normalized, deref, refStack, seen);
 
-      // Collect if/then/else before merging — mergeSchemaObjects drops them.
-      if (flattened.if !== undefined) {
-        const cond: SchemaNodeData = { if: flattened.if };
-        if (flattened.then !== undefined) cond.then = flattened.then;
-        if (flattened.else !== undefined) cond.else = flattened.else;
+        // Collect if/then/else before merging — mergeSchemaObjects drops them.
+        if (flattened.if !== undefined) {
+          const cond: SchemaNodeData = { if: flattened.if };
+          if (flattened.then !== undefined) cond.then = flattened.then;
+          if (flattened.else !== undefined) cond.else = flattened.else;
+          collectedConditionals.push(cond);
+        }
+        collectedConditionals.push(...getAllOfConditionals(flattened));
+
+        // MERGE_SKIP_KEYS already prevents _allOfConditionals from crossing over.
+        merged = mergeSchemaObjects(merged, flattened, deref, refStack);
+      }
+
+      // Sibling if/then/else (alongside allOf on the same schema object) also gets
+      // dropped by mergeSchemaObjects — collect it here.
+      if (schema.if !== undefined) {
+        const cond: SchemaNodeData = { if: schema.if };
+        if (schema.then !== undefined) cond.then = schema.then;
+        if (schema.else !== undefined) cond.else = schema.else;
         collectedConditionals.push(cond);
       }
-      collectedConditionals.push(...getAllOfConditionals(flattened));
 
-      // MERGE_SKIP_KEYS already prevents _allOfConditionals from crossing over.
-      merged = mergeSchemaObjects(merged, flattened, deref, refStack);
+      const siblings = { ...schema };
+      delete siblings.allOf;
+      const withSiblings =
+        Object.keys(siblings).length > 0
+          ? mergeSchemaObjects(merged, siblings as SchemaNodeData, deref, refStack)
+          : merged;
+
+      const result = flattenAllOfNested(withSiblings, deref, refStack, seen);
+
+      // Restore conditionals: single one → promote to if/then/else; multiple → store list.
+      if (collectedConditionals.length === 1) {
+        const cond = collectedConditionals[0]!;
+        result.if = cond.if;
+        if (cond.then !== undefined) result.then = cond.then;
+        if (cond.else !== undefined) result.else = cond.else;
+      } else if (collectedConditionals.length > 1) {
+        // Synthetic key that carries multiple independent if/then/else branches collected
+        // from allOf members. The _-prefix marks it as internal; MERGE_SKIP_KEYS ensures
+        // mergeSchemaObjects never copies it across schemas.
+        result._allOfConditionals = collectedConditionals;
+      }
+
+      return result;
     }
 
-    // Sibling if/then/else (alongside allOf on the same schema object) also gets
-    // dropped by mergeSchemaObjects — collect it here.
-    if (schema.if !== undefined) {
-      const cond: SchemaNodeData = { if: schema.if };
-      if (schema.then !== undefined) cond.then = schema.then;
-      if (schema.else !== undefined) cond.else = schema.else;
-      collectedConditionals.push(cond);
-    }
-
-    const siblings = { ...schema };
-    delete siblings.allOf;
-    const withSiblings =
-      Object.keys(siblings).length > 0
-        ? mergeSchemaObjects(merged, siblings as SchemaNodeData, deref, refStack)
-        : merged;
-
-    const result = flattenAllOfNested(withSiblings, deref, refStack);
-
-    // Restore conditionals: single one → promote to if/then/else; multiple → store list.
-    if (collectedConditionals.length === 1) {
-      const cond = collectedConditionals[0]!;
-      result.if = cond.if;
-      if (cond.then !== undefined) result.then = cond.then;
-      if (cond.else !== undefined) result.else = cond.else;
-    } else if (collectedConditionals.length > 1) {
-      // Synthetic key that carries multiple independent if/then/else branches collected
-      // from allOf members. The _-prefix marks it as internal; MERGE_SKIP_KEYS ensures
-      // mergeSchemaObjects never copies it across schemas.
-      result._allOfConditionals = collectedConditionals;
-    }
-
-    return result;
+    return flattenAllOfNested(schema, deref, refStack, seen);
+  } finally {
+    seen.delete(schema);
   }
-
-  return flattenAllOfNested(schema, deref, refStack);
 };
 
 /** Returns oneOf subschemas when present. */

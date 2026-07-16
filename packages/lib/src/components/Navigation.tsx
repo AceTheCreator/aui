@@ -10,7 +10,6 @@ import { Info } from "../types/asyncapi/Info";
 import { OperationAction } from "../types/asyncapi/OperationAction";
 import { SideBarConfig } from "../config/config";
 import { useAsyncAPIDocument } from "../contexts";
-import { hasRef } from "../utils/hasRef";
 import { useAutoHideOnScroll } from "../utils/useAutoHideOnScroll";
 import { useElementRect } from "../utils/useElementRect";
 import { ChannelAddress } from "./ChannelAddress";
@@ -51,7 +50,7 @@ export default function Navigation({
   const [open, setOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(0);
   const [panelElement, setpanelElement] = useState<HTMLDivElement | null>(null);
-  const { deref, rootElement } = useAsyncAPIDocument();
+  const { rootElement } = useAsyncAPIDocument();
 
   // Once the widget's top is scrolled past, the toggle detaches and pins to the
   // viewport top: hidden while scrolling down, revealed on any upward scroll,
@@ -84,9 +83,8 @@ export default function Navigation({
 
   const resolveChannel = (key: string): { address?: string | null; parameters?: Record<string, Parameter> } | null => {
     if (!sidebarConfig?.useChannelAddressAsIdentifier) return null;
-    const op = operations[key];
-    let channel: unknown = op?.channel;
-    if (hasRef(channel)) channel = deref((channel as { $ref: string }).$ref);
+    // op.channel $refs are already inlined by resolveDocument / @asyncapi/parser.
+    const channel: unknown = operations[key]?.channel;
     return (channel as { address?: string | null; parameters?: Record<string, Parameter> } | null) ?? null;
   };
 

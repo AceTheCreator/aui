@@ -34,5 +34,5 @@ export function AsyncAPIRenderer({ raw, config, onDiagnostics }: AsyncAPIRendere
   }, [raw]);
 
   if (!document) return null;
-  return <AsyncAPI kind="resolved" doc={document} config={config} />;
+  return <AsyncAPI kind="resolved" asyncapi={document} config={config} />;
 }
