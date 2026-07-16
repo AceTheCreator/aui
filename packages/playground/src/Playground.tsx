@@ -68,12 +68,13 @@ export function Playground({
   // The toggle is authoritative over the AsyncAPI preview's light/dark mode: it only
   // forwards the branch matching the current mode, ignoring whichever theme.light/theme.dark
   // the user's own edited config also defines for the other mode. Brand `colors` scales
-  // aren't mode-specific, so they always pass through untouched.
+  // and `depthColors` aren't mode-specific, so they always pass through untouched.
   const previewConfig = useMemo<ConfigInterface>(
     () => ({
       ...config.value,
       theme: {
         colors: config.value.theme?.colors,
+        depthColors: config.value.theme?.depthColors,
         ...(uiMode === 'dark' ? { dark: config.value.theme?.dark } : { light: config.value.theme?.light }),
       },
     }),

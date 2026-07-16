@@ -30,6 +30,7 @@ interface ConfigInterface {
     colors?: ThemeColors;
     light?: ThemeModeColors;
     dark?: ThemeModeColors;
+    depthColors?: string[];
   };
   requestLabel?: string;
   replyLabel?: string;
@@ -93,6 +94,8 @@ interface ThemeModeColors {
     - `textSecondary` — Supporting text.
     - `textMuted` — Placeholders, disabled labels, faint text.
 
+  - **depthColors?: string[]** — Colors for the schema tree's depth-indicator lines (the vertical lines on the left of nested schema properties), and their matching label/toggle text. Accepts any number of hex colors — they're cycled by nesting depth, so a tree nested deeper than the array you provide just repeats the palette from the start. Defaults to a built-in 6-color palette if omitted or empty.
+
 - **requestLabel?: string**
 
   Customises the label for request operations.
@@ -139,6 +142,10 @@ const config: ConfigInterface = {
       textSecondary: "#cbd5e1",
       textMuted:     "#94a3b8",
     },
+    depthColors: [
+      "#0EA5E9", "#22C55E", "#F59E0B",
+      "#EC4899", "#8B5CF6", "#14B8A6",
+    ],
   },
   requestLabel: "Request",
   replyLabel:   "Reply",

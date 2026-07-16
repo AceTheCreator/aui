@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, within } from "@storybook/test";
 import SchemaTree from "../components/schema/SchemaTree";
 import { AsyncAPIDocumentContext } from "../contexts";
+import { DEFAULT_DEPTH_COLORS } from "../components/schema/depthColors";
 import example1 from "../config/examples/example1.json";
 import example2 from "../config/examples/example2.json";
 
@@ -35,7 +36,7 @@ const deref = (refPath: string): unknown => {
 
 const withSchemaContext = (Story: ComponentType) => (
   <AsyncAPIDocumentContext.Provider
-    value={{ document: mockDocument, deref, portalHost: null, rootElement: null }}
+    value={{ document: mockDocument, deref, portalHost: null, rootElement: null, depthColors: DEFAULT_DEPTH_COLORS }}
   >
     <div className="max-w-3xl p-4">
       <Story />

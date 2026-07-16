@@ -5,6 +5,7 @@ import Navigation from "../../components/Navigation";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { ConfigInterface } from "../../config";
 import { buildThemeVars } from "../../utils/theme";
+import { DEFAULT_DEPTH_COLORS } from "../../components/schema/depthColors";
 import IconMessage from "../../icons/Message";
 import IconOperation from "../../icons/Operation";
 import IconSchema from "../../icons/Schema";
@@ -83,10 +84,13 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   }, [asyncapi, derefCache]);
 
   const defaultSchemaExpanded = config.expand?.schemas === true;
+  const depthColors = config.theme?.depthColors?.length
+    ? config.theme.depthColors
+    : DEFAULT_DEPTH_COLORS;
 
   const value = useMemo(
-    () => ({ document: asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded }),
-    [asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded],
+    () => ({ document: asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded, depthColors }),
+    [asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded, depthColors],
   );
 
   const activeContent =

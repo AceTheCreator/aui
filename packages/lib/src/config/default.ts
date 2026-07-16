@@ -1,4 +1,5 @@
 import { ConfigInterface } from "./config";
+import { DEFAULT_DEPTH_COLORS } from "../components/schema/depthColors";
 
 export const defaultConfig: ConfigInterface = {
   show: {
@@ -32,6 +33,7 @@ export const defaultConfig: ConfigInterface = {
       textSecondary: "#a9b1d6",
       textMuted: "#666c86",
     },
+    depthColors: DEFAULT_DEPTH_COLORS,
   },
   expand: {
     schemas: false,

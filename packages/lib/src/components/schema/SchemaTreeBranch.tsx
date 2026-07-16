@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { getDepthColors } from "./depthColors";
+import { getDepthColor } from "./depthColors";
+import { useAsyncAPIDocument } from "../../contexts";
 
 export type SchemaTreeBranchLineVariant = "depth" | "muted" | "none";
 
@@ -15,14 +16,22 @@ export default function SchemaTreeBranch({
   children: ReactNode;
   lineVariant?: SchemaTreeBranchLineVariant;
 }) {
+  const { depthColors } = useAsyncAPIDocument();
+
   if (lineVariant === "none") {
     return <div>{children}</div>;
   }
 
-  const lineClass =
-    lineVariant === "muted"
-      ? MUTED_LINE
-      : `ml-1.5 ${getDepthColors(depth).line}`;
+  if (lineVariant === "muted") {
+    return <div className={`pl-3 border-l-2 ${MUTED_LINE}`}>{children}</div>;
+  }
 
-  return <div className={`pl-3 border-l-2 ${lineClass}`}>{children}</div>;
+  return (
+    <div
+      className="pl-3 border-l-2 ml-1.5"
+      style={{ borderColor: getDepthColor(depth, depthColors) }}
+    >
+      {children}
+    </div>
+  );
 }

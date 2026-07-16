@@ -1,4 +1,5 @@
-import { getDepthColors } from "./depthColors";
+import { getDepthColor } from "./depthColors";
+import { useAsyncAPIDocument } from "../../contexts";
 
 interface ExpandToggleProps {
   depth: number;
@@ -8,7 +9,8 @@ interface ExpandToggleProps {
 
 /** Circular +/- toggle with optional "Show details" label when collapsed. */
 export default function ExpandToggle({ depth, expanded, onToggle }: ExpandToggleProps) {
-  const colors = getDepthColors(depth);
+  const { depthColors } = useAsyncAPIDocument();
+  const color = getDepthColor(depth, depthColors);
   return (
     <button
       type="button"
@@ -19,7 +21,8 @@ export default function ExpandToggle({ depth, expanded, onToggle }: ExpandToggle
     >
       <span
         aria-hidden="true"
-        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold ${colors.line} ${colors.text} hover:bg-gray-50`}
+        className="w-4 h-4 rounded-full border-2 flex items-center justify-center text-[10px] leading-none font-bold hover:bg-gray-50"
+        style={{ borderColor: color, color }}
       >
         {expanded ? "−" : "+"}
       </span>
