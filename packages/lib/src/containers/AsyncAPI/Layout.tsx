@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AsyncAPIDocumentContext } from "../../contexts/index";
 import ContentTab, { ContentTabItem } from "../../components/ContentTab";
-import Navigation from "../../components/Navigation";
+import Navigation, { NavSectionId } from "../../components/Navigation";
 import SearchPanel from "../../components/SearchPanel";
 import { useSpecSearch } from "../../hooks/useSpecSearch";
 import { SearchEntry } from "../../helpers/searchIndex";
@@ -44,6 +44,20 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   const firstTab = (tabs[0]?.id ?? "operations") as AsyncAPITabKey;
   const [activeTab, setActiveTab] = useState<AsyncAPITabKey>(firstTab);
+  // Single authoritative "where is the user's attention" value for the
+  // sidebar's own header highlighting — covers Servers too, even though it
+  // isn't a switchable content tab, so at most one section header is ever
+  // highlighted at a time. `activeTab` alone can't do this: selecting a
+  // server doesn't (and can't) change which content tab is showing, so a
+  // header driven by `activeTab === id` and one driven by "a server is
+  // selected" could both read true simultaneously.
+  // Keep the content tab active on initial render, but don't highlight any
+  // sidebar section until the user interacts with it.
+  const [focusedNavSection, setFocusedNavSection] = useState<NavSectionId | null>(null);
+  const focusTab = (tab: AsyncAPITabKey) => {
+    setActiveTab(tab);
+    setFocusedNavSection(tab);
+  };
   const [rawSelectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
   const [rawSelectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
   const [rawSelectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
@@ -73,7 +87,9 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   const handleSearchSelect = (entry: SearchEntry) => {
     if (entry.tab === "operations" || entry.tab === "messages" || entry.tab === "schemas") {
-      setActiveTab(entry.tab);
+      focusTab(entry.tab);
+    } else if (entry.tab === "servers") {
+      setFocusedNavSection("servers");
     }
     setSelectedOperationKey(entry.tab === "operations" ? entry.key : null);
     setSelectedMessageKey(entry.tab === "messages" ? entry.key : null);
@@ -190,13 +206,13 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
         selectedKey={selectedMessageKey}
         focusSection={focusSection}
       />
-    ) : (
+    ) : effectiveTab === "schemas" ? (
       <Schemas
         schemas={asyncapi.components?.schemas ?? {}}
         selectedKey={selectedSchemaKey}
         focusTarget={schemaFocusTarget}
       />
-    );
+    ) : null;
 
   const themeVars = config.theme ? buildThemeVars(config.theme) : {};
 
@@ -250,14 +266,22 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
                 ? (asyncapi.components?.schemas as Record<string, unknown>)
                 : undefined
             }
+            servers={show.servers !== false ? asyncapi.servers : undefined}
             sidebarConfig={config.sidebar}
-            activeTab={effectiveTab}
-            onTabChange={setActiveTab}
+            activeTab={focusedNavSection}
+            onTabChange={focusTab}
             onItemSelect={(tab, key) => {
-              setActiveTab(tab);
+              focusTab(tab);
               setSelectedOperationKey(tab === "operations" ? key : null);
               setSelectedMessageKey(tab === "messages" ? key : null);
               setSelectedSchemaKey(tab === "schemas" ? key : null);
+            }}
+            onSelectServer={(key) => {
+              setFocusedNavSection("servers");
+              setSelectedOperationKey(null);
+              setSelectedMessageKey(null);
+              setSelectedSchemaKey(null);
+              setSelectedServerKey(key);
             }}
             selectedItem={
               selectedOperationKey
@@ -266,6 +290,8 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
                 ? { tab: "messages" as const, key: selectedMessageKey }
                 : selectedSchemaKey
                 ? { tab: "schemas" as const, key: selectedSchemaKey }
+                : selectedServerKey
+                ? { tab: "servers" as const, key: selectedServerKey }
                 : null
             }
           />
@@ -274,16 +300,18 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
           tabs={tabs}
           current={effectiveTab}
           onChange={(id) => {
-            if (isAsyncAPITabKey(id)) setActiveTab(id);
+            if (isAsyncAPITabKey(id)) focusTab(id);
           }}
         />
-        <div
-          id={`panel-${effectiveTab}`}
-          role="tabpanel"
-          aria-labelledby={`tab-${effectiveTab}`}
-        >
-          {activeContent}
-        </div>
+        {effectiveTab && (
+          <div
+            id={`panel-${effectiveTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${effectiveTab}`}
+          >
+            {activeContent}
+          </div>
+        )}
       </div>
     </AsyncAPIDocumentContext.Provider>
   );
