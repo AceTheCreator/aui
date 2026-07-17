@@ -6,6 +6,7 @@ export const defaultConfig: ConfigInterface = {
     sidebar: true,
     info: true,
     servers: true,
+    search: true,
     operations: true,
     messages: true,
     messageExamples: false,

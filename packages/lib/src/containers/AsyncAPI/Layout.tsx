@@ -226,12 +226,14 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
         }`}
       >
         <div ref={setPortalHost} className="asyncapi-portal-root" />
-        <SearchPanel
-          query={searchQuery}
-          onQueryChange={setSearchQuery}
-          results={searchResults}
-          onSelectResult={handleSearchSelect}
-        />
+        {show.search !== false && (
+          <SearchPanel
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            results={searchResults}
+            onSelectResult={handleSearchSelect}
+          />
+        )}
         {show.info !== false && (
           <div id="info-panel">
             <Information {...asyncapi.info} />
