@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
@@ -21,7 +21,14 @@ interface OperationProps {
 }
 
 export default function Operation({ op, id }: OperationProps) {
-  const [authExpanded, setAuthExpanded] = useState(false);
+  const [authExpanded, setAuthExpanded] = useState(true);
+  // Operation only ever mounts once the user has explicitly picked it (nav
+  // click or search), so its detail — including Authorization — should be
+  // visible immediately, and stay that way when they switch to another
+  // operation without closing the side panel first.
+  useEffect(() => {
+    setAuthExpanded(true);
+  }, [id]);
   const messages = (op.messages ?? []) as unknown as MessageObject[];
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;

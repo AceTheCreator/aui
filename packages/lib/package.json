@@ -41,6 +41,7 @@
   "dependencies": {
     "@asyncapi/specs": "^6.8.1",
     "@json-schema-tools/reference-resolver": "^1.2.6",
+    "fuse.js": "^7.5.0",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.24.0",
     "json-schema-faker": "^0.6.2",

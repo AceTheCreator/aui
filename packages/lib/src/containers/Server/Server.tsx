@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Markdown from "../../components/Markdown";
 import IconLink from "../../icons/Link";
 import IconShieldCheck from "../../icons/ShieldCheck";
@@ -15,6 +15,10 @@ import Tag from "../../components/Tag";
 import Connection from "../../icons/Connection";
 import Bindings from "../../components/Bindings";
 
+interface ServerProps extends ServerInterface {
+  autoExpandAuth?: boolean;
+}
+
 export default function Server({
   host,
   protocol,
@@ -23,11 +27,18 @@ export default function Server({
   variables,
   security,
   bindings,
-}: ServerInterface) {
+  autoExpandAuth,
+}: ServerProps) {
   // `variables` is typed as a Map (a codegen artifact from the AsyncAPI JSON schema),
   // but parsed documents are always plain objects at runtime — never real Map instances.
   const variableEntries = variables as unknown as Record<string, ServerVariable> | undefined;
   const [authExpanded, setAuthExpanded] = useState(false);
+
+  // Mirrors MessageRow's auto-expand-on-select: an explicit pick (nav click or
+  // search) shouldn't leave the matched Authorization content hidden.
+  useEffect(() => {
+    if (autoExpandAuth) setAuthExpanded(true);
+  }, [autoExpandAuth]);
 
   return (
     <div>

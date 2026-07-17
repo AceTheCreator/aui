@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AsyncAPIDocumentContext } from "../../contexts/index";
 import ContentTab, { ContentTabItem } from "../../components/ContentTab";
 import Navigation from "../../components/Navigation";
+import SearchPanel from "../../components/SearchPanel";
+import { useSpecSearch } from "../../hooks/useSpecSearch";
+import { SearchEntry } from "../../helpers/searchIndex";
+import { clearSearchHighlight, highlightSearchMatch } from "../../helpers/textHighlight";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { ConfigInterface } from "../../config";
 import { buildThemeVars } from "../../utils/theme";
@@ -43,6 +47,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const [rawSelectedOperationKey, setSelectedOperationKey] = useState<string | null>(null);
   const [rawSelectedMessageKey, setSelectedMessageKey] = useState<string | null>(null);
   const [rawSelectedSchemaKey, setSelectedSchemaKey] = useState<string | null>(null);
+  const [rawSelectedServerKey, setSelectedServerKey] = useState<string | null>(null);
 
   // `activeTab` and the selection keys can go stale when a live config edit hides
   // their tab (e.g. `show.operations: false` while Operations is active), so clamp
@@ -51,9 +56,38 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const selectedOperationKey = show.operations !== false ? rawSelectedOperationKey : null;
   const selectedMessageKey = show.messages !== false ? rawSelectedMessageKey : null;
   const selectedSchemaKey = show.schemas !== false ? rawSelectedSchemaKey : null;
+  const selectedServerKey = show.servers !== false ? rawSelectedServerKey : null;
+  const serverNames = asyncapi.servers ? Object.keys(asyncapi.servers) : [];
   const derefCache = useMemo(() => new Map<string, unknown>(), []);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
   const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
+
+  const { query: searchQuery, setQuery: setSearchQuery, results: searchResults } =
+    useSpecSearch(asyncapi, { threshold: 0.3, limit: 20 });
+
+  const handleSearchSelect = (entry: SearchEntry) => {
+    if (entry.tab === "operations" || entry.tab === "messages" || entry.tab === "schemas") {
+      setActiveTab(entry.tab);
+    }
+    setSelectedOperationKey(entry.tab === "operations" ? entry.key : null);
+    setSelectedMessageKey(entry.tab === "messages" ? entry.key : null);
+    setSelectedSchemaKey(entry.tab === "schemas" ? entry.key : null);
+    setSelectedServerKey(entry.tab === "servers" ? entry.key : null);
+    // Matches the sidebar's own tab-switch-then-scroll delay in Navigation.tsx.
+    setTimeout(() => {
+      const target = document.getElementById(entry.targetId);
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target) highlightSearchMatch(target, searchQuery);
+    }, 50);
+  };
+
+  // Clears the highlight left by a previous selection once the user starts a
+  // fresh search, and on unmount so it doesn't leak past this document.
+  useEffect(() => {
+    if (!searchQuery.trim()) clearSearchHighlight();
+  }, [searchQuery]);
+
+  useEffect(() => clearSearchHighlight, []);
 
   useEffect(() => {
     derefCache.clear();
@@ -118,22 +152,43 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
       <div
         ref={setRootElement}
         style={themeVars as React.CSSProperties}
-        className={`relative @container bg-background text-foreground p-2 ${show.sidebar !== false ? "pt-14" : ""}`}
+        className={`relative @container bg-background text-foreground p-2 ${
+          show.sidebar !== false ? "pt-14" : ""
+        }`}
       >
         <div ref={setPortalHost} className="asyncapi-portal-root" />
-        {show.info !== false && <Information {...asyncapi.info} />}
-        {show.servers !== false &&
-          asyncapi.servers &&
-          Object.keys(asyncapi.servers).length > 0 && (
-            <Servers servers={asyncapi.servers} />
-          )}
+        <SearchPanel
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          results={searchResults}
+          onSelectResult={handleSearchSelect}
+        />
+        {show.info !== false && (
+          <div id="info-panel">
+            <Information {...asyncapi.info} />
+          </div>
+        )}
+        {show.servers !== false && serverNames.length > 0 && (
+          <div id={`server-${selectedServerKey ?? serverNames[0]}`}>
+            <Servers
+              servers={asyncapi.servers!}
+              selectedServer={selectedServerKey}
+              onSelectServer={setSelectedServerKey}
+            />
+          </div>
+        )}
         {show.sidebar !== false && (
           <Navigation
             info={asyncapi.info}
-            operations={show.operations !== false ? asyncapi.operations : undefined}
+            operations={
+              show.operations !== false ? asyncapi.operations : undefined
+            }
             messages={
               show.messages !== false
-                ? (asyncapi.components?.messages as Record<string, MessageObject>)
+                ? (asyncapi.components?.messages as Record<
+                    string,
+                    MessageObject
+                  >)
                 : undefined
             }
             schemas={
@@ -154,10 +209,10 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
               selectedOperationKey
                 ? { tab: "operations" as const, key: selectedOperationKey }
                 : selectedMessageKey
-                  ? { tab: "messages" as const, key: selectedMessageKey }
-                  : selectedSchemaKey
-                    ? { tab: "schemas" as const, key: selectedSchemaKey }
-                    : null
+                ? { tab: "messages" as const, key: selectedMessageKey }
+                : selectedSchemaKey
+                ? { tab: "schemas" as const, key: selectedSchemaKey }
+                : null
             }
           />
         )}

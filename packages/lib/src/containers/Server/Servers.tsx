@@ -5,17 +5,31 @@ import { useState } from "react";
 import Server from "./Server";
 import { SERVER_TEXT } from "../../contants";
 
-interface ServersInterface {
-  [key: string]: Record<string, ServerInterface>;
+interface ServersProps {
+  servers: Record<string, ServerInterface>;
+  selectedServer?: string | null;
+  onSelectServer?: (serverName: string) => void;
 }
 
-export default function Servers({ servers }: ServersInterface) {
-  const serverNames = [...Object.keys(servers)];
+export default function Servers({ servers, selectedServer, onSelectServer }: ServersProps) {
+  const serverNames = Object.keys(servers);
   const [selected, setSelected] = useState<string | undefined>(undefined);
-  // Falls back to the first server whenever there's no explicit selection yet, or the
-  // previously selected one no longer exists (e.g. after switching to a different document).
-  const current = selected && serverNames.includes(selected) ? selected : serverNames[0];
-  const content = <Server {...servers[current]} />;
+  // Prefers the caller-controlled selection (e.g. from search); falls back to
+  // uncontrolled local state, then to the first server if neither is set yet or
+  // the previously selected one no longer exists (e.g. after switching documents).
+  const current = [selectedServer, selected].find(
+    (name): name is string => !!name && serverNames.includes(name),
+  ) ?? serverNames[0];
+
+  const setCurrent = (serverName: string) => {
+    setSelected(serverName);
+    onSelectServer?.(serverName);
+  };
+
+  // An explicit pick (nav click or search) means the user asked to see this
+  // server's full detail, so its Authorization accordion shouldn't stay
+  // collapsed — same reasoning as MessageRow auto-expanding on `isSelected`.
+  const content = <Server {...servers[current]} autoExpandAuth={!!(selectedServer || selected)} />;
   return (
     <div className="flex justify-center w-full">
       <Section
@@ -25,7 +39,7 @@ export default function Servers({ servers }: ServersInterface) {
           <VerticalNavigation
             serverNames={serverNames}
             current={current}
-            setCurrent={setSelected}
+            setCurrent={setCurrent}
           />
         }
         stickySideContent={true}
