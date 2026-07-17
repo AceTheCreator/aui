@@ -12,9 +12,11 @@ interface OperationsProps {
   operations: Record<string, OperationType>;
   selectedKey?: string | null;
   onSelectKey?: (key: string | null) => void;
+  /** Which collapsed section of the selected operation search navigated to. */
+  focusSection?: string | null;
 }
 
-export default function Operations({ operations, selectedKey = null, onSelectKey }: OperationsProps) {
+export default function Operations({ operations, selectedKey = null, onSelectKey, focusSection = null }: OperationsProps) {
   const setSelectedKey = (key: string | null) => onSelectKey?.(key);
 
   if (!Object.keys(operations).length) {
@@ -126,7 +128,7 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         onClose={() => setSelectedKey(null)}
         title={panelTitle}
       >
-        {selectedOp && <Operation op={selectedOp} id={selectedKey} />}
+        {selectedOp && <Operation op={selectedOp} id={selectedKey} focusSection={focusSection} />}
       </SidePanel>
     </>
   );

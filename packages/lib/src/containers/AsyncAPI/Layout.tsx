@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AsyncAPIDocumentContext } from "../../contexts/index";
 import ContentTab, { ContentTabItem } from "../../components/ContentTab";
 import Navigation from "../../components/Navigation";
@@ -65,6 +65,12 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const { query: searchQuery, setQuery: setSearchQuery, results: searchResults } =
     useSpecSearch(asyncapi, { threshold: 0.3, limit: 20 });
 
+  const [focusSection, setFocusSection] = useState<string | null>(null);
+  const [schemaFocusTarget, setSchemaFocusTarget] = useState<{ tokens: string[]; id: string } | null>(null);
+
+  const [activeHighlight, setActiveHighlight] = useState<{ targetId: string; query: string; highlight: boolean } | null>(null);
+  const lastScrolledIdRef = useRef<string | null>(null);
+
   const handleSearchSelect = (entry: SearchEntry) => {
     if (entry.tab === "operations" || entry.tab === "messages" || entry.tab === "schemas") {
       setActiveTab(entry.tab);
@@ -73,18 +79,59 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
     setSelectedMessageKey(entry.tab === "messages" ? entry.key : null);
     setSelectedSchemaKey(entry.tab === "schemas" ? entry.key : null);
     setSelectedServerKey(entry.tab === "servers" ? entry.key : null);
-    // Matches the sidebar's own tab-switch-then-scroll delay in Navigation.tsx.
-    setTimeout(() => {
-      const target = document.getElementById(entry.targetId);
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (target) highlightSearchMatch(target, searchQuery);
-    }, 50);
+    setFocusSection(entry.focusSection ?? null);
+    setSchemaFocusTarget(
+      entry.tab === "schemas" && entry.schemaFocusTokens
+        ? { tokens: entry.schemaFocusTokens, id: entry.targetId }
+        : null,
+    );
+    if (entry.tab === "schemas") clearSearchHighlight();
+    setActiveHighlight({ targetId: entry.targetId, query: searchQuery, highlight: entry.tab !== "schemas" });
   };
 
-  // Clears the highlight left by a previous selection once the user starts a
-  // fresh search, and on unmount so it doesn't leak past this document.
   useEffect(() => {
-    if (!searchQuery.trim()) clearSearchHighlight();
+    if (!activeHighlight) return;
+    const { targetId, query, highlight } = activeHighlight;
+    let cancelled = false;
+
+    const findWrapper = (attempt: number) => {
+      if (cancelled) return;
+      const target = document.getElementById(targetId);
+      if (!target) {
+        if (attempt < 40) setTimeout(() => findWrapper(attempt + 1), 50);
+        return;
+      }
+      if (lastScrolledIdRef.current !== targetId) {
+        // Guarded: a scrollIntoView failure shouldn't take the highlight
+        // down with it — they're independent concerns.
+        try {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch {
+          // ignore — highlighting still proceeds below
+        }
+        lastScrolledIdRef.current = targetId;
+      }
+      if (highlight) refreshHighlight(0);
+    };
+
+    const refreshHighlight = (attempt: number) => {
+      if (cancelled) return;
+      const target = document.getElementById(targetId);
+      if (target) highlightSearchMatch(target, query);
+      if (attempt < 6) setTimeout(() => refreshHighlight(attempt + 1), 100);
+    };
+
+    setTimeout(() => findWrapper(0), 50);
+    return () => {
+      cancelled = true;
+    };
+  }, [activeHighlight, effectiveTab, selectedOperationKey, selectedMessageKey, selectedSchemaKey, selectedServerKey, focusSection, schemaFocusTarget]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setActiveHighlight(null);
+      clearSearchHighlight();
+    }
   }, [searchQuery]);
 
   useEffect(() => clearSearchHighlight, []);
@@ -135,14 +182,20 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
         operations={asyncapi.operations ?? {}}
         selectedKey={selectedOperationKey}
         onSelectKey={setSelectedOperationKey}
+        focusSection={focusSection}
       />
     ) : effectiveTab === "messages" ? (
       <Messages
         messages={(asyncapi.components?.messages ?? {}) as Record<string, MessageObject>}
         selectedKey={selectedMessageKey}
+        focusSection={focusSection}
       />
     ) : (
-      <Schemas schemas={asyncapi.components?.schemas ?? {}} selectedKey={selectedSchemaKey} />
+      <Schemas
+        schemas={asyncapi.components?.schemas ?? {}}
+        selectedKey={selectedSchemaKey}
+        focusTarget={schemaFocusTarget}
+      />
     );
 
   const themeVars = config.theme ? buildThemeVars(config.theme) : {};
@@ -174,6 +227,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
               servers={asyncapi.servers!}
               selectedServer={selectedServerKey}
               onSelectServer={setSelectedServerKey}
+              focusSection={focusSection}
             />
           </div>
         )}

@@ -9,9 +9,11 @@ interface ServersProps {
   servers: Record<string, ServerInterface>;
   selectedServer?: string | null;
   onSelectServer?: (serverName: string) => void;
+  /** Which collapsed section of the selected server search navigated to. */
+  focusSection?: string | null;
 }
 
-export default function Servers({ servers, selectedServer, onSelectServer }: ServersProps) {
+export default function Servers({ servers, selectedServer, onSelectServer, focusSection = null }: ServersProps) {
   const serverNames = Object.keys(servers);
   const [selected, setSelected] = useState<string | undefined>(undefined);
   // Prefers the caller-controlled selection (e.g. from search); falls back to
@@ -26,10 +28,13 @@ export default function Servers({ servers, selectedServer, onSelectServer }: Ser
     onSelectServer?.(serverName);
   };
 
-  // An explicit pick (nav click or search) means the user asked to see this
-  // server's full detail, so its Authorization accordion shouldn't stay
-  // collapsed — same reasoning as MessageRow auto-expanding on `isSelected`.
-  const content = <Server {...servers[current]} autoExpandAuth={!!(selectedServer || selected)} />;
+  const content = (
+    <Server
+      {...servers[current]}
+      serverKey={current}
+      focusSection={selectedServer || selected ? focusSection : null}
+    />
+  );
   return (
     <div className="flex justify-center w-full">
       <Section

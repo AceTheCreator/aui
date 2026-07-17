@@ -18,17 +18,17 @@ import Markdown from "../../components/Markdown";
 interface OperationProps {
   op: OperationInterface;
   id: string | null;
+  /** Which collapsed section search navigated to, e.g. `binding:kafka`. */
+  focusSection?: string | null;
 }
 
-export default function Operation({ op, id }: OperationProps) {
-  const [authExpanded, setAuthExpanded] = useState(true);
-  // Operation only ever mounts once the user has explicitly picked it (nav
-  // click or search), so its detail — including Authorization — should be
-  // visible immediately, and stay that way when they switch to another
-  // operation without closing the side panel first.
+export default function Operation({ op, id, focusSection = null }: OperationProps) {
+  const [authExpanded, setAuthExpanded] = useState(false);
+  // Matches Server's own auto-expand: collapsed by default, only forced open
+  // when search navigates here specifically for the Authorization content.
   useEffect(() => {
-    setAuthExpanded(true);
-  }, [id]);
+    if (focusSection === "security") setAuthExpanded(true);
+  }, [focusSection]);
   const messages = (op.messages ?? []) as unknown as MessageObject[];
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
@@ -53,7 +53,7 @@ export default function Operation({ op, id }: OperationProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id={`operation-${id}-detail`}>
       <div className="flex items-center gap-2">
         <span
           className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200`}
@@ -86,7 +86,7 @@ export default function Operation({ op, id }: OperationProps) {
 
       {/* Security */}
       {security && security.length > 0 && (
-        <div>
+        <div id={`operation-${id}-security`}>
           <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Operation Authorization
           </p>
@@ -123,14 +123,14 @@ export default function Operation({ op, id }: OperationProps) {
       {operationBindings &&
         Object.entries(operationBindings).map(([protocol, binding]) =>
           binding ? (
-            <div>
+            <div key={protocol} id={`operation-${id}-bindings-${protocol}`}>
               <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
                 Operation configuration
               </p>
               <Bindings
-                key={protocol}
                 protocol={protocol}
                 bindings={binding as Record<string, unknown>}
+                focused={focusSection === `binding:${protocol}`}
               />
             </div>
           ) : null,

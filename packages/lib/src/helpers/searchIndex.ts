@@ -15,6 +15,8 @@ export interface SearchEntry {
   location: string;
   subtitle?: string;
   text: string;
+  focusSection?: string;
+  schemaFocusTokens?: string[];
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -46,6 +48,25 @@ const flattenText = (value: unknown, visited = new Set<object>()): string => {
 const normalizeString = (value: unknown): string =>
   flattenText(value).trim().replace(/\s+/g, " ");
 
+/** Matches SchemaNode's own id computation — see that component's doc for the token convention. */
+const buildSchemaFocusId = (schemaKey: string, tokens: string[]): string =>
+  tokens.length ? `schema-${schemaKey}-${tokens.join("-")}` : `schema-${schemaKey}`;
+
+const SCHEMA_STRUCTURAL_KEYS = new Set([
+  "properties", "items", "allOf", "oneOf", "anyOf", "additionalProperties",
+  "patternProperties", "propertyNames", "not", "if", "then", "else",
+  "contains", "additionalItems", "prefixItems", "definitions", "$defs",
+]);
+
+const shallowSchemaNode = (node: unknown): unknown => {
+  if (!isRecord(node)) return node;
+  const shallow: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (!SCHEMA_STRUCTURAL_KEYS.has(key)) shallow[key] = value;
+  }
+  return shallow;
+};
+
 const addSchemaEntries = (
   entries: SearchEntry[],
   schema: unknown,
@@ -58,6 +79,7 @@ const addSchemaEntries = (
     node: unknown,
     pathSegments: string[],
     locationSegments: string[],
+    focusTokens: string[] | null,
   ) => {
     const path = `components.schemas.${schemaKey}${pathSegments.length ? `.${pathSegments.join(".")}` : ""}`;
     const location = `Schemas > ${schemaName}${locationSegments.length ? ` > ${locationSegments.join(" > ")}` : ""}`;
@@ -66,7 +88,7 @@ const addSchemaEntries = (
 
     entries.push({
       id: `schema-${schemaKey}-${pathSegments.join("-") || "root"}`,
-      targetId: rootTargetId,
+      targetId: focusTokens ? buildSchemaFocusId(schemaKey, focusTokens) : rootTargetId,
       type: "schema",
       tab: "schemas",
       key: schemaKey,
@@ -74,7 +96,8 @@ const addSchemaEntries = (
       path,
       location,
       subtitle,
-      text: normalizeString([node]),
+      text: normalizeString([shallowSchemaNode(node)]),
+      schemaFocusTokens: focusTokens && focusTokens.length > 0 ? focusTokens : undefined,
     });
   };
 
@@ -82,23 +105,35 @@ const addSchemaEntries = (
     node: unknown,
     pathSegments: string[] = [],
     locationSegments: string[] = [],
+    focusTokens: string[] | null = [],
   ) => {
-    addEntry(node, pathSegments, locationSegments);
+    addEntry(node, pathSegments, locationSegments, focusTokens);
 
     if (!isRecord(node)) return;
 
     if (isRecord(node.properties)) {
       for (const [propName, propValue] of Object.entries(node.properties)) {
-        walk(propValue, [...pathSegments, "properties", propName], [...locationSegments, propName]);
+        walk(
+          propValue,
+          [...pathSegments, "properties", propName],
+          [...locationSegments, propName],
+          focusTokens ? [...focusTokens, "properties", propName] : null,
+        );
       }
     }
 
     const items = (node as Record<string, unknown>).items;
     if (isRecord(items)) {
-      walk(items, [...pathSegments, "items"], [...locationSegments, "items"]);
+      walk(
+        items,
+        [...pathSegments, "items"],
+        [...locationSegments, "items"],
+        focusTokens ? [...focusTokens, "items"] : null,
+      );
     } else if (Array.isArray(items)) {
+      // Tuple-style (positional) items — outside the common-case precise walk.
       items.forEach((item, index) => {
-        walk(item, [...pathSegments, `items[${index}]`], [...locationSegments, `items[${index}]`]);
+        walk(item, [...pathSegments, `items[${index}]`], [...locationSegments, `items[${index}]`], null);
       });
     }
 
@@ -106,7 +141,12 @@ const addSchemaEntries = (
       const branch = (node as Record<string, unknown>)[keyword];
       if (Array.isArray(branch)) {
         branch.forEach((item, index) => {
-          walk(item, [...pathSegments, `${keyword}[${index}]`], [...locationSegments, `${keyword}[${index}]`]);
+          walk(
+            item,
+            [...pathSegments, `${keyword}[${index}]`],
+            [...locationSegments, `${keyword}[${index}]`],
+            focusTokens && keyword !== "allOf" ? [...focusTokens, `${keyword}[${index}]`] : null,
+          );
         });
       }
     }
@@ -116,6 +156,7 @@ const addSchemaEntries = (
         (node as Record<string, unknown>).additionalProperties,
         [...pathSegments, "additionalProperties"],
         [...locationSegments, "additionalProperties"],
+        null,
       );
     }
   };
@@ -178,6 +219,39 @@ export function buildSearchIndex(asyncapi: AsyncAPIDocumentData): SearchEntry[] 
           serverData.bindings,
         ]),
       });
+
+      const security = serverData.security as unknown[] | undefined;
+      if (Array.isArray(security) && security.length > 0) {
+        entries.push({
+          id: `server-${key}-security`,
+          targetId: `server-${key}-security`,
+          type: "server",
+          tab: "servers",
+          key,
+          name: `${key} > Authorization`,
+          path: `servers.${key}.security`,
+          location: `Servers > ${key} > Authorization`,
+          focusSection: "security",
+          text: normalizeString(security),
+        });
+      }
+
+      const bindings = serverData.bindings as Record<string, unknown> | undefined;
+      const protocolBinding = isRecord(bindings) && serverData.protocol ? bindings[serverData.protocol] : undefined;
+      if (protocolBinding != null) {
+        entries.push({
+          id: `server-${key}-bindings`,
+          targetId: `server-${key}-bindings`,
+          type: "server",
+          tab: "servers",
+          key,
+          name: `${key} > ${serverData.protocol} configuration`,
+          path: `servers.${key}.bindings.${serverData.protocol}`,
+          location: `Servers > ${key} > ${serverData.protocol} configuration`,
+          focusSection: `binding:${serverData.protocol}`,
+          text: normalizeString(protocolBinding),
+        });
+      }
     }
   }
 
@@ -187,7 +261,10 @@ export function buildSearchIndex(asyncapi: AsyncAPIDocumentData): SearchEntry[] 
       const subtitle = operation.summary ?? operation.description ?? operation.action ?? "";
       entries.push({
         id: `operation-${key}`,
-        targetId: `operation-${key}`,
+        // Points at the side panel's own content, not the summary table row —
+        // the row only shows a channel address and action badge, so most of
+        // what's actually searchable (description, tags, …) only exists here.
+        targetId: `operation-${key}-detail`,
         type: "operation",
         tab: "operations",
         key,
@@ -209,6 +286,41 @@ export function buildSearchIndex(asyncapi: AsyncAPIDocumentData): SearchEntry[] 
           operation.tags,
         ]),
       });
+
+      const security = operation.security as unknown[] | undefined;
+      if (Array.isArray(security) && security.length > 0) {
+        entries.push({
+          id: `operation-${key}-security`,
+          targetId: `operation-${key}-security`,
+          type: "operation",
+          tab: "operations",
+          key,
+          name: `${name} > Authorization`,
+          path: `operations.${key}.security`,
+          location: `Operations > ${name} > Authorization`,
+          focusSection: "security",
+          text: normalizeString(security),
+        });
+      }
+
+      const bindings = operation.bindings as Record<string, unknown> | undefined;
+      if (isRecord(bindings)) {
+        for (const [protocol, binding] of Object.entries(bindings)) {
+          if (binding == null) continue;
+          entries.push({
+            id: `operation-${key}-bindings-${protocol}`,
+            targetId: `operation-${key}-bindings-${protocol}`,
+            type: "operation",
+            tab: "operations",
+            key,
+            name: `${name} > ${protocol} configuration`,
+            path: `operations.${key}.bindings.${protocol}`,
+            location: `Operations > ${name} > ${protocol} configuration`,
+            focusSection: `binding:${protocol}`,
+            text: normalizeString(binding),
+          });
+        }
+      }
     }
   }
 
@@ -239,6 +351,36 @@ export function buildSearchIndex(asyncapi: AsyncAPIDocumentData): SearchEntry[] 
           message.bindings,
         ]),
       });
+
+      if (message.payload) {
+        entries.push({
+          id: `message-${key}-payload`,
+          targetId: `message-${key}`,
+          type: "message",
+          tab: "messages",
+          key,
+          name: `${name} > Payload`,
+          path: `components.messages.${key}.payload`,
+          location: `Messages > ${name} > Payload`,
+          focusSection: "payload",
+          text: normalizeString(message.payload),
+        });
+      }
+
+      if (message.headers) {
+        entries.push({
+          id: `message-${key}-headers`,
+          targetId: `message-${key}`,
+          type: "message",
+          tab: "messages",
+          key,
+          name: `${name} > Headers`,
+          path: `components.messages.${key}.headers`,
+          location: `Messages > ${name} > Headers`,
+          focusSection: "headers",
+          text: normalizeString(message.headers),
+        });
+      }
     }
   }
 

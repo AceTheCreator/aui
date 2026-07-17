@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import IconArrowRight from "../icons/ArrowRight";
 import IconDownRight from "../icons/ArrowDown";
 import { PROTOCOL_META } from "../contants";
@@ -71,10 +71,15 @@ interface Props {
   bindings: Record<string, unknown>;
   expand?: boolean;
   protocol: string;
+  /** Forces this block open — e.g. when search navigates directly to it. */
+  focused?: boolean;
 }
 
-export default function Bindings({ bindings, expand = false, protocol }: Props) {
+export default function Bindings({ bindings, expand = false, protocol, focused }: Props) {
   const [expanded, setExpanded] = useState(expand);
+  useEffect(() => {
+    if (focused) setExpanded(true);
+  }, [focused]);
   const meta = PROTOCOL_META[protocol.toLowerCase()] ?? { label: protocol, color: "bg-neutral-100 text-foreground-secondary border-border" };
 
   const entries = Object.entries(bindings ?? {}).filter(

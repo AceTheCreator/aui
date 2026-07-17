@@ -16,7 +16,10 @@ import Connection from "../../icons/Connection";
 import Bindings from "../../components/Bindings";
 
 interface ServerProps extends ServerInterface {
-  autoExpandAuth?: boolean;
+  /** The server's own key/name, needed to build ids for its sub-sections. */
+  serverKey?: string;
+  /** Which collapsed section (if any) search navigated to, e.g. `binding:kafka`. */
+  focusSection?: string | null;
 }
 
 export default function Server({
@@ -27,18 +30,19 @@ export default function Server({
   variables,
   security,
   bindings,
-  autoExpandAuth,
+  serverKey,
+  focusSection = null,
 }: ServerProps) {
   // `variables` is typed as a Map (a codegen artifact from the AsyncAPI JSON schema),
   // but parsed documents are always plain objects at runtime — never real Map instances.
   const variableEntries = variables as unknown as Record<string, ServerVariable> | undefined;
   const [authExpanded, setAuthExpanded] = useState(false);
 
-  // Mirrors MessageRow's auto-expand-on-select: an explicit pick (nav click or
-  // search) shouldn't leave the matched Authorization content hidden.
+  // Mirrors MessageRow's auto-expand-on-select: navigating here specifically
+  // for the Authorization content shouldn't leave it hidden.
   useEffect(() => {
-    if (autoExpandAuth) setAuthExpanded(true);
-  }, [autoExpandAuth]);
+    if (focusSection === "security") setAuthExpanded(true);
+  }, [focusSection]);
 
   return (
     <div>
@@ -70,7 +74,7 @@ export default function Server({
       </div>
       <Markdown>{description}</Markdown>
       {security && security.length > 0 && (
-        <div>
+        <div id={serverKey ? `server-${serverKey}-security` : undefined}>
           <h3 className="font-bold text-foreground-secondary mt-8">
             <IconShieldCheck className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
             Authorization
@@ -105,7 +109,7 @@ export default function Server({
         const hasContent = protocolBinding && Object.keys(protocolBinding).some((k) => k !== "bindingVersion");
         if (!hasContent) return null;
         return (
-          <div>
+          <div id={serverKey ? `server-${serverKey}-bindings` : undefined}>
             <h3 className="font-bold text-foreground-secondary mt-8">
               <Connection className="inline-block mr-2 -mt-1 h-6 text-foreground-muted" />
               Connection Settings
@@ -113,7 +117,11 @@ export default function Server({
             <p className="prose text-foreground-muted mt-4">
               This server accepts the following connection configuration:
             </p>
-            <Bindings bindings={protocolBinding} protocol={protocol} />
+            <Bindings
+              bindings={protocolBinding}
+              protocol={protocol}
+              focused={focusSection === `binding:${protocol}`}
+            />
           </div>
         );
       })()}
