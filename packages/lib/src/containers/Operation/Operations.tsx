@@ -46,6 +46,17 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         key={key}
         id={`operation-${key}`}
         onClick={() => setSelectedKey(key)}
+        // A <tr> isn't natively focusable or activatable — role/tabIndex/onKeyDown
+        // make it reachable and operable by keyboard, matching the click behavior.
+        role="button"
+        tabIndex={0}
+        aria-label={`${actionLabel || "Operation"} ${address ?? key}`}
+        aria-current={isSelected ? "true" : undefined}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          setSelectedKey(key);
+        }}
         className={`group cursor-pointer ${isSelected ? "bg-neutral-50" : ""}`}
       >
         <td className="px-6 py-4 max-w-0 w-full group-hover:bg-neutral-50">

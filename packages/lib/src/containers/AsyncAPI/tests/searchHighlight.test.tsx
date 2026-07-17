@@ -74,7 +74,7 @@ describe("search result highlighting", () => {
   it("scrolls to and expands a nested schema property via search, without text-highlighting it (backlogged)", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
 
-    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "ZIPCODEMARKER" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "ZIPCODEMARKER" } });
     fireEvent.click(await screen.findByText(/Widget/i, { selector: "div.text-sm.font-semibold" }));
 
     // Navigation + auto-expand still work: the matched node reaches the DOM.
@@ -92,14 +92,14 @@ describe("search result highlighting", () => {
   it("still highlights operation/message/server results normally", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
 
-    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "widget" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "widget" } });
     fireEvent.click(await screen.findByText("doSomething", { selector: "div.text-sm.font-semibold" }));
     await waitFor(() => expect(highlightedText().toLowerCase()).toContain("widget"), { timeout: 2000 });
   });
 
   it("clears any prior highlight when a search result switches to Schemas", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
-    const input = screen.getByRole("searchbox");
+    const input = screen.getByRole("combobox", { name: "Search document" });
 
     // Step 1: highlight something on the default (Operations) tab.
     fireEvent.change(input, { target: { value: "widget" } });

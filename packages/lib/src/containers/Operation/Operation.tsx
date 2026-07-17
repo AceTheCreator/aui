@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
@@ -24,6 +24,8 @@ interface OperationProps {
 
 export default function Operation({ op, id, focusSection = null }: OperationProps) {
   const [authExpanded, setAuthExpanded] = useState(false);
+  const authHeadingId = useId();
+  const authPanelId = useId();
   // Matches Server's own auto-expand: collapsed by default, only forced open
   // when search navigates here specifically for the Authorization content.
   useEffect(() => {
@@ -87,13 +89,17 @@ export default function Operation({ op, id, focusSection = null }: OperationProp
       {/* Security */}
       {security && security.length > 0 && (
         <div id={`operation-${id}-security`}>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
+          <p id={authHeadingId} className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Operation Authorization
           </p>
           <div className="rounded-lg border border-border overflow-hidden">
-            <div
-              className="flex items-center justify-between px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+            <button
+              type="button"
+              aria-expanded={authExpanded}
+              aria-controls={authPanelId}
+              aria-labelledby={authHeadingId}
               onClick={() => setAuthExpanded((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-3 bg-neutral-50 text-left hover:bg-neutral-100 transition-colors"
             >
               <span className="text-xs font-normal text-foreground-muted bg-neutral-100 border border-border rounded-full px-2 py-0.5">
                 {security.length}
@@ -103,8 +109,9 @@ export default function Operation({ op, id, focusSection = null }: OperationProp
               ) : (
                 <IconArrowRight className="w-4 h-4 text-foreground-muted shrink-0" />
               )}
-            </div>
+            </button>
             <div
+              id={authPanelId}
               className={`grid transition-all duration-200 ease-in-out ${authExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
             >
               <div className="overflow-hidden">

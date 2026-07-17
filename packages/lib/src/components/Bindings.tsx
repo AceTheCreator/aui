@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import IconArrowRight from "../icons/ArrowRight";
 import IconDownRight from "../icons/ArrowDown";
 import { PROTOCOL_META } from "../contants";
@@ -86,13 +86,18 @@ export default function Bindings({ bindings, expand = false, protocol, focused }
     ([k, v]) => k !== "bindingVersion" && v !== undefined && v !== null
   );
 
+  const panelId = useId();
+
   if (entries.length === 0) return null;
 
   return (
     <div className="mt-2 rounded-lg border border-border overflow-hidden">
-      <div
-        className="flex items-center justify-between px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={panelId}
         onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between px-4 py-3 bg-neutral-50 text-left hover:bg-neutral-100 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className={`text-xs font-medium px-2 py-0.5 rounded border ${meta.color}`}>
@@ -104,9 +109,10 @@ export default function Bindings({ bindings, expand = false, protocol, focused }
         ) : (
           <IconArrowRight className="w-4 h-4 text-foreground-muted" />
         )}
-      </div>
+      </button>
 
       <div
+        id={panelId}
         className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
       >
         <div className="overflow-hidden">
