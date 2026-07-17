@@ -106,24 +106,28 @@ export default function Bindings({ bindings, expand = false, protocol, focused }
         )}
       </div>
 
-      {expanded && (
-        <div className="divide-y divide-neutral-100">
-          {entries.length === 0 ? (
-            <p className="px-4 py-3 text-xs text-foreground-muted italic">No binding properties defined.</p>
-          ) : (
-            entries.map(([key, value]) => (
-              <div key={key} className="flex items-center items-start gap-4 px-4 py-3">
-                <span className="text-xs font-medium text-foreground-muted w-40 shrink-0 pt-0.5">
-                  {prettyKey(key)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <BindingValue value={value} />
+      <div
+        className={`grid transition-all duration-200 ease-in-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+      >
+        <div className="overflow-hidden">
+          <div className="divide-y divide-neutral-100">
+            {entries.length === 0 ? (
+              <p className="px-4 py-3 text-xs text-foreground-muted italic">No binding properties defined.</p>
+            ) : (
+              entries.map(([key, value]) => (
+                <div key={key} className="flex items-center items-start gap-4 px-4 py-3">
+                  <span className="text-xs font-medium text-foreground-muted w-40 shrink-0 pt-0.5">
+                    {prettyKey(key)}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <BindingValue value={value} />
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

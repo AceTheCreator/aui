@@ -96,11 +96,15 @@ export default function Server({
                 <IconArrowRight className="w-4 h-4 text-foreground-muted shrink-0" />
               )}
             </div>
-            {authExpanded && (
-              <div className="px-4 py-2 border-t border-border">
-                <Authorization securities={security} />
+            <div
+              className={`grid transition-all duration-200 ease-in-out ${authExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+            >
+              <div className="overflow-hidden">
+                <div className="px-4 py-2 border-t border-border">
+                  <Authorization securities={security} />
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
