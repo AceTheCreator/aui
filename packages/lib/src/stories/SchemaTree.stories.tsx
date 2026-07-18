@@ -38,7 +38,7 @@ const withSchemaContext = (Story: ComponentType) => (
   <AsyncAPIDocumentContext.Provider
     value={{ document: mockDocument, deref, portalHost: null, rootElement: null, depthColors: DEFAULT_DEPTH_COLORS }}
   >
-    <div className="max-w-3xl p-4">
+    <div className="mx-auto w-full max-w-3xl p-4">
       <Story />
     </div>
   </AsyncAPIDocumentContext.Provider>
