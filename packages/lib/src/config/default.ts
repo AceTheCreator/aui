@@ -24,15 +24,10 @@ export const defaultConfig: ConfigInterface = {
         700: "#3d5bc4",
       },
     },
-    dark: {
-      background: "#1a1b26",
-      surface: "#24283b",
-      border: "#414868",
-
-      textPrimary: "#c0caf5",
-      textSecondary: "#a9b1d6",
-      textMuted: "#666c86",
-    },
+    // No `light` or `dark` block here: buildThemeVars() only overrides
+    // background/surface/border/text colors when one is set, so omitting
+    // both leaves index.css's :root defaults (a light theme) in effect.
+    // Pass `theme.dark` (or `theme.light`) in your own config to opt in.
     depthColors: DEFAULT_DEPTH_COLORS,
   },
   expand: {

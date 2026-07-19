@@ -47,6 +47,7 @@ See the full usage docs for props, configuration options, and more:
 
 - [Without Parser](./docs/usage/no-parser.md) (`AsyncAPI` component)
 - [With Parser](./docs/usage/with-parser.md) (`AsyncAPIRenderer` component, `parseAndRender` utility)
+- [Web Components](./docs/usage/with-webcomponents.md) (`<aui-asyncapi>`, `<aui-asyncapi-renderer>` — use apiuikit from any framework)
 - [Avro schemas](./docs/usage/avro.md)
 - [Protobuf schemas](./docs/usage/protobuf.md)
 
