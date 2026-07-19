@@ -20,23 +20,26 @@ export interface UiPalette {
 }
 
 export const UI_PALETTES: Record<UiMode, UiPalette> = {
+  // GitHub Dark (Primer) palette — kept in sync with the AsyncAPI preview's
+  // `defaultConfig.theme.dark` in packages/lib/src/config/default.ts so the
+  // playground chrome and the rendered spec read as one consistent theme.
   dark: {
-    chromeBg: '#030712',
-    chromeBorder: '#1f2937',
-    textPrimary: '#f9fafb',
-    textMuted: '#6b7280',
-    hoverText: '#e5e7eb',
-    activeIndicator: '#1f2937',
-    focusRing: '#3b82f6',
-    errorBg: '#450a0a',
-    errorBorder: '#7f1d1d',
-    errorText: '#fca5a5',
-    warningText: '#fbbf24',
-    handleBg: '#1f2937',
-    handleBgHover: '#374151',
-    scrollbarTrack: '#030712',
-    scrollbarThumb: '#374151',
-    scrollbarThumbHover: '#4b5563',
+    chromeBg: '#0d1117',
+    chromeBorder: '#30363d',
+    textPrimary: '#c9d1d9',
+    textMuted: '#8b949e',
+    hoverText: '#e6edf3',
+    activeIndicator: '#58a6ff',
+    focusRing: '#1f6feb',
+    errorBg: '#490202',
+    errorBorder: '#da3633',
+    errorText: '#f85149',
+    warningText: '#d29922',
+    handleBg: '#30363d',
+    handleBgHover: '#6e7681',
+    scrollbarTrack: '#0d1117',
+    scrollbarThumb: '#30363d',
+    scrollbarThumbHover: '#6e7681',
   },
   light: {
     chromeBg: '#ffffff',
