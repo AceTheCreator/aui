@@ -16,7 +16,7 @@ If you want to hand it a raw YAML/JSON string instead of a pre-parsed object, al
 npm install @asyncapi/parser
 ```
 
-<a href="https://codesandbox.io/p/sandbox/6jw4pf" target="_blank" rel="noopener noreferrer"><img src="https://codesandbox.io/static/img/play-codesandbox.svg" alt="Edit Apiuikit React Component" /></a>
+[![Edit Apiuikit React Component](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/6jw4pf)
 
 ## Usage in React
 
