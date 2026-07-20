@@ -16,6 +16,8 @@ If you want to hand it a raw YAML/JSON string instead of a pre-parsed object, al
 npm install @asyncapi/parser
 ```
 
+[![Edit Apiuikit React Component](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/6jw4pf)
+
 ## Usage in React
 
 The quickest path to use the kit for AsyncAPI is to pass a pre-resolved AsyncAPI document object (e.g. imported from a JSON file, or fetched from your own backend):
