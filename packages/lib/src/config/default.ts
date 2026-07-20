@@ -26,6 +26,17 @@ export const defaultConfig: ConfigInterface = {
         700: "#0d419d",
       },
     },
+    // Matches the :root fallback values in index.css — kept explicit here so light
+    // wins outright over `dark` below per buildThemeVars' precedence rule.
+    light: {
+      background: "#f8fafc",
+      surface: "#ffffff",
+      border: "#e2e8f0",
+
+      textPrimary: "#1e293b",
+      textSecondary: "#475569",
+      textMuted: "#64748b",
+    },
     dark: {
       background: "#0d1117",
       surface: "#161b22",
