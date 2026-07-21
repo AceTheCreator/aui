@@ -1,5 +1,11 @@
 # apiuikit
 
+## 0.2.1
+
+### Patch Changes
+
+- 51fd232: better colour consistency and better dark mode
+
 ## 0.2.0
 
 ### Minor Changes
