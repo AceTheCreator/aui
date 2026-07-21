@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import AsyncAPI from "../AsyncAPI";

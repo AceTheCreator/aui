@@ -6,6 +6,7 @@ import { resolveDocument } from "../helpers/resolveDocument";
 import type { AsyncAPIDocumentData } from "../types/schema";
 import rawExample from "../config/examples/example1.json";
 import { centeredDecorator } from "./documentContextDecorator";
+import { ComponentProps } from "react";
 
 // SearchPanel is a controlled component (query/results in, selection out) and
 // needs no document context. To make the story interactive, useSpecSearch
@@ -30,18 +31,21 @@ const meta = {
 } satisfies Meta<typeof SearchPanel>;
 
 export default meta;
+
 type Story = StoryObj<typeof meta>;
 
+const SearchHooks = (args: ComponentProps<typeof SearchPanel>) => {
+  const { query, setQuery, results } = useSpecSearch(document);
+  return (
+    <SearchPanel
+      {...args}
+      query={query}
+      onQueryChange={setQuery}
+      results={results}
+    />
+  );
+};
+
 export const Default: Story = {
-  render: (args) => {
-    const { query, setQuery, results } = useSpecSearch(document);
-    return (
-      <SearchPanel
-        {...args}
-        query={query}
-        onQueryChange={setQuery}
-        results={results}
-      />
-    );
-  },
+  render: (args) => <SearchHooks {...args} />,
 };

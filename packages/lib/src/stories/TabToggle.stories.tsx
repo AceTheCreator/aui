@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentProps } from "react";
 import TabToggle from "../components/TabToggle";
 import { centeredDecorator } from "./documentContextDecorator";
 
@@ -21,6 +22,11 @@ const tabs = [
   { id: "json", label: "JSON" },
 ];
 
+const TabToggleHooks = (args: ComponentProps<typeof TabToggle>) => {
+  const [selected, setSelected] = useState(tabs[0].id);
+  return <TabToggle {...args} selected={selected} onChange={setSelected} />;
+};
+
 export const Default: Story = {
   args: {
     tabs,
@@ -28,8 +34,5 @@ export const Default: Story = {
     onChange: () => {}, // overridden by render
     ariaLabel: "Schema view",
   },
-  render: (args) => {
-    const [selected, setSelected] = useState(tabs[0].id);
-    return <TabToggle {...args} selected={selected} onChange={setSelected} />;
-  },
+  render: (args) => <TabToggleHooks {...args} />,
 };
