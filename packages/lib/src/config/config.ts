@@ -63,9 +63,9 @@ export interface ThemeModeColors {
 export interface ThemeConfig {
   /** Brand color scale overrides, applied regardless of which mode is active. */
   colors?: ThemeColors;
-  /** Applied when only a light theme is configured. */
+  /** Applied when a light theme is configured. Wins over `dark` if both are set. */
   light?: ThemeModeColors;
-  /** Applied when a dark theme is configured. Wins over `light` if both are set. */
+  /** Applied when only a dark theme is configured. */
   dark?: ThemeModeColors;
   /**
    * Colors for the schema tree's depth-indicator lines (and matching label

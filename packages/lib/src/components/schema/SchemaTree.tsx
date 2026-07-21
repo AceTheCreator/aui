@@ -35,7 +35,7 @@ export default function SchemaTree({
 
   if (!node || !flattenedNode) {
     return (
-      <p className="text-xs text-gray-400 italic">
+      <p className="text-xs text-foreground-muted italic">
         No schema details available.
       </p>
     );

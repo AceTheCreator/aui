@@ -41,7 +41,7 @@ function SchemaTabs({
       <div className="flex items-center justify-between mb-2">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
               {label}
             </p>
             {formatBadge && (
@@ -54,7 +54,7 @@ function SchemaTabs({
             )}
           </div>
           {description && (
-            <p className="text-sm text-gray-600 leading-relaxed mt-2 mb-2">
+            <p className="text-sm text-foreground-secondary leading-relaxed mt-2 mb-2">
               {description}
             </p>
           )}
