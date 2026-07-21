@@ -11,7 +11,7 @@ const messages = (document.components as { messages?: Record<string, MessageObje
 const [firstKey] = Object.entries(messages)[0];
 
 const meta = {
-  title: "Components/Message",
+  title: "Internal/Message",
   component: Message,
   decorators: [decorator],
 } satisfies Meta<typeof Message>;

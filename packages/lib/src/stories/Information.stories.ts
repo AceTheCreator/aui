@@ -4,7 +4,7 @@ import example from "../config/examples/example1.json";
 import { centeredDecorator } from "./documentContextDecorator";
 
 const meta = {
-  title: "Components/Information",
+  title: "Internal/Information",
   component: Information,
   decorators: [centeredDecorator],
 } satisfies Meta<typeof Information>;

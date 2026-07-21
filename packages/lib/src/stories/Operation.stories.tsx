@@ -9,7 +9,7 @@ const operations = document.operations as unknown as Record<string, OperationTyp
 const [firstKey, firstOperation] = Object.entries(operations)[0];
 
 const meta = {
-  title: "Components/Operation",
+  title: "Internal/Operation",
   component: Operation,
   decorators: [decorator],
 } satisfies Meta<typeof Operation>;

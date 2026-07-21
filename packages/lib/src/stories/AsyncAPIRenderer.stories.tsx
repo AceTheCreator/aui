@@ -5,7 +5,7 @@ import example1 from "../config/examples/streetlight.json";
 const raw = JSON.stringify(example1);
 
 const meta = {
-  title: "Example/AsyncAPIRenderer",
+  title: "API/AsyncAPIRenderer",
   component: AsyncAPIRenderer,
 } satisfies Meta<typeof AsyncAPIRenderer>;
 

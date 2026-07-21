@@ -45,7 +45,7 @@ const withSchemaContext = (Story: ComponentType) => (
 );
 
 const meta = {
-  title: "Components/SchemaTree",
+  title: "API/SchemaTree",
   component: SchemaTree,
   decorators: [withSchemaContext],
 } satisfies Meta<typeof SchemaTree>;

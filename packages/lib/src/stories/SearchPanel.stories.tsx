@@ -16,7 +16,7 @@ const document = resolveDocument(
 ) as AsyncAPIDocumentData;
 
 const meta = {
-  title: "Components/SearchPanel",
+  title: "Internal/SearchPanel",
   component: SearchPanel,
   decorators: [centeredDecorator],
   // query/onQueryChange/results are supplied live by useSpecSearch in render

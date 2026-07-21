@@ -1,32 +1,23 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import Messages from "../containers/Messages/Messages";
-import type { MessageObject } from "../types/asyncapi/MessageObject";
+import { Messages } from "../public/sections";
+import type { AsyncAPIDocumentData } from "../types/schema";
 import rawExample from "../config/examples/example1.json";
-import { buildDocumentContext } from "./documentContextDecorator";
+import { centeredDecorator } from "./documentContextDecorator";
 
-const { document, decorator } = buildDocumentContext(rawExample);
-const messages = (document.components as { messages?: Record<string, MessageObject> })
-  ?.messages as Record<string, MessageObject>;
+// The public `Messages` section: pass a `document` and it renders that
+// document's messages table standalone. Each row expands independently to
+// reveal its payload/headers.
+const document = rawExample as unknown as AsyncAPIDocumentData;
 
 const meta = {
-  title: "Components/Messages",
+  title: "API/Messages",
   component: Messages,
-  decorators: [decorator],
+  decorators: [centeredDecorator],
 } satisfies Meta<typeof Messages>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    messages,
-  },
-};
-
-// Pre-selecting a message auto-expands its details row (payload/headers).
-export const WithSelectedMessage: Story = {
-  args: {
-    messages,
-    selectedKey: Object.keys(messages)[0],
-  },
+  args: { document },
 };

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AsyncAPIDocumentContext } from "../../contexts/index";
+import { useEffect, useRef, useState } from "react";
+import AsyncAPIDocumentProvider from "./AsyncAPIDocumentProvider";
 import ContentTab, { ContentTabItem } from "../../components/ContentTab";
 import Navigation, { NavSectionId } from "../../components/Navigation";
 import SearchPanel from "../../components/SearchPanel";
@@ -8,8 +8,6 @@ import { SearchEntry } from "../../helpers/searchIndex";
 import { clearSearchHighlight, highlightSearchMatch } from "../../helpers/textHighlight";
 import { MessageObject } from "../../types/asyncapi/MessageObject";
 import { ConfigInterface } from "../../config";
-import { buildThemeVars } from "../../utils/theme";
-import { DEFAULT_DEPTH_COLORS } from "../../components/schema/depthColors";
 import IconMessage from "../../icons/Message";
 import IconOperation from "../../icons/Operation";
 import IconSchema from "../../icons/Schema";
@@ -27,9 +25,6 @@ export interface LayoutProps {
 
 type AsyncAPITabKey = "operations" | "messages" | "schemas";
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
 const isAsyncAPITabKey = (value: string): value is AsyncAPITabKey =>
   value === "operations" || value === "messages" || value === "schemas";
 
@@ -44,15 +39,6 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   const firstTab = (tabs[0]?.id ?? "operations") as AsyncAPITabKey;
   const [activeTab, setActiveTab] = useState<AsyncAPITabKey>(firstTab);
-  // Single authoritative "where is the user's attention" value for the
-  // sidebar's own header highlighting — covers Servers too, even though it
-  // isn't a switchable content tab, so at most one section header is ever
-  // highlighted at a time. `activeTab` alone can't do this: selecting a
-  // server doesn't (and can't) change which content tab is showing, so a
-  // header driven by `activeTab === id` and one driven by "a server is
-  // selected" could both read true simultaneously.
-  // Keep the content tab active on initial render, but don't highlight any
-  // sidebar section until the user interacts with it.
   const [focusedNavSection, setFocusedNavSection] = useState<NavSectionId | null>(null);
   const focusTab = (tab: AsyncAPITabKey) => {
     setActiveTab(tab);
@@ -72,9 +58,6 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
   const selectedSchemaKey = show.schemas !== false ? rawSelectedSchemaKey : null;
   const selectedServerKey = show.servers !== false ? rawSelectedServerKey : null;
   const serverNames = asyncapi.servers ? Object.keys(asyncapi.servers) : [];
-  const derefCache = useMemo(() => new Map<string, unknown>(), []);
-  const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
-  const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
 
   const { query: searchQuery, setQuery: setSearchQuery, results: searchResults } =
     useSpecSearch(asyncapi, { threshold: 0.3, limit: 20 });
@@ -152,46 +135,6 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
 
   useEffect(() => clearSearchHighlight, []);
 
-  useEffect(() => {
-    derefCache.clear();
-  }, [asyncapi, derefCache]);
-
-  // Fallback resolver for the few $refs that survive upfront resolution —
-  // resolveDocument deliberately leaves cycle-forming refs in place, and the
-  // schema tree resolves those lazily (one level per expansion) via this.
-  const deref = useCallback((refPath: string) => {
-    if (derefCache.has(refPath)) return derefCache.get(refPath);
-
-    const parts = refPath.replace(/^#\//, "").split("/");
-    let current: unknown = asyncapi;
-
-    for (const part of parts) {
-      if (!isRecord(current)) {
-        current = undefined;
-        break;
-      }
-      const decoded = part.replace(/~1/g, "/").replace(/~0/g, "~");
-      current = current[decoded];
-      if (current == null) break;
-    }
-
-    if (current !== undefined) {
-      derefCache.set(refPath, current);
-    }
-
-    return current;
-  }, [asyncapi, derefCache]);
-
-  const defaultSchemaExpanded = config.expand?.schemas === true;
-  const depthColors = config.theme?.depthColors?.length
-    ? config.theme.depthColors
-    : DEFAULT_DEPTH_COLORS;
-
-  const value = useMemo(
-    () => ({ document: asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded, depthColors }),
-    [asyncapi, deref, portalHost, rootElement, defaultSchemaExpanded, depthColors],
-  );
-
   const activeContent =
     effectiveTab === "operations" ? (
       <Operations
@@ -214,18 +157,12 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
       />
     ) : null;
 
-  const themeVars = config.theme ? buildThemeVars(config.theme) : {};
-
   return (
-    <AsyncAPIDocumentContext.Provider value={value}>
-      <div
-        ref={setRootElement}
-        style={themeVars as React.CSSProperties}
-        className={`relative @container bg-background text-foreground p-2 ${
-          show.sidebar !== false ? "pt-14" : ""
-        }`}
-      >
-        <div ref={setPortalHost} className="asyncapi-portal-root" />
+    <AsyncAPIDocumentProvider
+      document={asyncapi}
+      config={config}
+      className={show.sidebar !== false ? "pt-14" : ""}
+    >
         {show.search !== false && (
           <SearchPanel
             query={searchQuery}
@@ -314,7 +251,6 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
             {activeContent}
           </div>
         )}
-      </div>
-    </AsyncAPIDocumentContext.Provider>
+    </AsyncAPIDocumentProvider>
   );
 }

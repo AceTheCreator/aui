@@ -3,7 +3,7 @@ import { SchemaViewer } from '../containers/Schema/SchemaViewer';
 import { centeredDecorator } from './documentContextDecorator';
 
 const meta = {
-  title: 'Components/SchemaViewer',
+  title: 'Internal/SchemaViewer',
   component: SchemaViewer,
   decorators: [centeredDecorator],
 } satisfies Meta<typeof SchemaViewer>;
