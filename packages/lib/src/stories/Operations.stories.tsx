@@ -11,7 +11,7 @@ import { centeredDecorator } from "./documentContextDecorator";
 const document = rawExample as unknown as AsyncAPIDocumentData;
 
 const meta = {
-  title: "API/Operations",
+  title: "Components/Operations",
   component: Operations,
   decorators: [centeredDecorator],
 } satisfies Meta<typeof Operations>;

@@ -10,7 +10,7 @@ import { centeredDecorator } from "./documentContextDecorator";
 const document = rawExample as unknown as AsyncAPIDocumentData;
 
 const meta = {
-  title: "API/Messages",
+  title: "Components/Messages",
   component: Messages,
   decorators: [centeredDecorator],
 } satisfies Meta<typeof Messages>;

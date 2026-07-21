@@ -25,15 +25,6 @@ export const defaultConfig: ConfigInterface = {
         700: "#3d5bc4",
       },
     },
-    dark: {
-      background: "#1a1b26",
-      surface: "#24283b",
-      border: "#414868",
-
-      textPrimary: "#c0caf5",
-      textSecondary: "#a9b1d6",
-      textMuted: "#666c86",
-    },
     depthColors: DEFAULT_DEPTH_COLORS,
   },
   expand: {

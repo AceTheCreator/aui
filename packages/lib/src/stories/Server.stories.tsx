@@ -15,7 +15,7 @@ const oneServerDoc = {
 } as unknown as AsyncAPIDocumentData;
 
 const meta = {
-  title: "API/Servers",
+  title: "Components/Servers",
   component: Servers,
   decorators: [centeredDecorator],
 } satisfies Meta<typeof Servers>;

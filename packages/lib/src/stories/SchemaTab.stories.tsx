@@ -10,7 +10,7 @@ import { buildDocumentContext } from "./documentContextDecorator";
 const { decorator } = buildDocumentContext(rawExample);
 
 const meta = {
-  title: "API/SchemaTab",
+  title: "Components/SchemaTab",
   component: SchemaTab,
   decorators: [decorator],
 } satisfies Meta<typeof SchemaTab>;
