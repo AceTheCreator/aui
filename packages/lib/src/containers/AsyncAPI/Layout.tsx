@@ -163,6 +163,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
       config={config}
       className={show.sidebar !== false ? "pt-14" : ""}
     >
+      <div className="px-4">
         {show.search !== false && (
           <SearchPanel
             query={searchQuery}
@@ -251,6 +252,7 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
             {activeContent}
           </div>
         )}
+      </div>
     </AsyncAPIDocumentProvider>
   );
 }
