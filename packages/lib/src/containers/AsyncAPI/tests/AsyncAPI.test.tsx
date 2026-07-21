@@ -29,6 +29,12 @@ describe("AsyncAPI", () => {
     expect(screen.queryByText("test.mykafkacluster.org", { exact: false })).not.toBeInTheDocument();
   });
 
+  it("hides the search panel when show.search is false", () => {
+    render(<AsyncAPI asyncapi={asDoc(exampleDoc)} config={{ show: { search: false } }} />);
+
+    expect(screen.queryByPlaceholderText("Search document...")).not.toBeInTheDocument();
+  });
+
   it("applies an expand.schemas config change to already-mounted schema trees", () => {
     // Minimal doc with a nested object property — `source` only renders while its
     // parent `metadata` node is expanded, which is what expand.schemas controls.

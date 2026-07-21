@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { OperationBindingsObject } from "../../types/asyncapi/OperationBindingsObject";
 import Authorization from "../../components/Authorization";
 import Bindings from "../../components/Bindings";
@@ -18,10 +18,19 @@ import Markdown from "../../components/Markdown";
 interface OperationProps {
   op: OperationInterface;
   id: string | null;
+  /** Which collapsed section search navigated to, e.g. `binding:kafka`. */
+  focusSection?: string | null;
 }
 
-export default function Operation({ op, id }: OperationProps) {
+export default function Operation({ op, id, focusSection = null }: OperationProps) {
   const [authExpanded, setAuthExpanded] = useState(false);
+  const authHeadingId = useId();
+  const authPanelId = useId();
+  // Matches Server's own auto-expand: collapsed by default, only forced open
+  // when search navigates here specifically for the Authorization content.
+  useEffect(() => {
+    if (focusSection === "security") setAuthExpanded(true);
+  }, [focusSection]);
   const messages = (op.messages ?? []) as unknown as MessageObject[];
   const tags = (op.tags ?? []) as unknown as Tag[];
   const bindings = op.bindings as unknown as OperationBindingsObject | undefined;
@@ -46,7 +55,7 @@ export default function Operation({ op, id }: OperationProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id={`operation-${id}-detail`}>
       <div className="flex items-center gap-2">
         <span
           className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono bg-primary-50 text-primary-600 border border-primary-200`}
@@ -79,14 +88,18 @@ export default function Operation({ op, id }: OperationProps) {
 
       {/* Security */}
       {security && security.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
+        <div id={`operation-${id}-security`}>
+          <p id={authHeadingId} className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">
             Operation Authorization
           </p>
           <div className="rounded-lg border border-border overflow-hidden">
-            <div
-              className="flex items-center justify-between px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+            <button
+              type="button"
+              aria-expanded={authExpanded}
+              aria-controls={authPanelId}
+              aria-labelledby={authHeadingId}
               onClick={() => setAuthExpanded((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-3 bg-neutral-50 text-left hover:bg-neutral-100 transition-colors"
             >
               <span className="text-xs font-normal text-foreground-muted bg-neutral-100 border border-border rounded-full px-2 py-0.5">
                 {security.length}
@@ -96,18 +109,23 @@ export default function Operation({ op, id }: OperationProps) {
               ) : (
                 <IconArrowRight className="w-4 h-4 text-foreground-muted shrink-0" />
               )}
-            </div>
-            {authExpanded && (
-              <div className="px-4 py-2 border-t border-border">
-                <Authorization
-                  securities={
-                    security as Parameters<
-                      typeof Authorization
-                    >[0]["securities"]
-                  }
-                />
+            </button>
+            <div
+              id={authPanelId}
+              className={`grid transition-all duration-200 ease-in-out ${authExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+            >
+              <div className="overflow-hidden">
+                <div className="px-4 py-2 border-t border-border">
+                  <Authorization
+                    securities={
+                      security as Parameters<
+                        typeof Authorization
+                      >[0]["securities"]
+                    }
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
@@ -116,14 +134,14 @@ export default function Operation({ op, id }: OperationProps) {
       {operationBindings &&
         Object.entries(operationBindings).map(([protocol, binding]) =>
           binding ? (
-            <div>
+            <div key={protocol} id={`operation-${id}-bindings-${protocol}`}>
               <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
                 Operation configuration
               </p>
               <Bindings
-                key={protocol}
                 protocol={protocol}
                 bindings={binding as Record<string, unknown>}
+                focused={focusSection === `binding:${protocol}`}
               />
             </div>
           ) : null,

@@ -8,6 +8,7 @@ import SchemaTypeLabel from "./SchemaTypeLabel";
 import { shouldShowRefFootnote } from "./schemaDisplayUtils";
 
 export interface SchemaTreeRowProps {
+  id?: string;
   path: string;
   depth: number;
   schema?: SchemaNodeData;
@@ -28,6 +29,7 @@ const CONTENT_INDENT = "ml-6";
 
 /** Single tree row: name, type, constraints, and optional description. */
 export default function SchemaTreeRow({
+  id,
   path,
   depth,
   schema,
@@ -75,7 +77,8 @@ export default function SchemaTreeRow({
 
   return (
     <div
-      className={`py-2 ${showBorder ? "border-b border-border last:border-b-0" : ""}`}
+      id={id}
+      className={`py-2 ${showBorder ? "border-b border-gray-200 last:border-b-0" : ""}`}
     >
       <div className="flex items-center gap-2 min-h-[24px]">
         <span className="text-xs font-mono flex-1 min-w-0 flex items-center">

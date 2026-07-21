@@ -16,6 +16,7 @@ function SchemaTabs({
   schemaFormat,
   originalSchema,
   conversionError,
+  pendingConversion,
 }: {
   schema: unknown;
   label: string;
@@ -23,9 +24,11 @@ function SchemaTabs({
   schemaFormat?: string;
   originalSchema?: unknown;
   conversionError?: string;
+  /** True while a Protobuf converter is still loading — see lazyProtoToJsonSchema.ts. */
+  pendingConversion?: boolean;
 }) {
   const formatBadge = schemaFormatBadge(schemaFormat);
-  const showExample = supportsGeneratedExamples(schemaFormat, conversionError);
+  const showExample = !pendingConversion && supportsGeneratedExamples(schemaFormat, conversionError);
   const [tab, setTab] = useState<"schema" | "json" | "example">(showExample ? "example" : "schema");
 
   // If the Example tab disappears (conversion failed / non-JSON-Schema format)
@@ -76,12 +79,18 @@ function SchemaTabs({
           showing raw definition. {conversionError}
         </p>
       )}
-      {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
-      {tab === "json" && (
-        <SchemaViewer schema={originalSchema ?? schema} />
-      )}
-      {tab === "example" && showExample && (
-        <Examples schema={schema as Record<string, unknown>} />
+      {pendingConversion ? (
+        <p className="text-xs text-foreground-muted">Loading Protobuf definition…</p>
+      ) : (
+        <>
+          {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
+          {tab === "json" && (
+            <SchemaViewer schema={originalSchema ?? schema} />
+          )}
+          {tab === "example" && showExample && (
+            <Examples schema={schema as Record<string, unknown>} />
+          )}
+        </>
       )}
     </div>
   );

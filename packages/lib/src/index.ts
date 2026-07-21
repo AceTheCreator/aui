@@ -15,3 +15,15 @@ export type { SchemaTreeProps } from './components/schema';
 
 export { parseAndRender } from './helpers/parser';
 export { AsyncAPIRenderer } from './containers/AsyncAPI/AsyncAPIRenderer';
+
+// Composable standalone sections — render one part of a document on its own,
+// or several together under <AsyncAPIProvider>. See ./public/sections.
+export {
+  AsyncAPIProvider,
+  Servers,
+  Operations,
+  Messages,
+  Schemas,
+  Info,
+} from './public/sections';
+export type { SectionProps } from './public/sections';

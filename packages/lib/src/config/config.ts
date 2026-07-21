@@ -13,6 +13,7 @@ export interface ShowConfig {
   sidebar?: boolean;
   info?: boolean;
   servers?: boolean;
+  search?: boolean;
   operations?: boolean;
   messages?: boolean;
   messageExamples?: boolean;
