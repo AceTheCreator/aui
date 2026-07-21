@@ -48,7 +48,7 @@ export default function TabToggle<T extends string>({
 
   return (
     <div
-      className="inline-flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-md border border-gray-200"
+      className="inline-flex items-center gap-0.5 p-0.5 bg-neutral-100 rounded-md border border-border"
       role="tablist"
       aria-label={ariaLabel}
     >
@@ -68,8 +68,8 @@ export default function TabToggle<T extends string>({
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={
               isActive
-                ? "px-3 py-1 text-xs font-semibold text-gray-900 bg-white rounded-md shadow-sm border border-gray-200"
-                : "px-3 py-1 text-xs font-medium text-gray-400 hover:text-gray-600 rounded-md"
+                ? "px-3 py-1 text-xs font-semibold text-foreground bg-surface rounded-md shadow-sm border border-border"
+                : "px-3 py-1 text-xs font-medium text-foreground-muted hover:text-foreground-secondary rounded-md"
             }
           >
             {label}

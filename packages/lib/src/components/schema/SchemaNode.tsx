@@ -228,7 +228,7 @@ export default function SchemaNode({
   ) => {
     if (typeof branchSchema === "boolean") {
       return (
-        <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+        <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-foreground-secondary">
           {branchSchema ? "any value" : "false schema"}
         </span>
       );
@@ -679,7 +679,7 @@ export default function SchemaNode({
                 </SchemaMapBranch>
               )}
             {additionalItemsSchema === false && (
-              <div className="py-1 pl-6 text-xs text-gray-400">
+              <div className="py-1 pl-6 text-xs text-foreground-muted">
                 no additional items allowed
               </div>
             )}
@@ -740,7 +740,7 @@ export default function SchemaNode({
           <SchemaMapBranch label="Contains at least one:">
             {/* boolean contains: true → any item qualifies, false → impossible constraint */}
             {typeof containsSchema === "boolean" ? (
-              <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-foreground-secondary">
                 {containsSchema ? "any item" : "impossible constraint"}
               </span>
             ) : (
