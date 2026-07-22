@@ -45,7 +45,7 @@ export default function App() {
 
 ## Passing a parser-resolved document
 
-If you run the AsyncAPI parser yourself upstream (e.g. in a build script or server), you can signal to the component that all `$ref`s have already been resolved. This skips the component's internal ref traversal:
+If you run the AsyncAPI parser yourself upstream (e.g. in a build script or server), you can signal to the component that all `$ref`s have already been resolved:
 
 ```tsx
 import AsyncAPI from "apiuikit";
@@ -55,11 +55,13 @@ import type { AsyncAPIDocumentData } from "apiuikit";
 declare const resolvedDoc: AsyncAPIDocumentData;
 
 export default function App() {
-  return <AsyncAPI kind="resolved" doc={resolvedDoc} />;
+  return <AsyncAPI kind="resolved" asyncapi={resolvedDoc} />;
 }
 ```
 
 The `kind: "resolved"` variant uses the same `AsyncAPI` component, it is just a different prop shape that conveys the pre-resolved state.
+
+Either way, the component verifies rather than trusts: documents are checked for `$ref`s with a cheap read-only scan, and a fully resolved document passes through untouched (no copy). If a document handed in as resolved still contains `$ref`s, they are resolved anyway — the flag is a hint, not a contract you can break the UI with.
 
 ## Multi-format schemas
 

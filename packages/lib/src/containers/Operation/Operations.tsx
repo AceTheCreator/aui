@@ -2,23 +2,22 @@ import { ChannelAddress } from "../../components/ChannelAddress";
 import Section from "../../components/Section";
 import { SidePanel } from "../../components/SidePanel";
 import { Operation_TEXT } from "../../contants";
-import { useAsyncAPIDocument } from "../../contexts";
 import { Channel } from "../../types/asyncapi/Channel";
 import { Parameter } from "../../types/asyncapi/Parameter";
 import { Operation as OperationType } from "../../types/asyncapi/Operation";
 import { OperationAction } from "../../types/asyncapi/OperationAction";
-import { resolveRefs } from "../../utils/hasRef";
 import Operation from "./Operation";
 
 interface OperationsProps {
   operations: Record<string, OperationType>;
   selectedKey?: string | null;
   onSelectKey?: (key: string | null) => void;
+  /** Which collapsed section of the selected operation search navigated to. */
+  focusSection?: string | null;
 }
 
-export default function Operations({ operations, selectedKey = null, onSelectKey }: OperationsProps) {
+export default function Operations({ operations, selectedKey = null, onSelectKey, focusSection = null }: OperationsProps) {
   const setSelectedKey = (key: string | null) => onSelectKey?.(key);
-  const { deref } = useAsyncAPIDocument();
 
   if (!Object.keys(operations).length) {
     return null;
@@ -28,7 +27,8 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
 
   const operationList: React.ReactNode[] = Object.keys(operations).map((key) => {
     const op = operations[key];
-    resolveRefs(op, deref);
+    // $refs (e.g. op.channel) are already inlined by resolveDocument /
+    // @asyncapi/parser before the document reaches any component.
     const channel = op.channel as unknown as Channel;
     const address = channel?.address;
     const parameters = channel?.parameters as unknown as Record<string, Parameter> | undefined;
@@ -46,6 +46,17 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         key={key}
         id={`operation-${key}`}
         onClick={() => setSelectedKey(key)}
+        // A <tr> isn't natively focusable or activatable — role/tabIndex/onKeyDown
+        // make it reachable and operable by keyboard, matching the click behavior.
+        role="button"
+        tabIndex={0}
+        aria-label={`${actionLabel || "Operation"} ${address ?? key}`}
+        aria-current={isSelected ? "true" : undefined}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          setSelectedKey(key);
+        }}
         className={`group cursor-pointer ${isSelected ? "bg-neutral-50" : ""}`}
       >
         <td className="px-6 py-4 max-w-0 w-full group-hover:bg-neutral-50">
@@ -128,7 +139,7 @@ export default function Operations({ operations, selectedKey = null, onSelectKey
         onClose={() => setSelectedKey(null)}
         title={panelTitle}
       >
-        {selectedOp && <Operation op={selectedOp} id={selectedKey} />}
+        {selectedOp && <Operation op={selectedOp} id={selectedKey} focusSection={focusSection} />}
       </SidePanel>
     </>
   );

@@ -34,7 +34,7 @@ export function CopyButton({ text, ariaLabel = "Copy to clipboard" }: CopyButton
       onClick={handleCopy}
       aria-label={copied ? "Copied" : ariaLabel}
       title={copied ? "Copied" : ariaLabel}
-      className="absolute top-1.5 right-1.5 p-1.5 rounded text-gray-400 hover:text-foreground-secondary hover:bg-neutral-200/60 transition-colors"
+      className="absolute top-1.5 right-1.5 p-1.5 rounded text-foreground-muted hover:text-foreground-secondary hover:bg-neutral-200/60 transition-colors"
     >
       {copied ? (
         <svg

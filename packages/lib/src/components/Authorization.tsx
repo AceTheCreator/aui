@@ -25,8 +25,6 @@ import {
   PASSWORD_DESCRIPTION,
   PASSWORD_TEXT,
 } from "../contants";
-import { useAsyncAPIDocument } from "../contexts";
-import { resolveRefs } from "../utils/hasRef";
 
 type SecurityScheme =
   | UserPassword
@@ -59,8 +57,8 @@ interface Props {
 }
 
 export default function Authorization({ securities }: Props) {
-  const { deref } = useAsyncAPIDocument();
-  resolveRefs(securities, deref);
+  // Security scheme $refs are already inlined by resolveDocument /
+  // @asyncapi/parser before the document reaches any component.
   const filteredTabs = useMemo(() => {
     return tabs.filter((tab) => {
       const tabId = tab.id;

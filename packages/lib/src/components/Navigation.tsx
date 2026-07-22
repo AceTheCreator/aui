@@ -4,22 +4,26 @@ import { SidePanel } from "./SidePanel";
 import IconOperation from "../icons/Operation";
 import IconMessage from "../icons/Message";
 import IconSchema from "../icons/Schema";
+import IconServer from "../icons/Server";
 import { Operation } from "../types/asyncapi/Operation";
 import { MessageObject } from "../types/asyncapi/MessageObject";
 import { Info } from "../types/asyncapi/Info";
 import { OperationAction } from "../types/asyncapi/OperationAction";
 import { SideBarConfig } from "../config/config";
 import { useAsyncAPIDocument } from "../contexts";
-import { hasRef } from "../utils/hasRef";
 import { useAutoHideOnScroll } from "../utils/useAutoHideOnScroll";
 import { useElementRect } from "../utils/useElementRect";
 import { ChannelAddress } from "./ChannelAddress";
 import { Parameter } from "../types/asyncapi/Parameter";
 
-type NavTab = "operations" | "messages" | "schemas";
+export type NavTab = "operations" | "messages" | "schemas";
+// Servers isn't a switchable tab (it's always on screen, above the tabs) —
+// but it needs the same "find it in the sidebar, jump straight to it" path
+// as everything else, so it's a section here without being a NavTab.
+export type NavSectionId = NavTab | "servers";
 
 interface NavSection {
-  id: NavTab;
+  id: NavSectionId;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   items: string[];
@@ -30,10 +34,16 @@ interface NavigationProps {
   operations?: Record<string, Operation>;
   messages?: Record<string, MessageObject>;
   schemas?: Record<string, unknown>;
-  activeTab: NavTab;
+  servers?: Record<string, unknown>;
+  /** Which section is currently the user's focus, for header highlighting —
+   * a single authoritative value covering all four sections (including
+   * Servers) so at most one header is ever highlighted at once. Distinct
+   * from `onTabChange`, which only fires for the three switchable tabs. */
+  activeTab: NavSectionId | null;
   onTabChange: (tab: NavTab) => void;
   onItemSelect?: (tab: NavTab, key: string) => void;
-  selectedItem?: { tab: NavTab; key: string } | null;
+  onSelectServer?: (key: string) => void;
+  selectedItem?: { tab: NavSectionId; key: string } | null;
   sidebarConfig?: SideBarConfig;
 }
 
@@ -42,16 +52,18 @@ export default function Navigation({
   operations = {},
   messages = {},
   schemas = {},
+  servers = {},
   activeTab,
   onTabChange,
   onItemSelect,
+  onSelectServer,
   selectedItem,
   sidebarConfig,
 }: NavigationProps) {
   const [open, setOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(0);
   const [panelElement, setpanelElement] = useState<HTMLDivElement | null>(null);
-  const { deref, rootElement } = useAsyncAPIDocument();
+  const { rootElement } = useAsyncAPIDocument();
 
   // Once the widget's top is scrolled past, the toggle detaches and pins to the
   // viewport top: hidden while scrolling down, revealed on any upward scroll,
@@ -84,20 +96,27 @@ export default function Navigation({
 
   const resolveChannel = (key: string): { address?: string | null; parameters?: Record<string, Parameter> } | null => {
     if (!sidebarConfig?.useChannelAddressAsIdentifier) return null;
-    const op = operations[key];
-    let channel: unknown = op?.channel;
-    if (hasRef(channel)) channel = deref((channel as { $ref: string }).$ref);
+    // op.channel $refs are already inlined by resolveDocument / @asyncapi/parser.
+    const channel: unknown = operations[key]?.channel;
     return (channel as { address?: string | null; parameters?: Record<string, Parameter> } | null) ?? null;
   };
 
   const sections: NavSection[] = [
+    // Listed first to match the page's own order (Info → Servers → tabs) —
+    // and because "how do I connect/authenticate" is usually the first thing
+    // someone looks for, not something to bury below the tab catalogs.
+    { id: "servers",    label: "Servers",    icon: IconServer,    items: Object.keys(servers) },
     { id: "operations", label: "Operations", icon: IconOperation, items: Object.keys(operations) },
     { id: "messages",   label: "Messages",   icon: IconMessage,   items: Object.keys(messages) },
     { id: "schemas",    label: "Schemas",    icon: IconSchema,    items: Object.keys(schemas) },
   ];
 
-  const navigate = (tab: NavTab, itemId?: string) => {
-    onTabChange(tab);
+  const isNavTab = (id: NavSectionId): id is NavTab => id !== "servers";
+
+  // Servers has no tab to switch into (it's always on screen) — only the
+  // scroll-to-item part applies there.
+  const navigate = (id: NavSectionId, itemId?: string) => {
+    if (isNavTab(id)) onTabChange(id);
     if (itemId) {
       setTimeout(() => {
         document.getElementById(itemId)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -182,7 +201,8 @@ export default function Navigation({
                           <button
                             onClick={() => {
                               navigate(id, `${id.slice(0, -1)}-${item}`);
-                              onItemSelect?.(id, item);
+                              if (isNavTab(id)) onItemSelect?.(id, item);
+                              else onSelectServer?.(item);
                             }}
                             className={`w-full text-left flex items-center gap-2 text-xs py-1.5 px-2 rounded-md transition-colors ${
                               isItemSelected

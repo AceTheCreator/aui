@@ -68,6 +68,8 @@ export function ChannelAddress({ address, parameters, className = "text-xs", tru
     setHoveredIndex(i);
   };
 
+  const hideTooltip = () => setHoveredIndex(null);
+
   const content = parts.map((part, i) => {
     if (part.type === "text") return <span key={i}>{part.value}</span>;
     const parameter = parameters?.[part.value];
@@ -77,19 +79,43 @@ export function ChannelAddress({ address, parameters, className = "text-xs", tru
       !!parameter &&
       (parameter.description || parameter.default || (parameter.enum && parameter.enum.length > 0) ||
         (parameter.examples && parameter.examples.length > 0));
+    const tooltipId = `channel-address-tooltip-${i}`;
+    const describedBy = hasDetails && isHovered ? tooltipId : undefined;
+
     return (
       <span
         key={i}
         className="inline-block"
-        onMouseEnter={(e) => showTooltip(i, e.currentTarget)}
-        onMouseLeave={() => setHoveredIndex(null)}
+        onMouseEnter={(e) => hasDetails && showTooltip(i, e.currentTarget)}
+        onMouseLeave={hideTooltip}
       >
-        <span className={`font-semibold ${color} ${hasDetails ? "cursor-help underline decoration-dotted" : ""}`}>
+        <span
+          className={`font-semibold ${color} ${hasDetails ? "cursor-help underline decoration-dotted" : ""}`}
+          role={hasDetails ? "button" : undefined}
+          tabIndex={hasDetails ? 0 : undefined}
+          aria-expanded={hasDetails ? isHovered : undefined}
+          aria-describedby={describedBy}
+          onFocus={(e) => hasDetails && showTooltip(i, e.currentTarget)}
+          onBlur={hideTooltip}
+          onKeyDown={(event) => {
+            if (!hasDetails) return;
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              showTooltip(i, event.currentTarget);
+            }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              hideTooltip();
+              event.currentTarget.blur();
+            }
+          }}
+        >
           {`{${part.value}}`}
         </span>
         {hasDetails && isHovered && portalHost &&
           createPortal(
             <div
+              id={tooltipId}
               className={`fixed -translate-x-1/2 max-w-xs px-2.5 py-1.5 bg-neutral-50 text-foreground-muted text-xs rounded pointer-events-none z-[60] shadow-lg text-left leading-snug ${
                 coords.placement === "top" ? "-translate-y-full" : ""
               }`}

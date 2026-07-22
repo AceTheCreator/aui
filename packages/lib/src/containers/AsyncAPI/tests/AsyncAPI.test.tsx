@@ -14,7 +14,7 @@ describe("AsyncAPI", () => {
     expect(screen.getByRole("heading", { name: "Streetlights Kafka API" })).toBeInTheDocument();
 
     // The "turnOn" operation only carries a `channel: { $ref: "#/channels/lightTurnOn" }` —
-    // seeing the resolved address (not a raw "$ref" string) proves resolveRefs/deref ran end-to-end.
+    // seeing the resolved address (not a raw "$ref" string) proves resolveDocument ran end-to-end.
     // ChannelAddress splits the address across sibling spans at each {param} boundary, so a
     // single getByText regex can't match it — check the rendered text as a whole instead.
     const bodyText = document.body.textContent ?? "";
@@ -27,6 +27,12 @@ describe("AsyncAPI", () => {
     render(<AsyncAPI asyncapi={asDoc(exampleDoc)} config={{ show: { servers: false } }} />);
 
     expect(screen.queryByText("test.mykafkacluster.org", { exact: false })).not.toBeInTheDocument();
+  });
+
+  it("hides the search panel when show.search is false", () => {
+    render(<AsyncAPI asyncapi={asDoc(exampleDoc)} config={{ show: { search: false } }} />);
+
+    expect(screen.queryByPlaceholderText("Search document...")).not.toBeInTheDocument();
   });
 
   it("applies an expand.schemas config change to already-mounted schema trees", () => {
@@ -122,5 +128,48 @@ describe("AsyncAPI", () => {
     rerender(<AsyncAPI asyncapi={asDoc(exampleDoc)} config={{ show: { operations: false } }} />);
     expect(document.getElementById("panel-operations")).toBeNull();
     expect(document.getElementById("panel-messages")).not.toBeNull();
+  });
+
+  it('self-heals when kind="resolved" is passed a document that still has $refs', () => {
+    // The "resolved" promise is verified, not trusted: resolveDocument's
+    // ref scan catches the leftover $ref and inlines it anyway.
+    render(<AsyncAPI kind="resolved" asyncapi={asDoc(exampleDoc)} />);
+
+    const bodyText = document.body.textContent ?? "";
+    expect(bodyText).toContain("smartylighting.streetlights.1.0.action.");
+    expect(bodyText).not.toContain("$ref");
+  });
+
+  it("renders recursive $ref schemas as a circular row instead of crashing", () => {
+    const doc = {
+      asyncapi: "3.0.0",
+      info: { title: "Recursive API", version: "1.0.0" },
+      components: {
+        schemas: {
+          treeNode: {
+            type: "object",
+            properties: {
+              value: { type: "string" },
+              children: {
+                type: "array",
+                items: { $ref: "#/components/schemas/treeNode" },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    // expand.schemas auto-expands every node — before upfront resolution and
+    // ancestor tracking, this unrolled the self-reference forever.
+    render(
+      <AsyncAPI asyncapi={asDoc(doc)} config={{ expand: { schemas: true } }} />,
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    const schemasPanel = within(document.getElementById("panel-schemas")!);
+
+    expect(schemasPanel.getByText("value")).toBeInTheDocument();
+    expect(schemasPanel.getByText(/↩/)).toBeInTheDocument();
   });
 });

@@ -16,6 +16,7 @@ function SchemaTabs({
   schemaFormat,
   originalSchema,
   conversionError,
+  pendingConversion,
 }: {
   schema: unknown;
   label: string;
@@ -23,9 +24,11 @@ function SchemaTabs({
   schemaFormat?: string;
   originalSchema?: unknown;
   conversionError?: string;
+  /** True while a Protobuf converter is still loading — see lazyProtoToJsonSchema.ts. */
+  pendingConversion?: boolean;
 }) {
   const formatBadge = schemaFormatBadge(schemaFormat);
-  const showExample = supportsGeneratedExamples(schemaFormat, conversionError);
+  const showExample = !pendingConversion && supportsGeneratedExamples(schemaFormat, conversionError);
   const [tab, setTab] = useState<"schema" | "json" | "example">(showExample ? "example" : "schema");
 
   // If the Example tab disappears (conversion failed / non-JSON-Schema format)
@@ -41,7 +44,7 @@ function SchemaTabs({
       <div className="flex items-center justify-between mb-2">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
               {label}
             </p>
             {formatBadge && (
@@ -54,7 +57,7 @@ function SchemaTabs({
             )}
           </div>
           {description && (
-            <p className="text-sm text-gray-600 leading-relaxed mt-2 mb-2">
+            <p className="text-sm text-foreground-secondary leading-relaxed mt-2 mb-2">
               {description}
             </p>
           )}
@@ -76,12 +79,18 @@ function SchemaTabs({
           showing raw definition. {conversionError}
         </p>
       )}
-      {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
-      {tab === "json" && (
-        <SchemaViewer schema={originalSchema ?? schema} />
-      )}
-      {tab === "example" && showExample && (
-        <Examples schema={schema as Record<string, unknown>} />
+      {pendingConversion ? (
+        <p className="text-xs text-foreground-muted">Loading Protobuf definition…</p>
+      ) : (
+        <>
+          {tab === "schema" && <SchemaTree schema={schema} rootName={label} />}
+          {tab === "json" && (
+            <SchemaViewer schema={originalSchema ?? schema} />
+          )}
+          {tab === "example" && showExample && (
+            <Examples schema={schema as Record<string, unknown>} />
+          )}
+        </>
       )}
     </div>
   );

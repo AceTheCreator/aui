@@ -12,7 +12,7 @@ export interface AsyncApiElementProps {
 export function AsyncApiElement({ spec, resolved, config }: AsyncApiElementProps) {
   if (!spec) return null;
   return resolved ? (
-    <AsyncAPI kind="resolved" doc={spec} config={config} />
+    <AsyncAPI kind="resolved" asyncapi={spec} config={config} />
   ) : (
     <AsyncAPI asyncapi={spec} config={config} />
   );

@@ -114,3 +114,8 @@ a {
 .panel-toggle-btn:hover .panel-icon-rect-collapsed {
   width: 1px;
 }
+
+::highlight(search-match) {
+  background-color: yellow;
+  color: black;
+}

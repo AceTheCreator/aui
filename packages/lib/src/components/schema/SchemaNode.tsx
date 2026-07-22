@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isSchemaRecord, SchemaNodeData } from "../../types/schema";
 import SchemaCaseDetail from "./SchemaCaseDetail";
 import SchemaNotBranch, { BooleanNotPill } from "./SchemaNotBranch";
@@ -8,6 +8,7 @@ import SchemaTreeBranch, {
 } from "./SchemaTreeBranch";
 import SchemaTreeRow from "./SchemaTreeRow";
 import {
+  EMPTY_ANCESTORS,
   flattenAllOf,
   getAdditionalItemsSchema,
   getAdditionalPropertiesSchema,
@@ -33,9 +34,12 @@ import {
   omitIfThenElse,
   omitNot,
   patternPropertyPath,
+  schemaIdLabel,
+  type SchemaAncestors,
 } from "./schemaUtils";
 import SchemaIfThenElseBranch from "./SchemaIfThenElseBranch";
 import SchemaMapBranch from "./SchemaMapBranch";
+import { useProtobufConverterReady } from "../../helpers/protobuf/lazyProtoToJsonSchema";
 
 export interface SchemaNodeProps {
   schema: SchemaNodeData;
@@ -50,6 +54,21 @@ export interface SchemaNodeProps {
   branchLineVariant?: SchemaTreeBranchLineVariant;
   /** Whether this node (and its descendants) start expanded. Defaults to false. */
   defaultExpanded?: boolean;
+  /**
+   * Schemas already on the render path above this node. When this node's
+   * schema is among them (by object identity or by $ref string), it is a
+   * cycle — render a circular row instead of recursing forever.
+   */
+  ancestors?: SchemaAncestors;
+  /**
+   * Remaining steps toward a search-selected node, matching searchIndex.ts's
+   * schemaFocusTokens convention — `null` once off the target path, `[]`
+   * when this node IS the target. Consumed one "properties"+name / "items" /
+   * "oneOf[i]"/"anyOf[i]" step at a time as it's threaded into children.
+   */
+  focusTokens?: string[] | null;
+  /** The target node's DOM id — constant for the whole walk, applied once focusTokens is empty. */
+  focusId?: string | null;
 }
 
 /** Nested nodes inside a branch-line-less wrapper regain depth-colored lines. */
@@ -68,27 +87,79 @@ export default function SchemaNode({
   suppressRow = false,
   branchLineVariant = "depth",
   defaultExpanded = false,
+  ancestors = EMPTY_ANCESTORS,
+  focusTokens = null,
+  focusId = null,
 }: SchemaNodeProps) {
   const nestedBranchLineVariant = childBranchLineVariant(branchLineVariant);
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const isOnFocusPath = focusTokens != null;
+  const isFocusTarget = isOnFocusPath && focusTokens!.length === 0;
+  const rowId = isFocusTarget ? focusId ?? undefined : undefined;
+
+  const [expanded, setExpanded] = useState(defaultExpanded || isOnFocusPath);
   // When `defaultExpanded` changes after mount (e.g. a live `expand.schemas` config
   // edit), re-apply it to every node, overriding manual toggles made under the old
   // default. Adjusted during render so the old state never paints.
   const [prevDefaultExpanded, setPrevDefaultExpanded] = useState(defaultExpanded);
   if (prevDefaultExpanded !== defaultExpanded) {
     setPrevDefaultExpanded(defaultExpanded);
-    setExpanded(defaultExpanded);
+    setExpanded(defaultExpanded || isOnFocusPath);
   }
+  // A later search selection can target a node already on screen — force it open.
+  useEffect(() => {
+    if (isOnFocusPath) setExpanded(true);
+  }, [isOnFocusPath]);
+
   const [selectedCase, setSelectedCase] = useState(0);
+  // Parsed from the raw token string (e.g. "oneOf[1]") rather than checked
+  // against `unionItems` — that's derived further down, after early returns
+  // this hook can't follow, since Hooks must run unconditionally every render.
+  const focusedCaseMatch = focusTokens?.[0]?.match(/^(?:oneOf|anyOf)\[(\d+)\]$/);
+  const focusedCaseIndex = focusedCaseMatch ? Number(focusedCaseMatch[1]) : -1;
+  useEffect(() => {
+    if (focusedCaseIndex >= 0) setSelectedCase(focusedCaseIndex);
+  }, [focusedCaseIndex]);
+
+  // normalizeSchema below can hit resolveSchemaInput for a $ref'd Protobuf
+  // multi-format wrapper, whose conversion is lazy-loaded — re-resolves once
+  // ready. See lazyProtoToJsonSchema.ts.
+  const protobufReady = useProtobufConverterReady();
 
   const { schema, refLabel, circular } = useMemo(() => {
+    // Cross-render-level cycle check: this exact schema (or its $ref) is
+    // already being rendered somewhere above us in the tree.
+    if (
+      ancestors.objects.has(rawSchema) ||
+      (typeof rawSchema.$ref === "string" && ancestors.refs.has(rawSchema.$ref))
+    ) {
+      return {
+        schema: rawSchema,
+        refLabel: schemaIdLabel(rawSchema),
+        circular: true,
+      };
+    }
     const normalized = normalizeSchema(rawSchema, deref, refStack);
     if (normalized.circular) return normalized;
     return {
       ...normalized,
       schema: flattenAllOf(normalized.schema, deref, refStack),
     };
-  }, [rawSchema, deref, refStack]);
+    // protobufReady isn't read above, but normalizeSchema's result silently
+    // depends on it via module-level state (lazyProtoToJsonSchema.ts).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawSchema, deref, refStack, ancestors, protobufReady]);
+
+  // Chain handed to child nodes: everything above us, plus this node.
+  const childAncestors = useMemo<SchemaAncestors>(
+    () => ({
+      objects: new Set(ancestors.objects).add(rawSchema),
+      refs:
+        typeof rawSchema.$ref === "string"
+          ? new Set(ancestors.refs).add(rawSchema.$ref)
+          : ancestors.refs,
+    }),
+    [ancestors, rawSchema],
+  );
 
   // Strip logical operators before shape detection so they don't mask the true structure.
   const structuralSchema = omitNot(omitIfThenElse(schema));
@@ -141,6 +212,7 @@ export default function SchemaNode({
             depth={depth + 1}
             refStack={refStack}
             deref={deref}
+            ancestors={childAncestors}
             suppressRow
             branchLineVariant={nestedBranchLineVariant}
             defaultExpanded={defaultExpanded}
@@ -156,7 +228,7 @@ export default function SchemaNode({
   ) => {
     if (typeof branchSchema === "boolean") {
       return (
-        <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+        <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-foreground-secondary">
           {branchSchema ? "any value" : "false schema"}
         </span>
       );
@@ -186,6 +258,7 @@ export default function SchemaNode({
         depth={depth + 1}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         suppressRow
         branchLineVariant="none"
         defaultExpanded={defaultExpanded}
@@ -229,11 +302,14 @@ export default function SchemaNode({
   };
 
   if (circular) {
+    // Identity cycles (pre-resolved documents) have no $ref string — fall back
+    // to the schema's stamped name, then to a generic marker.
     return (
       <SchemaTreeRow
+        id={rowId}
         path={path}
         depth={depth}
-        typeLabelOverride={`↩ ${rawSchema.$ref}`}
+        typeLabelOverride={`↩ ${rawSchema.$ref ?? refLabel ?? "circular"}`}
         expandable={false}
         expanded={false}
         onToggle={() => undefined}
@@ -257,6 +333,7 @@ export default function SchemaNode({
     return (
       <>
         <SchemaTreeRow
+          id={rowId}
           path={path}
           depth={depth}
           schema={schema}
@@ -294,6 +371,12 @@ export default function SchemaNode({
     const isLeafCase =
       !normalizedCase.circular && isLeafItemSchema(selectedCaseSchema);
 
+    // Only forward the remaining focus tokens into the currently-selected
+    // case — `focusedCaseIndex` (matched above, before this component's
+    // early returns) already forced `selectedCase` to match when relevant.
+    const caseFocusTokens =
+      focusTokens && focusedCaseIndex === selectedCase ? focusTokens.slice(1) : null;
+
     const caseContent = isLeafCase ? (
       <SchemaCaseDetail schema={selectedCaseSchema} showBorder={false} />
     ) : (
@@ -304,9 +387,12 @@ export default function SchemaNode({
         depth={caseDepth - 1}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         suppressRow
         branchLineVariant="none"
         defaultExpanded={defaultExpanded}
+        focusTokens={caseFocusTokens}
+        focusId={focusId}
       />
     );
 
@@ -338,6 +424,7 @@ export default function SchemaNode({
     return (
       <>
         <SchemaTreeRow
+          id={rowId}
           path={path}
           depth={depth}
           schema={schema}
@@ -387,6 +474,7 @@ export default function SchemaNode({
         depth={mapDepth}
         refStack={refStack}
         deref={deref}
+        ancestors={childAncestors}
         branchLineVariant={nestedBranchLineVariant}
         defaultExpanded={defaultExpanded}
       />
@@ -405,6 +493,10 @@ export default function SchemaNode({
       <>
         {Object.entries(properties).map(([name, prop]) => {
           if (!isSchemaRecord(prop)) return null;
+          const propFocusTokens =
+            focusTokens && focusTokens[0] === "properties" && focusTokens[1] === name
+              ? focusTokens.slice(2)
+              : null;
           return (
             <SchemaNode
               key={name}
@@ -414,8 +506,11 @@ export default function SchemaNode({
               required={requiredFields.has(name)}
               refStack={refStack}
               deref={deref}
+              ancestors={childAncestors}
               branchLineVariant={nestedBranchLineVariant}
               defaultExpanded={defaultExpanded}
+              focusTokens={propFocusTokens}
+              focusId={focusId}
             />
           );
         })}
@@ -437,6 +532,7 @@ export default function SchemaNode({
             depth={childDepth}
             refStack={refStack}
             deref={deref}
+            ancestors={childAncestors}
             branchLineVariant={nestedBranchLineVariant}
             defaultExpanded={defaultExpanded}
           />
@@ -469,6 +565,7 @@ export default function SchemaNode({
     return (
       <>
         <SchemaTreeRow
+          id={rowId}
           path={path}
           depth={depth}
           schema={schema}
@@ -503,13 +600,34 @@ export default function SchemaNode({
       hasNotSchema(schema) || hasIfThenElse(schema) || hasAllOfConditionals(schema);
     const arrayPath = `${path}[]`;
 
-    const resolvedItem = hasItem
-      ? flattenAllOf(
-          normalizeSchema(itemSchema, deref, refStack).schema,
-          deref,
-          refStack
-        )
+    // The resolved-but-unflattened item source keeps a stable identity across
+    // unrolls of a recursive schema (flattening copies, resolution doesn't) —
+    // it's what makes the item-level cycle check below possible.
+    const normalizedItem = hasItem
+      ? normalizeSchema(itemSchema, deref, refStack)
       : null;
+    const itemSource = normalizedItem?.schema ?? null;
+    const resolvedItem = itemSource
+      ? flattenAllOf(itemSource, deref, refStack)
+      : null;
+    // Items rendered through itemProperties below never pass their $ref node
+    // through a child SchemaNode, so the generic ancestor check can't see the
+    // cycle — check the item source against the chain here instead.
+    const itemCircular =
+      itemSource !== null &&
+      (childAncestors.objects.has(itemSource) ||
+        (typeof itemSchema?.$ref === "string" &&
+          childAncestors.refs.has(itemSchema.$ref)));
+    const itemAncestors: SchemaAncestors =
+      itemSource !== null
+        ? {
+            objects: new Set(childAncestors.objects).add(itemSource),
+            refs:
+              typeof itemSchema?.$ref === "string"
+                ? new Set(childAncestors.refs).add(itemSchema.$ref)
+                : childAncestors.refs,
+          }
+        : childAncestors;
     const isLeafArray =
       !isTuple &&
       !hasContainsSchema &&
@@ -526,6 +644,12 @@ export default function SchemaNode({
         ? resolvedItem.required
         : []
     );
+    // Non-tuple array items always consume one "items" token, whether or not
+    // the renderer below ends up giving the item its own row (a decomposed
+    // object item skips straight to its properties) — the id only needs to
+    // be unique and match what searchIndex.ts computed, not mirror the DOM.
+    const itemFocusTokens =
+      !isTuple && focusTokens && focusTokens[0] === "items" ? focusTokens.slice(1) : null;
 
     const renderArrayExpansion = (childDepth: number) => (
       <>
@@ -539,6 +663,7 @@ export default function SchemaNode({
                 depth={childDepth}
                 refStack={refStack}
                 deref={deref}
+                ancestors={childAncestors}
                 branchLineVariant={nestedBranchLineVariant}
                 defaultExpanded={defaultExpanded}
               />
@@ -554,27 +679,48 @@ export default function SchemaNode({
                 </SchemaMapBranch>
               )}
             {additionalItemsSchema === false && (
-              <div className="py-1 pl-6 text-xs text-gray-400">
+              <div className="py-1 pl-6 text-xs text-foreground-muted">
                 no additional items allowed
               </div>
             )}
           </>
         ) : (
           hasItem &&
-          (itemProperties.length > 0
-            ? itemProperties.map(([name, prop]) => (
-                <SchemaNode
-                  key={name}
-                  schema={prop}
-                  path={`${path}[].${name}`}
-                  depth={childDepth}
-                  required={itemRequired.has(name)}
-                  refStack={refStack}
-                  deref={deref}
-                  branchLineVariant={nestedBranchLineVariant}
-                  defaultExpanded={defaultExpanded}
-                />
-              ))
+          (itemCircular ? (
+            <SchemaTreeRow
+              path={arrayPath}
+              depth={childDepth}
+              typeLabelOverride={`↩ ${
+                itemSchema.$ref ?? schemaIdLabel(itemSource!) ?? "circular"
+              }`}
+              expandable={false}
+              expanded={false}
+              onToggle={() => undefined}
+              showBorder={false}
+            />
+          ) : itemProperties.length > 0
+            ? itemProperties.map(([name, prop]) => {
+                const propFocusTokens =
+                  itemFocusTokens && itemFocusTokens[0] === "properties" && itemFocusTokens[1] === name
+                    ? itemFocusTokens.slice(2)
+                    : null;
+                return (
+                  <SchemaNode
+                    key={name}
+                    schema={prop}
+                    path={`${path}[].${name}`}
+                    depth={childDepth}
+                    required={itemRequired.has(name)}
+                    refStack={refStack}
+                    deref={deref}
+                    ancestors={itemAncestors}
+                    branchLineVariant={nestedBranchLineVariant}
+                    defaultExpanded={defaultExpanded}
+                    focusTokens={propFocusTokens}
+                    focusId={focusId}
+                  />
+                );
+              })
             : (
                 <SchemaNode
                   schema={itemSchema!}
@@ -582,8 +728,11 @@ export default function SchemaNode({
                   depth={childDepth}
                   refStack={refStack}
                   deref={deref}
+                  ancestors={itemAncestors}
                   branchLineVariant={nestedBranchLineVariant}
                   defaultExpanded={defaultExpanded}
+                  focusTokens={itemFocusTokens}
+                  focusId={focusId}
                 />
               ))
         )}
@@ -591,7 +740,7 @@ export default function SchemaNode({
           <SchemaMapBranch label="Contains at least one:">
             {/* boolean contains: true → any item qualifies, false → impossible constraint */}
             {typeof containsSchema === "boolean" ? (
-              <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-foreground-secondary">
                 {containsSchema ? "any item" : "impossible constraint"}
               </span>
             ) : (
@@ -608,6 +757,7 @@ export default function SchemaNode({
     if (isLeafArray && !hasNotSchema(schema) && !hasIfThenElse(schema) && !hasAllOfConditionals(schema)) {
       return (
         <SchemaTreeRow
+          id={rowId}
           path={arrayPath}
           depth={depth}
           schema={schema}
@@ -629,6 +779,7 @@ export default function SchemaNode({
       return (
         <>
           <SchemaTreeRow
+            id={rowId}
             path={arrayPath}
             depth={depth}
             schema={schema}
@@ -663,6 +814,7 @@ export default function SchemaNode({
     return (
       <>
         <SchemaTreeRow
+          id={rowId}
           path={arrayPath}
           depth={depth}
           schema={schema}
@@ -708,6 +860,7 @@ export default function SchemaNode({
     return (
       <>
         <SchemaTreeRow
+          id={rowId}
           path={path}
           depth={depth}
           schema={schema}
@@ -731,6 +884,7 @@ export default function SchemaNode({
 
   return (
     <SchemaTreeRow
+      id={rowId}
       path={path}
       depth={depth}
       schema={schema}

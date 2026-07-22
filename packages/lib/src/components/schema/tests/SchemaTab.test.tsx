@@ -249,4 +249,24 @@ describe("SchemaTabs", () => {
     );
     expect(screen.getByText(/Could not convert Avro schema/)).toBeInTheDocument();
   });
+
+  it("renders a circular row instead of recursing forever on identity cycles", () => {
+    // Pre-resolved documents (@asyncapi/parser output) inline refs as plain
+    // object references — a recursive schema literally contains itself, with
+    // no $ref string left for the tree's ref-based cycle detection to key on.
+    const user: Record<string, unknown> = {
+      type: "object",
+      "x-parser-schema-id": "user",
+      properties: { name: { type: "string" } },
+    };
+    (user.properties as Record<string, unknown>).self = user;
+
+    // Providers sets defaultSchemaExpanded: true — before the identity guard,
+    // this render would overflow the stack instead of terminating.
+    renderTabs({ schema: user, label: "Payload" });
+    fireEvent.click(screen.getByRole("tab", { name: "Schema" }));
+
+    expect(screen.getByText("name")).toBeInTheDocument();
+    expect(screen.getByText("↩ user")).toBeInTheDocument();
+  });
 });
