@@ -75,6 +75,7 @@ describe("search result highlighting", () => {
   it("scrolls to and expands a nested schema property via search, without text-highlighting it (backlogged)", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
     fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "ZIPCODEMARKER" } });
     fireEvent.click(await screen.findByText(/Widget/i, { selector: "div.text-sm.font-semibold" }));
 
@@ -93,6 +94,7 @@ describe("search result highlighting", () => {
   it("still highlights operation/message/server results normally", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
     fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "widget" } });
     fireEvent.click(await screen.findByText("doSomething", { selector: "div.text-sm.font-semibold" }));
     await waitFor(() => expect(highlightedText().toLowerCase()).toContain("widget"), { timeout: 2000 });
@@ -100,16 +102,18 @@ describe("search result highlighting", () => {
 
   it("clears any prior highlight when a search result switches to Schemas", async () => {
     render(<AsyncAPI asyncapi={asDoc(doc)} />);
-    const input = screen.getByRole("combobox", { name: "Search document" });
 
     // Step 1: highlight something on the default (Operations) tab.
-    fireEvent.change(input, { target: { value: "widget" } });
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "widget" } });
     fireEvent.click(await screen.findByText("doSomething", { selector: "div.text-sm.font-semibold" }));
     await waitFor(() => expect(highlightedText().toLowerCase()).toContain("widget"), { timeout: 2000 });
 
     // Step 2: a second search that switches to Schemas — should navigate
     // there and clear the stale Operations highlight, not show anything new.
-    fireEvent.change(input, { target: { value: "ZIPCODEMARKER" } });
+    // Selecting the first result re-closes the modal, so it needs reopening.
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Search document" }), { target: { value: "ZIPCODEMARKER" } });
     fireEvent.click(await screen.findByText(/Widget/i, { selector: "div.text-sm.font-semibold" }));
     await waitFor(() => {
       const target = document.querySelector('[id^="schema-Widget-"]');

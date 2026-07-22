@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import { AsyncAPIDocumentContext } from "../contexts";
 import { DEFAULT_DEPTH_COLORS } from "../components/schema/depthColors";
 import { resolveDocument } from "../helpers/resolveDocument";
@@ -43,19 +43,32 @@ export function buildDocumentContext(rawDoc: unknown) {
   };
 
   // Provides document context and applies the shared centered sizing.
-  const decorator = (Story: ComponentType) => (
-    <AsyncAPIDocumentContext.Provider
-      value={{
-        document,
-        deref,
-        portalHost: null,
-        rootElement: null,
-        depthColors: DEFAULT_DEPTH_COLORS,
-      }}
-    >
-      {centeredDecorator(Story)}
-    </AsyncAPIDocumentContext.Provider>
-  );
+  // portalHost/rootElement are real DOM nodes (not null) so components that
+  // portal into them (e.g. SidePanel, SearchPanel's modal) actually render in
+  // stories instead of silently no-op'ing.
+  const ContextProvider = ({ Story }: { Story: ComponentType }) => {
+    const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
+    const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
+
+    return (
+      <AsyncAPIDocumentContext.Provider
+        value={{
+          document,
+          deref,
+          portalHost,
+          rootElement,
+          depthColors: DEFAULT_DEPTH_COLORS,
+        }}
+      >
+        <div ref={setRootElement} className="relative">
+          <div ref={setPortalHost} />
+          {centeredDecorator(Story)}
+        </div>
+      </AsyncAPIDocumentContext.Provider>
+    );
+  };
+
+  const decorator = (Story: ComponentType) => <ContextProvider Story={Story} />;
 
   return { document, deref, decorator };
 }
