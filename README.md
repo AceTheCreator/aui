@@ -49,6 +49,7 @@ See the full usage docs for props, configuration options, and more:
 
 - [Without Parser](./docs/usage/no-parser.md) (`AsyncAPI` component)
 - [With Parser](./docs/usage/with-parser.md) (`AsyncAPIRenderer` component, `parseAndRender` utility)
+- [Web Components](./docs/usage/with-webcomponents.md) (`<aui-asyncapi>`, `<aui-asyncapi-renderer>` — use apiuikit from any framework)
 - [Avro schemas](./docs/usage/avro.md)
 - [Protobuf schemas](./docs/usage/protobuf.md)
 
@@ -60,8 +61,9 @@ This is a monorepo. The sections below are for contributors working on the libra
 
 ```
 packages/
-  lib/         — the component library (published as "apiuikit")
-  playground/  — local dev app that consumes the library as a real package would
+  lib/            — the component library (published as "apiuikit")
+  web-component/  — framework-agnostic custom elements (published as "@apiuikit/web-component")
+  playground/     — local dev app that consumes the library as a real package would
 ```
 
 ### Commands
@@ -85,10 +87,21 @@ npm run playground   # starts both the library watcher and the playground dev se
 
 The library rebuilds automatically whenever you change a file in `packages/lib/src/`. Reload the playground tab to pick up the new build.
 
+#### Web Components
+
+```bash
+npm run build:web-component   # builds packages/lib then packages/web-component → packages/web-component/dist/
+npm run demo:wc                # builds both, then serves packages/web-component/demo/ on :8735
+```
+
+`@apiuikit/web-component` depends on `apiuikit` (the workspace package) and bundles it, along with React and ReactDOM, into a single self-contained build — rebuild `packages/lib` first whenever you change its source.
+
 ### Publishing
 
-From `packages/lib/`:
+Each package under `packages/` publishes independently. From `packages/lib/` or `packages/web-component/`:
 
 ```bash
 npm publish          # runs prepublishOnly (vite build) automatically, then publishes
 ```
+
+In this repo, releases are normally driven by [changesets](https://github.com/changesets/changesets) instead: run `npm run changeset` to record a change, and merging to `master` opens (or updates) a "Version Packages" PR; merging that PR triggers the `release` GitHub Action, which builds and publishes every package with a pending version bump.

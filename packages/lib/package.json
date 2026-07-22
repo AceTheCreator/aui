@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@asyncapi/modelina": "^5.10.1",
+    "@asyncapi/parser": "^3.6.0",
     "@chromatic-com/storybook": "^3.2.3",
     "@eslint/js": "^9.17.0",
     "@storybook/addon-a11y": "^8.6.18",
