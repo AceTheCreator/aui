@@ -17,12 +17,7 @@
       "import": "./dist/apiuikit.es.js",
       "require": "./dist/apiuikit.cjs.js"
     },
-    "./style.css": "./dist/apiuikit.css",
-    "./webcomponents": {
-      "import": "./dist/apiuikit-wc.es.js",
-      "default": "./dist/apiuikit-wc.iife.js"
-    },
-    "./webcomponents/style.css": "./dist/apiuikit-wc.css"
+    "./style.css": "./dist/apiuikit.css"
   },
   "files": [
     "dist",
@@ -30,17 +25,15 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build && npm run build:wc",
-    "build:wc": "vite build --config vite.wc.config.ts",
+    "build": "vite build",
     "watch": "vite build --watch",
-    "prepublishOnly": "cp ../../README.md ./README.md && vite build && npm run build:wc",
+    "prepublishOnly": "cp ../../README.md ./README.md && vite build",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:strict": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
     "preview": "vite preview",
-    "demo:wc": "npm run build && serve . -l 8734",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "generate:models": "tsx src/scripts/generateAsyncAPIModel.ts"
@@ -48,7 +41,6 @@
   "dependencies": {
     "@asyncapi/specs": "^6.8.1",
     "@json-schema-tools/reference-resolver": "^1.2.6",
-    "@r2wc/react-to-web-component": "^2.1.1",
     "fuse.js": "^7.5.0",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.24.0",
@@ -99,7 +91,6 @@
     "jsdom": "^29.1.1",
     "marked-linkify-it": "^3.1.12",
     "postcss": "^8.4.49",
-    "serve": "^14.2.4",
     "storybook": "^8.6.18",
     "tailwindcss": "^4.3.2",
     "tsx": "^4.21.0",

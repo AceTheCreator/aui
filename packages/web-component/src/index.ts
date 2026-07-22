@@ -1,5 +1,5 @@
 import r2wc from "@r2wc/react-to-web-component";
-import "../index.css";
+import "apiuikit/style.css";
 import { AsyncApiElement, AsyncApiRendererElement } from "./adapters";
 import { defineOnce } from "./registerElement";
 

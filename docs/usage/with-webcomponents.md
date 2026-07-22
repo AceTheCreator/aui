@@ -16,26 +16,26 @@ Elements render into light DOM (no shadow root) — apiuikit's CSS applies globa
 ## Install
 
 ```bash
-npm install apiuikit
+npm install @apiuikit/web-component
 ```
 
 Then load the elements and stylesheet once in your app:
 
 ```js
-import "apiuikit/webcomponents";
-import "apiuikit/webcomponents/style.css";
+import "@apiuikit/web-component";
+import "@apiuikit/web-component/style.css";
 ```
 
-No extra packages are required — parsing support is included.
+No extra packages are required — React, ReactDOM, and parsing support are bundled in.
 
 ## Quick start
 
 ```html
-<link rel="stylesheet" href="node_modules/apiuikit/dist/apiuikit-wc.css" />
+<link rel="stylesheet" href="node_modules/@apiuikit/web-component/dist/web-component.css" />
 
 <aui-asyncapi-renderer id="doc"></aui-asyncapi-renderer>
 
-<script type="module" src="node_modules/apiuikit/dist/apiuikit-wc.es.js"></script>
+<script type="module" src="node_modules/@apiuikit/web-component/dist/web-component.es.js"></script>
 <script type="module">
   const res = await fetch("./asyncapi.yaml");
   document.getElementById("doc").spec = await res.text();
@@ -55,8 +55,8 @@ Pass a raw AsyncAPI document as a string. The element parses it and renders the 
 | `onDiagnostics` | property only | `(diagnostics) => void` | Called after parsing with any validation messages |
 
 ```js
-import "apiuikit/webcomponents";
-import "apiuikit/webcomponents/style.css";
+import "@apiuikit/web-component";
+import "@apiuikit/web-component/style.css";
 
 const el = document.querySelector("aui-asyncapi-renderer");
 el.spec = rawYaml;
@@ -75,8 +75,8 @@ Pass an already-parsed AsyncAPI document object. Use this when your backend or b
 | `config` | property, or JSON string attribute | object | UI options |
 
 ```js
-import "apiuikit/webcomponents";
-import "apiuikit/webcomponents/style.css";
+import "@apiuikit/web-component";
+import "@apiuikit/web-component/style.css";
 
 const el = document.querySelector("aui-asyncapi");
 el.spec = parsedDocument;
@@ -103,8 +103,8 @@ Because `spec` is an object, set it from JavaScript (`el.spec = ...`), not as an
 Use the IIFE build with a normal script tag (no `type="module"` required):
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apiuikit/dist/apiuikit-wc.css" />
-<script src="https://cdn.jsdelivr.net/npm/apiuikit/dist/apiuikit-wc.iife.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@apiuikit/web-component/dist/web-component.css" />
+<script src="https://cdn.jsdelivr.net/npm/@apiuikit/web-component/dist/web-component.iife.js"></script>
 
 <aui-asyncapi-renderer id="doc"></aui-asyncapi-renderer>
 <script>
@@ -142,8 +142,8 @@ export default {
 </template>
 
 <script setup>
-import "apiuikit/webcomponents";
-import "apiuikit/webcomponents/style.css";
+import "@apiuikit/web-component";
+import "@apiuikit/web-component/style.css";
 import { onMounted, ref } from "vue";
 
 const el = ref(null);

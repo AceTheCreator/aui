@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>apiuikit web components demo</title>
-  <link rel="stylesheet" href="/dist/apiuikit-wc.css" />
+  <title>@apiuikit/web-component demo</title>
+  <link rel="stylesheet" href="/dist/web-component.css" />
   <style>
     body { font-family: sans-serif; margin: 0; }
     /* Direct-child combinator only — a bare "p"/"h2" selector would also match
@@ -33,9 +33,9 @@
     </div>
   </div>
 
-  <script type="module" src="/dist/apiuikit-wc.es.js"></script>
+  <script type="module" src="/dist/web-component.es.js"></script>
   <script type="module">
-    const rawText = await (await fetch('/src/config/examples/streetlight.json')).text();
+    const rawText = await (await fetch('/demo/streetlight.json')).text();
 
     // With parser: raw spec string, parsed internally.
     document.getElementById('renderer-el').spec = rawText;

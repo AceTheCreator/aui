@@ -1,7 +1,5 @@
-import AsyncAPI from "../containers/AsyncAPI/AsyncAPI";
-import { AsyncAPIRenderer } from "../containers/AsyncAPI/AsyncAPIRenderer";
-import type { ConfigInterface } from "../config";
-import type { AsyncAPIDocumentData } from "../types/schema";
+import AsyncAPI, { AsyncAPIRenderer } from "apiuikit";
+import type { ConfigInterface, AsyncAPIDocumentData } from "apiuikit";
 
 export interface AsyncApiElementProps {
   spec?: AsyncAPIDocumentData;
