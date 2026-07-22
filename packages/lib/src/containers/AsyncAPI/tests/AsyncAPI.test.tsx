@@ -35,6 +35,48 @@ describe("AsyncAPI", () => {
     expect(screen.queryByPlaceholderText("Search document...")).not.toBeInTheDocument();
   });
 
+  it("opens the search modal via Ctrl+K/Cmd+K when the widget is hovered", () => {
+    const { container } = render(<AsyncAPI asyncapi={asDoc(exampleDoc)} />);
+    expect(screen.queryByRole("combobox", { name: "Search document" })).not.toBeInTheDocument();
+
+    // Most of the widget's content (headings, table rows, schema trees) isn't
+    // a focusable element, so hovering — not DOM focus — is the realistic
+    // "user is engaged with this widget" signal for a plain mouse-over.
+    const widgetRoot = container.firstElementChild as Element;
+    fireEvent.mouseEnter(widgetRoot);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    expect(screen.getByRole("combobox", { name: "Search document" })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("combobox", { name: "Search document" })).not.toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "k", metaKey: true });
+    expect(screen.getByRole("combobox", { name: "Search document" })).toBeInTheDocument();
+  });
+
+  it("opens the search modal via Ctrl+K when the last click landed inside the widget", () => {
+    render(<AsyncAPI asyncapi={asDoc(exampleDoc)} />);
+
+    const heading = screen.getByRole("heading", { name: "Streetlights Kafka API" });
+    fireEvent.mouseDown(heading);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    expect(screen.getByRole("combobox", { name: "Search document" })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    // A subsequent click outside the widget flips the "last click" signal —
+    // Ctrl+K should stop firing until the widget is interacted with again.
+    fireEvent.mouseDown(document.body);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    expect(screen.queryByRole("combobox", { name: "Search document" })).not.toBeInTheDocument();
+  });
+
+  it("ignores Ctrl+K/Cmd+K when the widget is neither hovered, clicked, nor focused", () => {
+    render(<AsyncAPI asyncapi={asDoc(exampleDoc)} />);
+
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    expect(screen.queryByRole("combobox", { name: "Search document" })).not.toBeInTheDocument();
+  });
+
   it("applies an expand.schemas config change to already-mounted schema trees", () => {
     // Minimal doc with a nested object property — `source` only renders while its
     // parent `metadata` node is expanded, which is what expand.schemas controls.

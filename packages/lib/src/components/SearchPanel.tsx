@@ -59,6 +59,62 @@ export default function SearchPanel({
     setActiveIndex(-1);
   };
 
+  // "The widget is in focus" can't rely on document.activeElement alone —
+  // most of the rendered content (headings, table rows, schema trees) isn't
+  // a focusable element, so clicking around the widget would never move
+  // real DOM focus into it. Instead, track the two things that actually
+  // signal "the user is engaged with this widget": the mouse currently
+  // hovering it, or the most recent mousedown having landed inside it. Real
+  // keyboard focus (e.g. an input inside gaining focus) still counts too.
+  const isHoveredRef = useRef(false);
+  const lastPointerDownInsideRef = useRef(false);
+
+  useEffect(() => {
+    if (!rootElement) return;
+    const handleEnter = () => {
+      isHoveredRef.current = true;
+    };
+    const handleLeave = () => {
+      isHoveredRef.current = false;
+    };
+    rootElement.addEventListener("mouseenter", handleEnter);
+    rootElement.addEventListener("mouseleave", handleLeave);
+    return () => {
+      rootElement.removeEventListener("mouseenter", handleEnter);
+      rootElement.removeEventListener("mouseleave", handleLeave);
+    };
+  }, [rootElement]);
+
+  useEffect(() => {
+    if (!rootElement) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      lastPointerDownInsideRef.current = rootElement.contains(event.target as Node);
+    };
+    document.addEventListener("mousedown", handlePointerDown, true);
+    return () => document.removeEventListener("mousedown", handlePointerDown, true);
+  }, [rootElement]);
+
+  // Ctrl+K / Cmd+K opens search — but only while the widget is in focus, per
+  // the three signals tracked above. Attached to `document` (not rootElement)
+  // since the hover/last-click signals need to work even when nothing inside
+  // the widget holds real keyboard focus.
+  useEffect(() => {
+    if (!rootElement) return;
+    const handler = (event: globalThis.KeyboardEvent) => {
+      const isModKey = event.metaKey || event.ctrlKey;
+      if (!isModKey || event.key.toLowerCase() !== "k") return;
+      const isWidgetInFocus =
+        rootElement.contains(document.activeElement) ||
+        isHoveredRef.current ||
+        lastPointerDownInsideRef.current;
+      if (!isWidgetInFocus) return;
+      event.preventDefault();
+      setIsModalOpen(true);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [rootElement]);
+
   useEffect(() => {
     if (!isModalOpen) return;
     const frame = requestAnimationFrame(() => inputRef.current?.focus());
@@ -157,6 +213,7 @@ export default function SearchPanel({
   const resultCountText = showDropdown
     ? `${results.length} result${results.length === 1 ? "" : "s"} found`
     : "";
+  const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 
   return (
     <>
@@ -201,7 +258,7 @@ export default function SearchPanel({
                 aria-controls={resultsId}
                 aria-autocomplete="list"
                 aria-activedescendant={activeIndex >= 0 ? resultItemId(activeIndex) : undefined}
-                className="w-full border-b border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none"
+                className="w-full bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none"
               />
               <div aria-live="polite" className="sr-only">
                 {resultCountText}
@@ -235,6 +292,16 @@ export default function SearchPanel({
                   )}
                 </div>
               )}
+              <div className="flex items-center justify-center gap-1 px-4 py-1.5 text-xs text-foreground-muted">
+                Press
+                <kbd className="rounded border border-border bg-neutral-50 px-1 font-mono text-[10px]">
+                  {isMac ? "⌘ Cmd" : "Ctrl"}
+                </kbd>
+                <kbd className="rounded border border-border bg-neutral-50 px-1 font-mono text-[10px]">
+                  K
+                </kbd>
+                to search
+              </div>
             </div>
           </div>,
           portalHost,
