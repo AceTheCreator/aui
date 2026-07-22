@@ -9,6 +9,7 @@ import { EditorPane } from './components/EditorPane'
 import { EditorTabs } from './components/EditorTabs'
 import type { EditorTab } from './components/EditorTabs'
 import { FetchSchema } from './components/FetchSchema'
+import { GitHubLink } from './components/GitHubLink'
 import { ResizeHandle } from './components/ResizeHandle'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ViewToggle } from './components/ViewToggle'
@@ -108,6 +109,7 @@ export function Playground({
               palette={palette}
               trailing={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingRight: '6px' }}>
+                  <GitHubLink palette={palette} />
                   <ThemeToggle mode={uiMode} palette={palette} onChange={setUiMode} />
                   <ViewToggle expanded palette={palette} onChange={setEditorExpanded} />
                 </div>
@@ -171,6 +173,7 @@ export function Playground({
             zIndex: 40,
           }}
         >
+          <GitHubLink palette={palette} />
           <ThemeToggle mode={uiMode} palette={palette} onChange={setUiMode} />
           <ViewToggle expanded={false} palette={palette} onChange={setEditorExpanded} />
         </div>
