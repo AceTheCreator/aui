@@ -31,7 +31,7 @@ const doc = {
 describe("standalone section components", () => {
   it("renders <Operations document={...}> on its own, without an ambient provider", () => {
     render(<Operations document={asDoc(doc)} />);
-    // The operations table renders its channel address — proof it mounted with
+    // The operations table renders its channel address, proof it mounted with
     // a working document context (no useAsyncAPIDocument throw, $ref resolved).
     expect(document.body.textContent).toContain("smartylighting/measured");
     expect(document.body.textContent).not.toContain("$ref");

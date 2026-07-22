@@ -10,7 +10,7 @@ import { ComponentProps } from "react";
 
 // SearchPanel is a controlled component (query/results in, selection out) and
 // needs no document context. To make the story interactive, useSpecSearch
-// supplies real query state + Fuse-ranked results from the example spec —
+// supplies real query state + Fuse-ranked results from the example spec:
 // type "server", "light", "kafka", etc. to see live matches.
 const document = resolveDocument(
   rawExample as unknown as Record<string, unknown>,

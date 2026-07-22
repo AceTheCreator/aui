@@ -4,7 +4,7 @@ import { centeredDecorator } from "./documentContextDecorator";
 
 // Authorization is a pure presentational component (no document context) that
 // renders one tab per declared security scheme, with a different body per
-// type — OAuth2 shows its flows/scopes, API key shows placement guidance,
+// type: OAuth2 shows its flows/scopes, API key shows placement guidance,
 // X.509/SASL show static instructions, OpenID links its discovery URL. These
 // stories exercise that per-type rendering, which is otherwise only reachable
 // by finding a spec that happens to declare each scheme.

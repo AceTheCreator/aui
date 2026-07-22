@@ -102,11 +102,11 @@ export default function Layout({ asyncapi, config }: LayoutProps) {
       }
       if (lastScrolledIdRef.current !== targetId) {
         // Guarded: a scrollIntoView failure shouldn't take the highlight
-        // down with it — they're independent concerns.
+        // down with it, they're independent concerns.
         try {
           target.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch {
-          // ignore — highlighting still proceeds below
+          // ignore, highlighting still proceeds below
         }
         lastScrolledIdRef.current = targetId;
       }

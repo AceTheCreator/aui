@@ -13,6 +13,7 @@ const meta = {
   title: "Components/SchemaTab",
   component: SchemaTab,
   decorators: [decorator],
+  tags: ["autodocs"],
 } satisfies Meta<typeof SchemaTab>;
 
 export default meta;

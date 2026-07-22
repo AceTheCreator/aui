@@ -13,6 +13,7 @@ const meta = {
   title: "Components/Messages",
   component: Messages,
   decorators: [centeredDecorator],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Messages>;
 
 export default meta;

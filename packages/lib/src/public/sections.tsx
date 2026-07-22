@@ -19,10 +19,10 @@ import Information from "../containers/Information/Information";
  * `<AsyncAPI>` widget.
  *
  * They're dual-mode:
- *   - Standalone — pass a `document` (and optional `config`); the section
+ *   - Standalone: pass a `document` (and optional `config`); the section
  *     resolves it and sets up its own context.
  *       <Operations document={doc} />
- *   - Composed — render several under one <AsyncAPIProvider> (resolves once,
+ *   - Composed: render several under one <AsyncAPIProvider> (resolves once,
  *     shares context); sections then read from it and their own `document`
  *     prop is unnecessary.
  *       <AsyncAPIProvider document={doc}>
@@ -41,15 +41,18 @@ export interface SectionProps {
 
 /**
  * Provider that resolves a document once and shares it with any section
- * components rendered inside — the composition entry point.
+ * components rendered inside: the composition entry point.
  */
 export function AsyncAPIProvider({
   document,
   config,
   children,
 }: {
+  /** The AsyncAPI document to resolve and share with sections inside. */
   document: AsyncAPIDocumentData;
+  /** UI configuration (theme, schema expansion defaults) shared with sections inside. */
   config?: ConfigInterface;
+  /** Section components (or your own), rendered with access to the shared document context. */
   children: ReactNode;
 }) {
   const resolved = useMemo(() => resolveDocument(document), [document]);

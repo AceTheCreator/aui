@@ -6,7 +6,7 @@ import { centeredDecorator } from "./documentContextDecorator";
 // `bindings` prop is the per-protocol object (the value under a protocol key,
 // not the whole bindings map). `protocol` drives the label/badge styling.
 // Values render by type: URLs become links, booleans/numbers are colored,
-// nested objects indent recursively — the stories below cover a flat config
+// nested objects indent recursively; the stories below cover a flat config
 // and a nested one.
 const meta = {
   title: "Internal/Bindings",
@@ -17,7 +17,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// A Kafka server binding (schema registry) — starts open via `expand`.
+// A Kafka server binding (schema registry), starts open via `expand`.
 export const KafkaServer: Story = {
   args: {
     protocol: "kafka",
@@ -50,7 +50,7 @@ export const KafkaOperation: Story = {
   },
 };
 
-// Collapsed by default — click the header to expand.
+// Collapsed by default: click the header to expand.
 export const Collapsed: Story = {
   args: {
     protocol: "kafka",
