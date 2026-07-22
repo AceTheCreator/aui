@@ -8,7 +8,7 @@ import type { Parameter } from "../types/asyncapi/Parameter";
 // ChannelAddress renders a channel address, coloring each {parameter} segment
 // and showing a hover/focus tooltip for parameters that have details
 // (description, default, enum, examples). The tooltip is portaled to
-// `portalHost`, so the decorator provides one (the story container) — without
+// `portalHost`, so the decorator provides one (the story container); without
 // it the address still renders but tooltips can't appear.
 const withPortalHost = (Story: ComponentType) => {
   return (
@@ -50,7 +50,7 @@ const parameters: Record<string, Parameter> = {
   } as Parameter,
 };
 
-// Address with parameterized segments — hover/focus a colored {param} to see
+// Address with parameterized segments: hover/focus a colored {param} to see
 // its tooltip.
 export const WithParameters: Story = {
   args: {

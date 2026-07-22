@@ -31,7 +31,7 @@ export function AsyncAPIDocumentProvider({
     derefCache.clear();
   }, [asyncapi, derefCache]);
 
-  // Fallback resolver for the few $refs that survive upfront resolution —
+  // Fallback resolver for the few $refs that survive upfront resolution:
   // resolveDocument deliberately leaves cycle-forming refs in place, and the
   // schema tree resolves those lazily (one level per expansion) via this.
   const deref = useCallback((refPath: string) => {

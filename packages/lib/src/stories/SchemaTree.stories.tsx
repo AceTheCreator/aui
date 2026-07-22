@@ -48,6 +48,7 @@ const meta = {
   title: "Components/SchemaTree",
   component: SchemaTree,
   decorators: [withSchemaContext],
+  tags: ["autodocs"],
 } satisfies Meta<typeof SchemaTree>;
 
 export default meta;

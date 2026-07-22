@@ -45,11 +45,41 @@ export default function App() {
 
 Avro and Protobuf message payloads are supported out of the box in both entry points, no extra install required.
 
+### Rendering sections individually
+
+Prefer your own layout over the full widget? Render one section on its own by passing it a `document`:
+
+```tsx
+import { Operations } from "apiuikit";
+import doc from "./asyncapi.json";
+
+export default function OperationsPage() {
+  return <Operations document={doc} />;
+}
+```
+
+`Servers`, `Operations`, `Messages`, `Schemas`, and `Info` all work this way. To arrange several of them together, wrap them in `AsyncAPIProvider` instead so the document is resolved once and shared:
+
+```tsx
+import { AsyncAPIProvider, Servers, Operations, Schemas } from "apiuikit";
+
+export default function CustomLayout() {
+  return (
+    <AsyncAPIProvider document={doc}>
+      <Servers />
+      <Operations />
+      <Schemas />
+    </AsyncAPIProvider>
+  );
+}
+```
+
 See the full usage docs for props, configuration options, and more:
 
 - [Without Parser](./docs/usage/no-parser.md) (`AsyncAPI` component)
 - [With Parser](./docs/usage/with-parser.md) (`AsyncAPIRenderer` component, `parseAndRender` utility)
-- [Web Components](./docs/usage/with-webcomponents.md) (`<aui-asyncapi>`, `<aui-asyncapi-renderer>` — use apiuikit from any framework)
+- [Composable Sections](./docs/usage/sections.md) (`Servers`, `Operations`, `Messages`, `Schemas`, `Info`, `AsyncAPIProvider`)
+- [Web Components](./docs/usage/with-webcomponents.md) (`<aui-asyncapi>`, `<aui-asyncapi-renderer>`, use apiuikit from any framework)
 - [Avro schemas](./docs/usage/avro.md)
 - [Protobuf schemas](./docs/usage/protobuf.md)
 
@@ -61,9 +91,9 @@ This is a monorepo. The sections below are for contributors working on the libra
 
 ```
 packages/
-  lib/            — the component library (published as "apiuikit")
-  web-component/  — framework-agnostic custom elements (published as "@apiuikit/web-component")
-  playground/     — local dev app that consumes the library as a real package would
+  lib/            : the component library (published as "apiuikit")
+  web-component/  : framework-agnostic custom elements (published as "@apiuikit/web-component")
+  playground/     : local dev app that consumes the library as a real package would
 ```
 
 ### Commands
@@ -94,7 +124,7 @@ npm run build:web-component   # builds packages/lib then packages/web-component 
 npm run demo:wc                # builds both, then serves packages/web-component/demo/ on :8735
 ```
 
-`@apiuikit/web-component` depends on `apiuikit` (the workspace package) and bundles it, along with React and ReactDOM, into a single self-contained build — rebuild `packages/lib` first whenever you change its source.
+`@apiuikit/web-component` depends on `apiuikit` (the workspace package) and bundles it, along with React and ReactDOM, into a single self-contained build. Rebuild `packages/lib` first whenever you change its source.
 
 ### Publishing
 

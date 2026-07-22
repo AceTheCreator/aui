@@ -241,30 +241,38 @@ export default function SearchPanel({
               // tailwind config repoints the sm/md/lg/xl max-w-* scale to
               // match its @container query breakpoints (up to 80rem), so
               // those utilities would render far wider than intended here.
-              className="relative h-fit w-full max-w-[32rem] overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+              className="relative h-fit w-full max-w-[36rem] overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
             >
-              <input
-                ref={inputRef}
-                id="asyncapi-search"
-                type="search"
-                value={query}
-                onChange={(event) => onQueryChange(event.target.value)}
-                onKeyDown={handleInputKeyDown}
-                placeholder="Search document..."
-                aria-label="Search document"
-                role="combobox"
-                aria-haspopup="listbox"
-                aria-expanded={showDropdown}
-                aria-controls={resultsId}
-                aria-autocomplete="list"
-                aria-activedescendant={activeIndex >= 0 ? resultItemId(activeIndex) : undefined}
-                className="w-full bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none"
-              />
+              <div className="p-4">
+                <input
+                  ref={inputRef}
+                  id="asyncapi-search"
+                  type="search"
+                  value={query}
+                  onChange={(event) => onQueryChange(event.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder="Search document..."
+                  aria-label="Search document"
+                  role="combobox"
+                  aria-haspopup="listbox"
+                  aria-expanded={showDropdown}
+                  aria-controls={resultsId}
+                  aria-autocomplete="list"
+                  aria-activedescendant={
+                    activeIndex >= 0 ? resultItemId(activeIndex) : undefined
+                  }
+                  className="w-full rounded-md bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none"
+                />
+              </div>
               <div aria-live="polite" className="sr-only">
                 {resultCountText}
               </div>
               {showDropdown && (
-                <div id={resultsId} role="listbox" className="max-h-80 overflow-y-auto">
+                <div
+                  id={resultsId}
+                  role="listbox"
+                  className="max-h-80 overflow-y-auto"
+                >
                   {results.length > 0 ? (
                     <ul className="divide-y divide-border">
                       {results.map((result, index) => (
@@ -275,20 +283,28 @@ export default function SearchPanel({
                             role="option"
                             aria-selected={activeIndex === index}
                             onClick={() => handleSelectResult(result)}
-                            className={"w-full text-left px-4 py-3 hover:bg-neutral-50 " +
-                              (activeIndex === index ? "bg-neutral-100" : "")}
+                            className={
+                              "w-full text-left px-4 py-3 hover:bg-neutral-50 " +
+                              (activeIndex === index ? "bg-neutral-100" : "")
+                            }
                           >
-                            <div className="text-sm font-semibold text-foreground">{result.name}</div>
+                            <div className="text-sm font-semibold text-foreground">
+                              {result.name}
+                            </div>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground-muted">
                               <span>{result.location}</span>
-                              {result.subtitle && <span>• {result.subtitle}</span>}
+                              {result.subtitle && (
+                                <span>• {result.subtitle}</span>
+                              )}
                             </div>
                           </button>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="px-4 py-4 text-sm text-foreground-muted">No results found.</div>
+                    <div className="px-4 py-4 text-sm text-foreground-muted">
+                      No results found.
+                    </div>
                   )}
                 </div>
               )}

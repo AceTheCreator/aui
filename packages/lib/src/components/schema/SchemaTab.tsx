@@ -18,13 +18,18 @@ function SchemaTabs({
   conversionError,
   pendingConversion,
 }: {
+  /** JSON Schema to render in the Schema/Example tabs. */
   schema: unknown;
+  /** Heading shown above the tab toggle, e.g. "Payload" or "Headers". */
   label: string;
   description?: string;
+  /** Declared multi-format wrapper (e.g. Avro, Protobuf) this schema was converted from, if any. */
   schemaFormat?: string;
+  /** The pre-conversion schema, shown in the JSON tab instead of the converted `schema`. */
   originalSchema?: unknown;
+  /** When set, conversion from `schemaFormat` failed: shown as a warning and hides the Example tab. */
   conversionError?: string;
-  /** True while a Protobuf converter is still loading — see lazyProtoToJsonSchema.ts. */
+  /** True while a Protobuf converter is still loading, see lazyProtoToJsonSchema.ts. */
   pendingConversion?: boolean;
 }) {
   const formatBadge = schemaFormatBadge(schemaFormat);
@@ -75,7 +80,7 @@ function SchemaTabs({
       </div>
       {conversionError && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mb-2">
-          Could not convert {schemaFormatName(schemaFormat) ?? "the"} schema —
+          Could not convert {schemaFormatName(schemaFormat) ?? "the"} schema,
           showing raw definition. {conversionError}
         </p>
       )}

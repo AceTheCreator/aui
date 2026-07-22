@@ -17,8 +17,8 @@ export const centeredDecorator = (Story: ComponentType) => (
 
 /**
  * Shared Storybook decorator for rendering container components
- * (Servers/Messages/Operations) in isolation. Those components — and their
- * children (ChannelAddress, MessageDetails, the schema tree) — read from
+ * (Servers/Messages/Operations) in isolation. Those components, and their
+ * children (ChannelAddress, MessageDetails, the schema tree), read from
  * AsyncAPIDocumentContext via useAsyncAPIDocument, which throws without a
  * provider. This wraps a story in that provider, backed by a real document.
  *
