@@ -1,5 +1,11 @@
 # apiuikit
 
+## 0.4.1
+
+### Patch Changes
+
+- 4be20f1: docs update
+
 ## 0.4.0
 
 ### Minor Changes

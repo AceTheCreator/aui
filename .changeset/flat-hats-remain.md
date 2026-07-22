@@ -1,5 +1,0 @@
----
-"apiuikit": patch
----
-
-docs update
