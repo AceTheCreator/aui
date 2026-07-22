@@ -1,5 +1,11 @@
 # apiuikit
 
+## 0.4.0
+
+### Minor Changes
+
+- e02cf61: Improve search panel UI with clearer Cmd/Ctrl+K shortcut hints for Mac and non-Mac users
+
 ## 0.3.0
 
 ### Minor Changes
